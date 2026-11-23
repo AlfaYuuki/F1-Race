@@ -11,7 +11,8 @@ const game=createGame(canvas,{
     document.querySelector('#lap-label').innerHTML=`${String(lap).padStart(2,'0')}<span> / 03</span>`;
     document.querySelector('#position-label').innerHTML=`P${position}<span> / 06</span>`;
     document.querySelector('#status-label').textContent=offRoad?'OFF TRACK':state==='running'?'ENGINE ACTIVE':state==='finished'?'SESSION COMPLETE':state==='paused'?'PAUSED':'ENGINE STANDBY';
-    if(state==='finished'){startScreen.classList.remove('hidden');startButton.textContent='RACE AGAIN ↗';}\n    if(standings)leaderboard.innerHTML=standings.map((driver,index)=>`<li class="${driver.isPlayer?'player-row':''}"><span class="rank">${String(index+1).padStart(2,'0')}</span><i style="--driver-color:${driver.color}"></i><span>${escapeHtml(driver.name)}</span><b>${state==='ready'?'GRID':`L${Math.min(3,Math.floor(driver.distance/4563)+1)}`}</b></li>`).join('');
+    if(state==='finished'){startScreen.classList.remove('hidden');startButton.textContent='RACE AGAIN ↗';}
+    if(standings)leaderboard.innerHTML=standings.map((driver,index)=>`<li class="${driver.isPlayer?'player-row':''}"><span class="rank">${String(index+1).padStart(2,'0')}</span><i style="--driver-color:${driver.color}"></i><span>${escapeHtml(driver.name)}</span><b>${state==='ready'?'GRID':`L${Math.min(3,Math.floor(driver.distance/4563)+1)}`}</b></li>`).join('');
   },
   onMessage:message=>{document.querySelector('#race-message').textContent=message;},
   onStart:()=>{startScreen.classList.add('hidden');startButton.textContent='RESTART RACE ↗';},
