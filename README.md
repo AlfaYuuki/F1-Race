@@ -1,42 +1,60 @@
 # The F1 Race 🏎️
 
-A lightweight browser-based arcade racing prototype set at a fictionalized Fuji-inspired circuit, with Mount Fuji on the horizon.
+A browser-based arcade racing prototype set on a Fuji-inspired circuit, with Mount Fuji on the horizon. Built with plain HTML, CSS, JavaScript modules, and the HTML Canvas API — no framework or build step required.
 
 ## Run locally
 
-Because the JavaScript uses ES modules, run it through a local development server rather than opening `index.html` directly.
+JavaScript modules need to be served over HTTP; opening `index.html` directly may block module loading.
 
-### Option 1: Python
+### Python
 ```bash
 python -m http.server 8000
 ```
-Then visit http://localhost:8000
+Open [http://localhost:8000](http://localhost:8000).
 
-### Option 2: VS Code
-Install the **Live Server** extension, right-click `index.html`, and choose **Open with Live Server**.
+### VS Code
+Use the Live Server extension and open `index.html` with Live Server.
 
 ## Controls
-- W / ↑: accelerate
-- S / ↓: brake
-- A / ←: steer left
-- D / →: steer right
-- Touch controls are available on narrow/mobile screens.
 
-## Architecture
-- `js/main.js` — application entry point and UI wiring
-- `js/game.js` — race state, countdown, laps and animation loop
-- `js/renderer.js` — Canvas scenery, perspective road and player car
-- `js/physics.js` — arcade speed and steering model
-- `js/track.js` — track curve helpers
-- `js/controls.js` — keyboard and touch input
-- `css/main.css` — responsive visual system
+| Action | Keyboard | Mobile |
+| --- | --- | --- |
+| Accelerate | W / ↑ | GO |
+| Brake | S / ↓ | BRAKE |
+| Steer left | A / ← | ◀ |
+| Steer right | D / → | ▶ |
 
-## Current prototype scope
-This is an original pseudo-3D arcade prototype, not a licensed Formula 1 simulation. It currently includes a player car, perspective road, scenery, basic arcade handling, a three-lap timer, HUD and touch controls. Competitors, detailed vehicle models, sound, collisions and track-specific accuracy are planned for later milestones.
+## Project structure
 
-## Next milestones
-1. Add opponents and race positions.
-2. Improve track geometry, corner variety and collision handling.
-3. Add car selection, upgrades and a garage.
-4. Add audio, settings and persistent best-lap records.
-5. Optimize rendering and accessibility across devices.
+```text
+F1-Race/
+├── index.html
+├── README.md
+├── .gitignore
+├── css/
+│   └── main.css
+└── js/
+    ├── main.js       # Application entry point and HUD wiring
+    ├── game.js       # Race state, countdown, laps and animation loop
+    ├── renderer.js   # Canvas scene, perspective road, scenery and car
+    ├── physics.js    # Arcade acceleration, braking and steering
+    ├── track.js      # Track curve helpers
+    └── controls.js   # Keyboard and touch input
+```
+
+## Current prototype
+
+- Responsive racing-game interface and HUD
+- Pseudo-3D perspective road with animated track markings
+- Fuji-inspired distant mountain scenery and roadside trees
+- Player car with arcade acceleration, braking and steering
+- Three-lap session timer and countdown
+- Keyboard and touch controls
+
+This is an original arcade prototype, not a licensed Formula 1 product or a full-accuracy motorsport simulator. Opponent AI, detailed vehicle models, audio, collisions, track-specific geometry and saved lap records are future milestones.
+
+## Development notes
+
+- Keep application code in `js/` and styles in `css/`.
+- Use ES modules and avoid adding a build system unless the project needs one.
+- Test keyboard and touch controls at both desktop and mobile viewport sizes.
