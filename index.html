@@ -16,11 +16,11 @@
     <aside class="intro-panel">
       <p class="eyebrow">ARCADE RACING EXPERIENCE</p>
       <h1>CHASE THE<br><em>HORIZON.</em></h1>
-      <p class="intro-copy">Find your racing line beneath Mount Fuji. Keep it smooth, stay on track, and make every second count.</p>
+      <p class="intro-copy">Find your racing line beneath Mount Fuji. Five rivals are on the grid. Keep it smooth, pick your moments, and fight for the lead.</p>
       <div class="track-card">
         <div class="track-card-top"><span>01 / CIRCUIT</span><span class="track-status">AVAILABLE</span></div>
         <h2>Fuji International</h2><p>Shizuoka Prefecture, Japan</p>
-        <div class="track-stats"><div><b>4.56</b><small>KM TRACK</small></div><div><b>16</b><small>CORNERS</small></div><div><b>03</b><small>LAPS</small></div></div>
+        <div class="track-stats"><div><b>4.56</b><small>KM TRACK</small></div><div><b>16</b><small>CORNERS</small></div><div><b>06</b><small>DRIVERS</small></div></div>
       </div>
       <div class="controls-help">
         <span class="eyebrow">CONTROLS</span>
@@ -35,8 +35,8 @@
     <section class="race-panel" aria-label="Racing game">
       <div class="race-hud">
         <div><small>SESSION</small><b id="session-label">READY</b></div>
+        <div><small>POSITION</small><b id="position-label">P1 <span>/ 06</span></b></div>
         <div><small>LAP</small><b id="lap-label">01 <span>/ 03</span></b></div>
-        <div><small>TIME</small><b id="time-label">00:00.000</b></div>
         <div><small>SPEED</small><b><span id="speed-label">0</span><i> KM/H</i></b></div>
       </div>
       <div class="canvas-wrap">
@@ -48,6 +48,17 @@
           <div class="pedal-controls"><button data-control="brake">BRAKE</button><button data-control="accelerate">GO</button></div>
         </div>
       </div>
+      <section class="leaderboard" aria-label="Live race leaderboard">
+        <div class="leaderboard-heading"><span>LIVE STANDINGS</span><span>6 DRIVERS</span></div>
+        <ol id="leaderboard-list">
+          <li class="player-row"><span class="rank">01</span><span class="driver-swatch player-swatch"></span><span class="driver-name">YOU <small>PLAYER</small></span><b>GRID</b></li>
+          <li><span class="rank">02</span><span class="driver-swatch" style="--driver-color:#45a5e8"></span><span class="driver-name">K. SATO</span><b>GRID</b></li>
+          <li><span class="rank">03</span><span class="driver-swatch" style="--driver-color:#f1bd4b"></span><span class="driver-name">M. TANAKA</span><b>GRID</b></li>
+          <li><span class="rank">04</span><span class="driver-swatch" style="--driver-color:#9b79df"></span><span class="driver-name">L. MORI</span><b>GRID</b></li>
+          <li><span class="rank">05</span><span class="driver-swatch" style="--driver-color:#55c49a"></span><span class="driver-name">A. KOBAYASHI</span><b>GRID</b></li>
+          <li><span class="rank">06</span><span class="driver-swatch" style="--driver-color:#e58b55"></span><span class="driver-name">R. NAKAMURA</span><b>GRID</b></li>
+        </ol>
+      </section>
       <div class="race-footer"><span><i class="footer-dot"></i> FUJI CIRCUIT · DRY CONDITIONS</span><span id="status-label">ENGINE STANDBY</span></div>
     </section>
   </section>

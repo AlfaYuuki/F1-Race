@@ -11,3 +11,17 @@
 .mobile-controls{display:none;position:absolute;inset:auto 15px 15px;justify-content:space-between;align-items:end;pointer-events:none}.mobile-controls button{pointer-events:auto;border:1px solid #ffffff66;background:#061321c9;color:white;border-radius:8px;min-width:48px;height:48px;font:700 12px 'DM Mono',monospace;touch-action:none}.steer-controls,.pedal-controls{display:flex;gap:8px}.pedal-controls button:last-child{background:#d9363c}
 @media(max-width:950px){.app-shell{padding:0 22px}.game-layout{grid-template-columns:1fr;gap:22px;padding-top:25px}.intro-panel{display:grid;grid-template-columns:1fr 1fr;column-gap:22px}.intro-panel>.eyebrow,.intro-panel h1,.intro-copy{grid-column:1}.track-card{grid-column:2;grid-row:1/span 3;margin:0}.controls-help{grid-column:1}.start-button,.fine-print{grid-column:1}.canvas-wrap{min-height:330px}}
 @media(max-width:620px){.app-shell{padding:0 14px}.topbar{height:65px}.topbar-right{font-size:8px}.game-layout{padding-top:18px}.intro-panel{display:block}.intro-panel h1{font-size:58px}.intro-copy{margin-bottom:18px}.track-card{margin-bottom:20px}.controls-help{display:none}.fine-print{margin-bottom:0}.race-hud{height:65px;padding:0 12px;gap:5px}.race-hud small{font-size:7px}.race-hud b{font-size:16px}.canvas-wrap{min-height:300px;aspect-ratio:4/3}.mobile-controls{display:flex}.race-message{font-size:7px;top:9px}.race-footer{font-size:7px;padding:0 9px}.site-footer{font-size:7px}}
+
+/* Competitive race standings */
+.leaderboard{padding:15px 18px 12px;background:#091624;border-top:1px solid var(--line)}
+.leaderboard-heading{display:flex;justify-content:space-between;margin-bottom:9px;color:#8ea3b5;font:9px 'DM Mono',monospace;letter-spacing:.14em}
+.leaderboard ol{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.leaderboard li{min-width:0;display:flex;align-items:center;gap:8px;padding:8px 9px;background:rgba(255,255,255,.035);border:1px solid transparent;border-radius:3px}
+.leaderboard li.player-row{background:rgba(240,68,68,.09);border-color:rgba(240,68,68,.35)}
+.leaderboard .rank{font:700 11px 'DM Mono',monospace;color:#90a5b6}
+.driver-swatch{flex:0 0 7px;width:7px;height:18px;background:var(--driver-color,#ed4148);border-radius:2px}
+.player-swatch{--driver-color:#ed4148}
+.driver-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:700 10px 'Barlow Condensed',sans-serif;letter-spacing:.04em}
+.driver-name small{display:block;color:#8da0b3;font:8px 'DM Mono',monospace;letter-spacing:.08em;margin-top:2px}
+.leaderboard li>b{margin-left:auto;color:#8da0b3;font:8px 'DM Mono',monospace;white-space:nowrap}
+@media(max-width:620px){.leaderboard{padding:12px 9px}.leaderboard ol{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.leaderboard li{padding:7px 6px;gap:6px}.driver-name{font-size:9px}.leaderboard li>b{font-size:7px}}
