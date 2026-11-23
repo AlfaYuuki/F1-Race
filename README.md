@@ -42,6 +42,15 @@ Open [http://localhost:8000](http://localhost:8000).
 - Added smoke/skid particles and impact sparks/flash feedback
 - Preserved the full-screen Fuji-inspired layout, existing physics, controls and AI rivals
 
+## Milestone 5 — Racing immersion
+
+- Added synthesized engine audio with RPM-responsive tone and gear-shift cues (toggle with M or the audio button)
+- Added gear and RPM telemetry
+- Added last-lap, best-lap and sector timing
+- Added trackside grandstands and Fuji/RACE boards
+- Added tire smoke/skid particles and impact sparks/flash feedback
+- Preserved the full-screen Fuji-inspired layout, existing controls, physics and AI rivals
+
 ## Project structure
 
 ```text
@@ -52,7 +61,7 @@ F1-Race/
 ├── css/main.css
 └── js/
     ├── main.js
-    ├── audio.js\n    ├── game.js
+    ├── audio.js\n    ├── audio.js\n    ├── game.js
     ├── renderer.js
     ├── physics.js
     ├── track.js

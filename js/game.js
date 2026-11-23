@@ -2,7 +2,7 @@ import { createPhysics } from './physics.js';
 import { createRenderer } from './renderer.js';
 import { curveAt, LAP_DISTANCE, TOTAL_DISTANCE, TOTAL_LAPS } from './track.js';
 import { createOpponents } from './opponents.js';
-const formatTime=ms=>{const m=Math.floor(ms/60000),s=Math.floor(ms/1000)%60,mm=Math.floor(ms%1000);return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(mm).padStart(3,'0')}`;};
+const formatTime=ms=>{if(ms==null||!Number.isFinite(ms))return '--:--.---';const m=Math.floor(ms/60000),s=Math.floor(ms/1000)%60,mm=Math.floor(ms%1000);return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(mm).padStart(3,'0')}`;};
 export function createGame(canvas,callbacks={}) {
   const physics=createPhysics(),renderer=createRenderer(canvas),input=new Set(),opponents=createOpponents(LAP_DISTANCE);
   let state='ready',last=0,elapsed=0,raceDistance=0,lap=1,countdownTimer=null,raf=0,collisionCooldown=0,impactPulse=0;
@@ -40,6 +40,11 @@ export function createGame(canvas,callbacks={}) {
       const rival=opponents.drivers.find(d=>Math.abs(d.distance-raceDistance)<7.5&&Math.abs((d.currentLane??d.lane)-physics.playerX)<.27);
       if(rival){physics.impact(physics.playerX<=rival.currentLane? -1:1);collisionCooldown=1.1;impactPulse=1;renderer.triggerImpact?.();notify('CONTACT — KEEP IT CLEAN!');}
     }
+    const currentLapIndex=Math.floor(raceDistance/LAP_DISTANCE);
+    const lapProgress=(raceDistance%LAP_DISTANCE)/LAP_DISTANCE;
+    const currentSector=lapProgress<1/3?1:lapProgress<2/3?2:3;
+    if(currentSector!==sector){notify(`SECTOR ${sector} COMPLETE — ${formatTime(sectorElapsed)}`);sector=currentSector;sectorElapsed=0;}
+    if(currentLapIndex>previousLapIndex){lastLap=lapElapsed;bestLap=bestLap===null?lastLap:Math.min(bestLap,lastLap);lapElapsed=0;sector=1;sectorElapsed=0;notify(`LAP ${currentLapIndex+1} — ${formatTime(lastLap)}`);}
     const currentLapIndex=Math.floor(raceDistance/LAP_DISTANCE);
     const lapProgress=(raceDistance%LAP_DISTANCE)/LAP_DISTANCE;
     const currentSector=lapProgress<1/3?1:lapProgress<2/3?2:3;
