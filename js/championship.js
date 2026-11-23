@@ -2,7 +2,11 @@ const POINTS = [25, 18, 15, 12, 10, 8];
 const ROUNDS = 5;
 const KEY = 'the-f1-race-championship-v1';
 
-export function createChampionship(storage = globalThis.localStorage) {
+function availableStorage() {
+  try { return globalThis.localStorage; } catch { return null; }
+}
+
+export function createChampionship(storage = availableStorage()) {
   let season = null;
 
   function blankSeason() {
@@ -20,7 +24,7 @@ export function createChampionship(storage = globalThis.localStorage) {
   }
 
   function save() {
-    try { storage?.setItem(KEY, JSON.stringify(season)); } catch { /* Private browsing may disable storage. */ }
+    try { storage?.setItem(KEY, JSON.stringify(season)); } catch { /* Storage may be unavailable. */ }
   }
 
   function load() {
