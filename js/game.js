@@ -45,11 +45,6 @@ export function createGame(canvas,callbacks={}) {
     const currentSector=lapProgress<1/3?1:lapProgress<2/3?2:3;
     if(currentSector!==sector){notify(`SECTOR ${sector} COMPLETE — ${formatTime(sectorElapsed)}`);sector=currentSector;sectorElapsed=0;}
     if(currentLapIndex>previousLapIndex){lastLap=lapElapsed;bestLap=bestLap===null?lastLap:Math.min(bestLap,lastLap);lapElapsed=0;sector=1;sectorElapsed=0;notify(`LAP ${currentLapIndex+1} — ${formatTime(lastLap)}`);}
-    const currentLapIndex=Math.floor(raceDistance/LAP_DISTANCE);
-    const lapProgress=(raceDistance%LAP_DISTANCE)/LAP_DISTANCE;
-    const currentSector=lapProgress<1/3?1:lapProgress<2/3?2:3;
-    if(currentSector!==sector){notify(`SECTOR ${sector} COMPLETE — ${formatTime(sectorElapsed)}`);sector=currentSector;sectorElapsed=0;}
-    if(currentLapIndex>previousLapIndex){lastLap=lapElapsed;bestLap=bestLap===null?lastLap:Math.min(bestLap,lastLap);lapElapsed=0;sector=1;sectorElapsed=0;notify(`LAP ${currentLapIndex+1} — ${formatTime(lastLap)}`);}
     if(raceDistance>=TOTAL_DISTANCE){raceDistance=TOTAL_DISTANCE;state='finished';physics.speed=0;notify('CHEQUERED FLAG — RACE COMPLETE!');}
     lap=Math.min(TOTAL_LAPS,Math.floor(raceDistance/LAP_DISTANCE)+1);
     const rivalCars=opponents.drivers.map(d=>({...d,relativeDistance:d.distance-raceDistance}));
