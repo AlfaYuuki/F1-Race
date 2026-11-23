@@ -49,3 +49,11 @@ button{font:inherit}
 .championship-summary{margin:10px 0 0!important;color:#a9bdca!important;font:8px var(--mono)!important;letter-spacing:.06em;line-height:1.6!important}
 .championship-button.hidden{display:none}
 @media(max-width:760px){.championship-button{padding:12px;font-size:9px}.championship-summary{font-size:7px!important}}
+
+/* Milestone 8 — mobile-first 3D viewport handling */
+#race-canvas{touch-action:none}
+.race-game{height:100vh;height:100dvh;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+.mobile-controls{bottom:calc(48px + env(safe-area-inset-bottom))}
+.race-bottom{padding-bottom:env(safe-area-inset-bottom)}
+@media(max-width:760px){.mobile-controls{left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right))}.mobile-controls button{min-width:58px;height:58px}.pedal-controls button:last-child{min-width:72px}}
+@media(max-height:520px) and (orientation:landscape){.hud{top:60px;padding:7px 9px}.standings{top:60px}.start-card{padding:16px;transform:scale(.88);transform-origin:center}.mobile-controls{bottom:38px}.timing-panel{bottom:38px}.race-bottom{height:27px}}
