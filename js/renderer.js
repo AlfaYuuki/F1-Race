@@ -140,6 +140,14 @@ export function createRenderer(canvas) {
   } catch { gl = null; }
   if (!gl) return create2DRenderer(canvas);
 
+  function fallbackRenderer() {
+    const fallbackCanvas = document.createElement('canvas');
+    fallbackCanvas.setAttribute('aria-hidden', 'true');
+    fallbackCanvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0';
+    canvas.parentNode?.insertBefore(fallbackCanvas, canvas.nextSibling);
+    return create2DRenderer(fallbackCanvas);
+  }
+
   let program, positionBuffer, colorBuffer, positionLocation, colorLocation, matrixLocation;
   try {
     program = createProgram(gl);
@@ -150,7 +158,7 @@ export function createRenderer(canvas) {
     matrixLocation = gl.getUniformLocation(program, 'uViewProjection');
   } catch (error) {
     console.warn('3D renderer unavailable; using 2D fallback.', error);
-    return create2DRenderer(canvas);
+    return fallbackRenderer();
   }
 
   let width = 1, height = 1, dpr = 1, lost = false, impactFlash = 0;
@@ -164,6 +172,16 @@ export function createRenderer(canvas) {
     canvas.width = Math.max(1, Math.round(width * scale));
     canvas.height = Math.max(1, Math.round(height * scale));
     gl.viewport(0, 0, canvas.width, canvas.height);
+  }
+
+  function addCar(mesh, x, y, z, scale, tint) {
+    mesh.box(x, y + .12 * scale, z, 1.8 * scale, .48 * scale, 4.2 * scale, tint);
+    mesh.box(x, y + .58 * scale, z + .08 * scale, 1.02 * scale, .42 * scale, 1.5 * scale, [.08,.12,.16]);
+    mesh.box(x, y + .14 * scale, z + 2.12 * scale, 2.05 * scale, .12 * scale, .28 * scale, [.88,.88,.82]);
+    mesh.box(x, y + .48 * scale, z - 2.08 * scale, 2.0 * scale, .12 * scale, .24 * scale, tint);
+    for (const side of [-1, 1]) for (const axle of [-1, 1]) {
+      mesh.box(x + side * .96 * scale, y + .04 * scale, z + axle * 1.25 * scale, .34 * scale, .48 * scale, .82 * scale, [.035,.04,.045]);
+    }
   }
 
   function render({ position = 0, playerX = 0, speed = 0, offRoad = false, running = false, opponents = [], cameraShake = 0 }) {
@@ -200,6 +218,10 @@ export function createRenderer(canvas) {
         mesh.tree(a.x - 9 - (i%3), a.z, 2.8 + (i%4)*.2);
         mesh.tree(a.x + 10 + (i%4), a.z, 3.1);
       }
+      if (i % 28 === 0 && i > 8) {
+        mesh.box(a.x + 13, .05, a.z, 5.8, 2.0, 8.5, [.22,.27,.3]);
+        mesh.box(a.x + 13, 2.08, a.z, 6.2, .18, 8.8, [.76,.12,.14]);
+      }
     }
 
     mesh.mountain(470, 48, 86, 86);
@@ -211,15 +233,12 @@ export function createRenderer(canvas) {
       const nearest = Math.min(roadSegments, Math.max(0, Math.round(z / segmentLength)));
       const road = roadPoints[nearest];
       const lane = driver.currentLane ?? driver.lane ?? 0;
-      mesh.box(road.x + lane * 4.0, road.y + .1, z, 1.55, .55, 3.2, hexColor(driver.color));
-      mesh.box(road.x + lane * 4.0, road.y + .65, z + .05, .9, .42, 1.15, [.08,.12,.16]);
+      addCar(mesh, road.x + lane * 4.0, road.y, z, .78, hexColor(driver.color));
     }
 
     const playerRoad = roadPoints[3];
     const playerWorldX = playerRoad.x + playerX * 4.2;
-    mesh.box(playerWorldX, playerRoad.y + .12, 9, 1.8, .62, 4.2, offRoad ? [.72,.25,.12] : [.84,.12,.16]);
-    mesh.box(playerWorldX, playerRoad.y + .76, 9.1, 1.02, .42, 1.45, [.08,.12,.16]);
-    mesh.box(playerWorldX, playerRoad.y + .56, 11.15, 1.45, .1, .22, [.92,.92,.85]);
+    addCar(mesh, playerWorldX, playerRoad.y, 9, 1, offRoad ? [.72,.25,.12] : [.84,.12,.16]);
 
     const projection = perspective(Math.PI / 3.15, canvas.width / canvas.height, .1, 1000);
     const eye = [playerWorldX + cameraShake * .012, 5.5, -8];
