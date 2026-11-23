@@ -2,7 +2,7 @@ const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const approach = (value, target, amount) => value < target ? Math.min(target, value + amount) : Math.max(target, value - amount);
 export function createPhysics() {
   return {
-    speed: 0, playerX: 0, distance: 0, offRoad: false, lateralVelocity: 0,
+    speed: 0, playerX: 0, distance: 0, offRoad: false, lateralVelocity: 0, rpm: 850, gear: 1,
     update(dt, input, curve) {
       const accelerating = input.has('accelerate'), braking = input.has('brake');
       const maxSpeed = 330;
@@ -28,12 +28,16 @@ export function createPhysics() {
       }
       this.playerX = clamp(this.playerX, -1.35, 1.35);
       this.distance += this.speed / 3.6 * dt;
+      this.gear = this.speed < 8 ? 1 : Math.min(8, Math.max(1, Math.floor(this.speed / 42) + 1));
+      const gearProgress = (this.speed - (this.gear - 1) * 42) / 42;
+      this.rpm = Math.round(Math.max(850, Math.min(12000, 900 + gearProgress * 9300 + (accelerating ? 650 : 0))));
     },
     impact(direction = 1) {
       this.speed = Math.max(35, this.speed - 48);
       this.lateralVelocity += direction * .7;
       this.playerX = clamp(this.playerX + direction * .09, -1.25, 1.25);
+      this.rpm = Math.max(900, this.rpm - 1800);
     },
-    reset() { this.speed = 0; this.playerX = 0; this.distance = 0; this.offRoad = false; this.lateralVelocity = 0; }
+    reset() { this.speed = 0; this.playerX = 0; this.distance = 0; this.offRoad = false; this.lateralVelocity = 0; this.rpm = 850; this.gear = 1; }
   };
 }

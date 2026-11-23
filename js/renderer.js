@@ -2,7 +2,7 @@ import { curveAt, elevationAt } from './track.js';
 const lerp = (a,b,t) => a + (b-a)*t;
 export function createRenderer(canvas) {
   const ctx = canvas.getContext('2d');
-  let width = 0, height = 0, dpr = 1;
+  let width = 0, height = 0, dpr = 1, particles = [], impactFlash = 0, skidClock = 0;
   function resize() {
     const rect = canvas.getBoundingClientRect();
     dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -33,7 +33,9 @@ export function createRenderer(canvas) {
     ctx.fillStyle='#f7f7f4';ctx.fillRect(-29,22,10,3);ctx.fillRect(19,22,10,3);
     ctx.restore();
   }
-  function render({position=0,playerX=0,speed=0,offRoad=false,running=false,opponents=[],cameraShake=0}) {
+  function spawnParticles(x,y,count,sparks=false){for(let i=0;i<count;i++)particles.push({x:x+(Math.random()-.5)*22,y:y+Math.random()*7,vx:(Math.random()-.5)*(sparks?150:24),vy:sparks?-Math.random()*125:-Math.random()*30,life:sparks?.28:.7,max:sparks?.28:.7,size:sparks?1+Math.random()*2:4+Math.random()*7,sparks});if(particles.length>120)particles.splice(0,particles.length-120);}
+  function drawParticles(dt){particles=particles.filter(p=>p.life>0);for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(!p.sparks)p.size+=dt*8;ctx.globalAlpha=Math.max(0,p.life/p.max)*.45;ctx.fillStyle=p.sparks?'#ffd16a':'#d5d8d4';ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;}
+  function render({position=0,playerX=0,speed=0,offRoad=false,running=false,opponents=[],cameraShake=0,skid=false,dt=.016}) {
     if(!width||!height)resize();
     const horizon=height*.405 + Math.sin(position*Math.PI*2)*height*.012;
     const sky=ctx.createLinearGradient(0,0,0,horizon);
@@ -72,6 +74,8 @@ export function createRenderer(canvas) {
       const t=((i/17+(position*.8)%1)%1),depth=t*t,y=horizon+(height-horizon)*t;
       const p=position+(1-t)*.18,curve=curveAt(p),roadW=lerp(width*.025,width*.49,depth);
       const cx=width*.5+curve*width*.12*(1-depth)+side*(roadW+lerp(25,115,depth)),s=lerp(.08,.95,depth);
+      if(i%7===4&&depth>.15){ctx.save();ctx.translate(cx,y);ctx.scale(s,s);ctx.fillStyle='#202a31';ctx.fillRect(-31,-13,62,13);ctx.fillStyle='#f4f5ef';ctx.font='bold 8px Arial';ctx.textAlign='center';ctx.fillText(side<0?'FUJI':'RACE',0,-4);ctx.restore();continue;}
+      if(i%6===2&&depth>.2){ctx.save();ctx.translate(cx,y);ctx.scale(s,s);ctx.fillStyle='#394b55';ctx.fillRect(-40,-25,80,25);for(let row=0;row<3;row++)for(let col=0;col<11;col++){ctx.fillStyle=['#e7e2d2','#df4b4b','#5f9bc0','#e8b84e'][(row*7+col*3)%4];ctx.fillRect(-35+col*6,-22+row*6,3,3);}ctx.restore();continue;}
       ctx.fillStyle='#3e5542';ctx.fillRect(cx-3*s,y-28*s,6*s,28*s);
       ctx.fillStyle=i%2?'#234b3b':'#2d6042';ctx.beginPath();ctx.arc(cx,y-34*s,19*s,0,Math.PI*2);ctx.fill();
     }
@@ -86,13 +90,17 @@ export function createRenderer(canvas) {
       const scale=lerp(.12,.78,perspective)*Math.max(.75,Math.min(1.1,width/900));
       car(x,y-10*scale,scale,driver.color,false);
     }
-    ctx.save();ctx.translate(cameraShake,0);
-    car(width*.5+playerX*width*.29,height*.875,Math.max(.68,Math.min(1.2,width/900)),'#df3039',true);
-    ctx.restore();
+    const playerScreenX=width*.5+playerX*width*.29,playerY=height*.875;
+    if(running&&offRoad&&Math.random()<.8)spawnParticles(playerScreenX,playerY,2,false);
+    if(running&&skid){skidClock+=dt*speed*.02;if(skidClock>.9){spawnParticles(playerScreenX,playerY+8,1,false);skidClock=0;}}
+    ctx.save();ctx.translate(cameraShake,0);car(playerScreenX,playerY,Math.max(.68,Math.min(1.2,width/900)),'#df3039',true);ctx.restore();
+    drawParticles(dt);
+    if(impactFlash>0){impactFlash=Math.max(0,impactFlash-dt*4);ctx.fillStyle=`rgba(255,220,160,${impactFlash*.18})`;ctx.fillRect(0,0,width,height);}
     if(offRoad){ctx.fillStyle='rgba(110,75,35,.16)';ctx.fillRect(0,0,width,height);}
     if(!running){ctx.fillStyle='rgba(5,15,25,.06)';ctx.fillRect(0,0,width,height);}
   }
   const LAP_SCROLL=180;
   window.addEventListener('resize',resize);resize();
-  return {render,resize};
+  function triggerImpact(){impactFlash=1;spawnParticles(width*.5,height*.86,18,true);}
+  return {render,resize,triggerImpact};
 }

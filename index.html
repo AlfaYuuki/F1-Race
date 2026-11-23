@@ -16,6 +16,7 @@
     <a class="brand" href="#" aria-label="The F1 Race home"><span class="brand-mark">F1</span><span>THE <b>F1 RACE</b></span></a>
     <div class="track-name"><i></i> FUJI SPEEDWAY <span>·</span> JAPAN</div>
     <div class="top-actions">
+      <button id="audio-button" class="icon-button" type="button" aria-label="Toggle engine audio" title="Toggle engine audio">♫</button>
       <button id="pause-button" class="icon-button" type="button" aria-label="Pause race">Ⅱ</button>
       <button id="fullscreen-button" class="icon-button" type="button" aria-label="Toggle fullscreen">⛶</button>
     </div>
@@ -26,6 +27,7 @@
     <div class="hud-block"><small>LAP</small><strong id="lap-label">01<span> / 03</span></strong></div>
     <div class="hud-block time-block"><small>TIME</small><strong id="time-label">00:00.000</strong></div>
     <div class="hud-block speed-block"><strong><span id="speed-label">000</span><small>KM/H</small></strong><div class="speed-track"><i id="speed-bar"></i></div></div>
+    <div class="hud-block gear-block"><small>GEAR</small><strong id="gear-label">N</strong><div class="rpm-track"><i id="rpm-bar"></i></div><small id="rpm-label">850 RPM</small></div>
   </section>
 
   <aside class="standings" aria-label="Live standings">
@@ -39,6 +41,8 @@
       <li><span class="rank">06</span><i style="--driver-color:#e58b55"></i><span>R. NAKAMURA</span><b>GRID</b></li>
     </ol>
   </aside>
+
+  <section class="timing-panel" aria-label="Lap timing"><div><small>LAST LAP</small><strong id="last-lap-label">--:--.---</strong></div><div><small>BEST LAP</small><strong id="best-lap-label">--:--.---</strong></div><div><small>SECTOR</small><strong id="sector-label">S1 --:--.---</strong></div></section>
 
   <div class="race-message" id="race-message">FUJI INTERNATIONAL SPEEDWAY <span>—</span> 3 LAP SPRINT</div>
   <div class="countdown" id="countdown" aria-live="assertive"></div>

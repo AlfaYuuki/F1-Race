@@ -33,6 +33,15 @@ Open [http://localhost:8000](http://localhost:8000).
 - Rival proximity detection with contact response and cooldown
 - Touch controls and responsive HUD
 
+## Milestone 5 — Racing immersion
+
+- Added gear and RPM telemetry with a live rev bar
+- Added last-lap, best-lap and sector timing
+- Added synthesized RPM-responsive engine audio and shift cues (toggle with M or the audio button)
+- Added trackside grandstands and racing boards
+- Added smoke/skid particles and impact sparks/flash feedback
+- Preserved the full-screen Fuji-inspired layout, existing physics, controls and AI rivals
+
 ## Project structure
 
 ```text
@@ -43,7 +52,7 @@ F1-Race/
 ├── css/main.css
 └── js/
     ├── main.js
-    ├── game.js
+    ├── audio.js\n    ├── game.js
     ├── renderer.js
     ├── physics.js
     ├── track.js
