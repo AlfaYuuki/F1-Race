@@ -1,15 +1,16 @@
 # The F1 Race 🏎️
 
-A full-screen browser arcade racer inspired by Fuji Speedway, with Mount Fuji on the horizon. Built with plain HTML, CSS, JavaScript modules and the HTML Canvas API — no framework or build step required.
+A full-screen browser racing game inspired by Fuji Speedway, with Mount Fuji on the horizon. Built with HTML, CSS, JavaScript ES modules and Canvas — no framework or build step required.
 
 ## Run locally
 
-JavaScript modules need to be served over HTTP; opening `index.html` directly may block module loading.
+Requires Node.js 20+ for the optional validation scripts. The game itself is static and can be served by any local HTTP server.
 
 ```bash
 python -m http.server 8000
 ```
-Open [http://localhost:8000](http://localhost:8000).
+
+Open http://localhost:8000.
 
 ## Controls
 
@@ -21,60 +22,35 @@ Open [http://localhost:8000](http://localhost:8000).
 | Steer right | D / → | ▶ |
 | Pause / resume | ESC | Pause button |
 | Fullscreen | Fullscreen button | Fullscreen button |
+| Toggle engine audio | M | Audio button |
 
-## Milestone 4
+## Milestones
 
-- Full-viewport race scene; no permanent side website panel or boxed-in game window
-- Floating race telemetry and compact live timing overlay
-- Fullscreen toggle and pause/resume
-- Fuji-inspired 4.563 km lap model with 16-corner-style curvature sequence and elevation profile
-- Improved throttle response, speed-dependent steering, lateral inertia, drag and braking
-- Off-track grip loss and speed penalty
-- Rival proximity detection with contact response and cooldown
-- Touch controls and responsive HUD
+### Milestone 4 — Fuji circuit and driving physics
+- Full-viewport game canvas with floating HUD; no permanent website sidebar
+- Fuji-inspired 4.563 km circuit, stylized curvature and elevation
+- Throttle, braking, steering inertia, drag, off-track grip loss and contact response
+- AI opponents, touch controls, pause and fullscreen
 
-## Milestone 5 — Racing immersion
+### Milestone 5 — Racing immersion
+- Gear and RPM telemetry, lap/sector timing and synthesized engine audio
+- Trackside grandstands, racing boards, tire smoke and impact feedback
 
-- Added gear and RPM telemetry with a live rev bar
-- Added last-lap, best-lap and sector timing
-- Added synthesized RPM-responsive engine audio and shift cues (toggle with M or the audio button)
-- Added trackside grandstands and racing boards
-- Added smoke/skid particles and impact sparks/flash feedback
-- Preserved the full-screen Fuji-inspired layout, existing physics, controls and AI rivals
+### Milestone 6 — Reliability and quality checks
+- Node-based project validation and automated core simulation tests
+- Duplicate HTML ID and missing DOM-reference detection
+- Relative JavaScript import checks
+- Cleaned project documentation and reproducible test commands
 
-## Milestone 5 — Racing immersion
+## Quality checks
 
-- Added synthesized engine audio with RPM-responsive tone and gear-shift cues (toggle with M or the audio button)
-- Added gear and RPM telemetry
-- Added last-lap, best-lap and sector timing
-- Added trackside grandstands and Fuji/RACE boards
-- Added tire smoke/skid particles and impact sparks/flash feedback
-- Preserved the full-screen Fuji-inspired layout, existing controls, physics and AI rivals
-
-## Project structure
-
-```text
-F1-Race/
-├── index.html
-├── README.md
-├── .gitignore
-├── css/main.css
-└── js/
-    ├── main.js
-    ├── audio.js\n    ├── audio.js\n    ├── game.js
-    ├── renderer.js
-    ├── physics.js
-    ├── track.js
-    ├── opponents.js
-    └── controls.js
+```bash
+npm test
+npm run check
 ```
+
+The automated suite checks track sampling, physics bounds/reset behavior, AI standings, unique HTML IDs and module import paths. It does not replace testing in real desktop and mobile browsers.
 
 ## Simulation notes
 
-This is an original arcade racing game using a Fuji-inspired layout and simplified vehicle dynamics. It is not a licensed Formula 1 product or a professional-grade motorsport simulator. Circuit geometry is stylized rather than a surveyed, meter-accurate reproduction of the real circuit.
-
-## Development
-
-- Keep application code in `js/` and styles in `css/`.
-- Use ES modules and avoid adding a build system unless the project needs one.
-- Test keyboard and touch controls at desktop and mobile viewport sizes.
+This is an original arcade simulation using a Fuji-inspired layout and simplified vehicle dynamics. It is not a licensed Formula 1 product or a professional motorsport simulator. Circuit geometry is stylized, not a surveyed reproduction of the real circuit.
