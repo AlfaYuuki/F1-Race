@@ -1,6 +1,6 @@
 # The F1 Race 🏎️
 
-A browser-based arcade racing prototype set on a Fuji-inspired circuit, with Mount Fuji on the horizon. Built with plain HTML, CSS, JavaScript modules, and the HTML Canvas API — no framework or build step required.
+A full-screen browser arcade racer inspired by Fuji Speedway, with Mount Fuji on the horizon. Built with plain HTML, CSS, JavaScript modules and the HTML Canvas API — no framework or build step required.
 
 ## Run locally
 
@@ -19,6 +19,19 @@ Open [http://localhost:8000](http://localhost:8000).
 | Brake | S / ↓ | BRAKE |
 | Steer left | A / ← | ◀ |
 | Steer right | D / → | ▶ |
+| Pause / resume | ESC | Pause button |
+| Fullscreen | Fullscreen button | Fullscreen button |
+
+## Milestone 4
+
+- Full-viewport race scene; no permanent side website panel or boxed-in game window
+- Floating race telemetry and compact live timing overlay
+- Fullscreen toggle and pause/resume
+- Fuji-inspired 4.563 km lap model with 16-corner-style curvature sequence and elevation profile
+- Improved throttle response, speed-dependent steering, lateral inertia, drag and braking
+- Off-track grip loss and speed penalty
+- Rival proximity detection with contact response and cooldown
+- Touch controls and responsive HUD
 
 ## Project structure
 
@@ -38,25 +51,11 @@ F1-Race/
     └── controls.js
 ```
 
-## Current features
+## Simulation notes
 
-- Responsive racing-game interface and live HUD
-- Pseudo-3D perspective road with animated track markings
-- Fuji-inspired distant mountain scenery and roadside trees
-- Player car with arcade acceleration, braking and steering
-- Five AI rivals with distinct pace, skill and lane movement
-- Opponent cars rendered into the road perspective
-- Live six-driver standings and player race position
-- Three-lap session timer, countdown and chequered-flag finish
-- Keyboard and touch controls
+This is an original arcade racing game using a Fuji-inspired layout and simplified vehicle dynamics. It is not a licensed Formula 1 product or a professional-grade motorsport simulator. Circuit geometry is stylized rather than a surveyed, meter-accurate reproduction of the real circuit.
 
-## AI and race model
-
-Rivals use lightweight pace-based driving logic. Their speed varies with driver skill, corner load and a smooth pace rhythm. Small lane changes and spacing adjustments help avoid cars visually overlapping. Standings are recalculated from cumulative race distance.
-
-This is an original arcade prototype, not a licensed Formula 1 product or a full-accuracy motorsport simulator. Full circuit geometry, detailed vehicle models, audio, collisions, pit strategy and saved lap records remain future milestones.
-
-## Development notes
+## Development
 
 - Keep application code in `js/` and styles in `css/`.
 - Use ES modules and avoid adding a build system unless the project needs one.

@@ -1,3 +1,4 @@
+import { curveAt, elevationAt } from './track.js';
 const lerp = (a,b,t) => a + (b-a)*t;
 export function createRenderer(canvas) {
   const ctx = canvas.getContext('2d');
@@ -9,83 +10,89 @@ export function createRenderer(canvas) {
     canvas.width = Math.round(width*dpr); canvas.height = Math.round(height*dpr);
     ctx.setTransform(dpr,0,0,dpr,0,0);
   }
-  function polygon(points, color) {
-    ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(points[0][0],points[0][1]);
-    for (let i=1;i<points.length;i++) ctx.lineTo(points[i][0],points[i][1]);
-    ctx.closePath(); ctx.fill();
+  function polygon(points,color) {
+    ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(points[0][0],points[0][1]);
+    for(let i=1;i<points.length;i++)ctx.lineTo(points[i][0],points[i][1]);
+    ctx.closePath();ctx.fill();
   }
-  function mountain(cx, base, scale) {
-    ctx.save(); ctx.translate(cx,base); ctx.scale(scale,scale);
-    polygon([[-190,0],[-115,-85],[-70,-155],[-35,-190],[0,-205],[38,-182],[75,-125],[120,-62],[190,0]],'#e9f0ed');
-    polygon([[-115,-85],[-70,-155],[-35,-190],[0,-205],[38,-182],[12,-165],[-12,-174],[-38,-151],[-65,-158]],'#fff');
-    polygon([[-190,0],[-115,-85],[-70,-155],[-35,-190],[-58,-145],[-80,-105],[-110,-50]],'#718b98');
-    polygon([[0,-205],[38,-182],[75,-125],[120,-62],[190,0],[70,0],[34,-50]],'#8ca3aa');
+  function mountain(cx,base,scale) {
+    ctx.save();ctx.translate(cx,base);ctx.scale(scale,scale);
+    polygon([[-230,0],[-140,-100],[-78,-177],[-34,-224],[0,-245],[42,-218],[92,-151],[150,-72],[230,0]],'#e9f0ed');
+    polygon([[-78,-177],[-34,-224],[0,-245],[42,-218],[16,-197],[-10,-210],[-42,-183]],'#fff');
+    polygon([[-230,0],[-140,-100],[-78,-177],[-34,-224],[-70,-157],[-105,-104],[-143,-55]],'#718b98');
+    polygon([[0,-245],[42,-218],[92,-151],[150,-72],[230,0],[76,0],[30,-72]],'#8ca3aa');
     ctx.restore();
   }
-  function car(x,y,scale,color='#df3039',isPlayer=false) {
+  function car(x,y,scale,color='#df3039',player=false) {
     ctx.save();ctx.translate(x,y);ctx.scale(scale,scale);
-    ctx.fillStyle='#111923';ctx.fillRect(-38,-5,15,36);ctx.fillRect(23,-5,15,36);
-    ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(-25,23);ctx.lineTo(-20,-24);ctx.lineTo(-11,-38);ctx.lineTo(11,-38);ctx.lineTo(20,-24);ctx.lineTo(25,23);ctx.closePath();ctx.fill();
-    ctx.fillStyle='#f7f7f3';ctx.fillRect(-34,19,68,6);ctx.fillRect(-20,-32,40,5);
-    ctx.fillStyle='#171e29';ctx.beginPath();ctx.ellipse(0,-10,10,15,0,0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=isPlayer?'#f5bd53':'rgba(255,255,255,.8)';ctx.fillRect(-3,-33,6,5);
+    ctx.fillStyle='#101720';ctx.fillRect(-39,-5,15,38);ctx.fillRect(24,-5,15,38);
+    ctx.fillStyle=color;ctx.beginPath();ctx.moveTo(-27,25);ctx.lineTo(-22,-25);ctx.lineTo(-12,-42);ctx.lineTo(12,-42);ctx.lineTo(22,-25);ctx.lineTo(27,25);ctx.closePath();ctx.fill();
+    ctx.fillStyle='#e8edf0';ctx.fillRect(-35,20,70,6);ctx.fillRect(-21,-35,42,5);
+    ctx.fillStyle='#18212b';ctx.beginPath();ctx.ellipse(0,-12,11,16,0,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle=player?'#ffd16a':'#fff';ctx.fillRect(-3,-37,6,5);
+    ctx.fillStyle='#f7f7f4';ctx.fillRect(-29,22,10,3);ctx.fillRect(19,22,10,3);
     ctx.restore();
   }
-  function drawRivals(opponents, position, horizon, curve) {
-    const visible=opponents.filter(driver=>driver.relativeDistance>5 && driver.relativeDistance<205)
-      .sort((a,b)=>b.relativeDistance-a.relativeDistance);
-    for(const driver of visible){
-      const depth=1-Math.min(1,driver.relativeDistance/205);
-      const perspective=depth*depth;
-      const y=horizon+(height-horizon)*perspective;
-      const roadW=lerp(width*.025,width*.48,perspective);
-      const roadCenter=width*.5+(curve*width*(1-perspective))+Math.sin(position*6.28+perspective*3)*width*.018*(1-perspective);
-      const lane=driver.currentLane ?? driver.lane ?? 0;
-      const x=roadCenter+lane*roadW*.72;
-      const scale=lerp(.12,.78,perspective)*Math.max(.75,Math.min(1.05,width/850));
-      car(x,y-10*scale,scale,driver.color,false);
-    }
-  }
-  function render({position, playerX, speed, offRoad, running, opponents=[]}) {
-    if (!width || !height) resize();
-    const horizon = height * .43;
-    const sky = ctx.createLinearGradient(0,0,0,horizon);
-    sky.addColorStop(0,'#6f9eb6');sky.addColorStop(1,'#d8e2dc');
+  function render({position=0,playerX=0,speed=0,offRoad=false,running=false,opponents=[],cameraShake=0}) {
+    if(!width||!height)resize();
+    const horizon=height*.405 + Math.sin(position*Math.PI*2)*height*.012;
+    const sky=ctx.createLinearGradient(0,0,0,horizon);
+    sky.addColorStop(0,'#6798b4');sky.addColorStop(1,'#dce5df');
     ctx.fillStyle=sky;ctx.fillRect(0,0,width,height);
-    ctx.fillStyle='#9bb2b2';ctx.beginPath();ctx.moveTo(0,horizon);ctx.lineTo(0,horizon-30);ctx.quadraticCurveTo(width*.18,horizon-82,width*.36,horizon-24);ctx.quadraticCurveTo(width*.72,horizon-92,width,horizon-18);ctx.lineTo(width,horizon);ctx.fill();
-    mountain(width*.72,horizon+5,Math.min(width/1000,1.15)*.85);
-    ctx.fillStyle='#567b57';ctx.fillRect(0,horizon,width,height-horizon);
-    const segments=90, road=[];
-    const curve = Math.sin(position*2*Math.PI)*.12;
+    ctx.fillStyle='#9bb2b2';ctx.beginPath();ctx.moveTo(0,horizon);ctx.lineTo(0,horizon-25);ctx.quadraticCurveTo(width*.2,horizon-90,width*.39,horizon-26);ctx.quadraticCurveTo(width*.72,horizon-105,width,horizon-15);ctx.lineTo(width,horizon);ctx.fill();
+    mountain(width*.73,horizon+5,Math.min(width/1150,1.25)*.95);
+    ctx.fillStyle='#527c54';ctx.fillRect(0,horizon,width,height-horizon);
+    const segments=110,road=[];
     for(let i=0;i<=segments;i++){
-      const t=i/segments, depth=t*t, y=lerp(horizon,height,t), roadW=lerp(width*.025,width*.48,depth);
-      const center=width*.5+(curve*width*(1-depth))+Math.sin(position*6.28+t*3)*width*.018*(1-depth);
-      road.push({y,center,roadW,t});
+      const t=i/segments,depth=t*t;
+      const lookAhead=(1-t)*.18;
+      const trackProgress=position+lookAhead;
+      const curve=curveAt(trackProgress);
+      const bend=curveAt(position);
+      const elevation=elevationAt(trackProgress);
+      const y=lerp(horizon,height,t)-elevation*height*.11*depth;
+      const roadW=lerp(width*.025,width*.49,depth);
+      const center=width*.5 + bend*width*.14*(1-depth) + curve*width*.105*(1-depth);
+      road.push({y,center,roadW,t,depth});
     }
     for(let i=0;i<segments;i++){
-      const a=road[i],b=road[i+1],stripe=(i+Math.floor(position*180))%2;
+      const a=road[i],b=road[i+1],stripe=(i+Math.floor(position*LAP_SCROLL))%2;
       polygon([[a.center-a.roadW,a.y],[a.center+a.roadW,a.y],[b.center+b.roadW,b.y],[b.center-b.roadW,b.y]],'#343a40');
-      const curbA=a.roadW*.075,curbB=b.roadW*.075;
-      polygon([[a.center-a.roadW-curbA,a.y],[a.center-a.roadW,a.y],[b.center-b.roadW,b.y],[b.center-b.roadW-curbB,b.y]],stripe?'#f4f0e8':'#d83c42');
-      polygon([[a.center+a.roadW,a.y],[a.center+a.roadW+curbA,a.y],[b.center+b.roadW+curbB,b.y],[b.center+b.roadW,b.y]],stripe?'#f4f0e8':'#d83c42');
-      if(stripe===0){const markerW=lerp(1,7,b.t);polygon([[a.center-markerW,a.y],[a.center+markerW,a.y],[b.center+markerW*1.2,b.y],[b.center-markerW*1.2,b.y]],'rgba(240,240,225,.55)');}
-      if(i%5===0){
-        const band=(i+Math.floor(position*240))%2;
-        polygon([[0,a.y],[a.center-a.roadW-curbA,a.y],[b.center-b.roadW-curbB,b.y],[0,b.y]],band?'#557c52':'#628957');
-        polygon([[a.center+a.roadW+curbA,a.y],[width,a.y],[width,b.y],[b.center+b.roadW+curbB,b.y]],band?'#557c52':'#628957');
+      const ca=a.roadW*.075,cb=b.roadW*.075;
+      polygon([[a.center-a.roadW-ca,a.y],[a.center-a.roadW,a.y],[b.center-b.roadW,b.y],[b.center-b.roadW-cb,b.y]],stripe?'#f5f0e7':'#d83c42');
+      polygon([[a.center+a.roadW,a.y],[a.center+a.roadW+ca,a.y],[b.center+b.roadW+cb,b.y],[b.center+b.roadW,b.y]],stripe?'#f5f0e7':'#d83c42');
+      if(stripe===0){const w=lerp(1,8,b.t);polygon([[a.center-w,a.y],[a.center+w,a.y],[b.center+w*1.2,b.y],[b.center-w*1.2,b.y]],'rgba(240,240,225,.55)');}
+      if(i%4===0){
+        const band=(i+Math.floor(position*220))%2;
+        polygon([[0,a.y],[a.center-a.roadW-ca,a.y],[b.center-b.roadW-cb,b.y],[0,b.y]],band?'#557c52':'#668d5a');
+        polygon([[a.center+a.roadW+ca,a.y],[width,a.y],[width,b.y],[b.center+b.roadW+cb,b.y]],band?'#557c52':'#668d5a');
       }
     }
-    for(let side of [-1,1]) for(let i=0;i<13;i++){
-      const t=((i/13+(position*.65)%1)%1),depth=t*t,y=horizon+(height-horizon)*t;
-      const roadW=lerp(width*.025,width*.48,depth),cx=width*.5+curve*width*(1-depth)+side*(roadW+lerp(30,100,depth)),s=lerp(.08,.8,depth);
-      ctx.fillStyle='#3e5542';ctx.fillRect(cx-3*s,y-25*s,6*s,25*s);
-      ctx.fillStyle=i%2?'#234b3b':'#2d6042';ctx.beginPath();ctx.arc(cx,y-29*s,17*s,0,Math.PI*2);ctx.fill();
+    for(const side of [-1,1])for(let i=0;i<17;i++){
+      const t=((i/17+(position*.8)%1)%1),depth=t*t,y=horizon+(height-horizon)*t;
+      const p=position+(1-t)*.18,curve=curveAt(p),roadW=lerp(width*.025,width*.49,depth);
+      const cx=width*.5+curve*width*.12*(1-depth)+side*(roadW+lerp(25,115,depth)),s=lerp(.08,.95,depth);
+      ctx.fillStyle='#3e5542';ctx.fillRect(cx-3*s,y-28*s,6*s,28*s);
+      ctx.fillStyle=i%2?'#234b3b':'#2d6042';ctx.beginPath();ctx.arc(cx,y-34*s,19*s,0,Math.PI*2);ctx.fill();
     }
-    drawRivals(opponents,position,horizon,curve);
-    car(width*.5+playerX*width*.27,height*.87,Math.max(.65,Math.min(1.15,width/850)),'#df3039',true);
-    if(offRoad){ctx.fillStyle='rgba(20,15,10,.14)';ctx.fillRect(0,0,width,height);}
-    if(!running){ctx.fillStyle='rgba(5,15,25,.08)';ctx.fillRect(0,0,width,height);}
+    const visible=opponents.filter(d=>Math.abs(d.relativeDistance)<230).sort((a,b)=>b.relativeDistance-a.relativeDistance);
+    for(const driver of visible){
+      const depth=1-Math.min(1,Math.abs(driver.relativeDistance)/230),perspective=depth*depth;
+      const y=horizon+(height-horizon)*perspective;
+      const roadW=lerp(width*.025,width*.49,perspective);
+      const center=width*.5+curveAt(position)*width*.12*(1-perspective);
+      const lane=driver.currentLane??driver.lane??0;
+      const x=center+lane*roadW*.7;
+      const scale=lerp(.12,.78,perspective)*Math.max(.75,Math.min(1.1,width/900));
+      car(x,y-10*scale,scale,driver.color,false);
+    }
+    ctx.save();ctx.translate(cameraShake,0);
+    car(width*.5+playerX*width*.29,height*.875,Math.max(.68,Math.min(1.2,width/900)),'#df3039',true);
+    ctx.restore();
+    if(offRoad){ctx.fillStyle='rgba(110,75,35,.16)';ctx.fillRect(0,0,width,height);}
+    if(!running){ctx.fillStyle='rgba(5,15,25,.06)';ctx.fillRect(0,0,width,height);}
   }
+  const LAP_SCROLL=180;
   window.addEventListener('resize',resize);resize();
   return {render,resize};
 }

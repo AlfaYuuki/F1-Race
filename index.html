@@ -1,69 +1,65 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#07111d">
-  <meta name="description" content="The F1 Race — an arcade racing experience at Fuji Circuit.">
-  <title>The F1 Race — Fuji Circuit</title><link rel="stylesheet" href="css/main.css">
+  <meta name="description" content="The F1 Race — a full-screen Fuji Circuit arcade racing experience.">
+  <title>The F1 Race — Fuji Circuit</title>
+  <link rel="stylesheet" href="css/main.css">
 </head>
 <body>
-<main class="app-shell">
-  <header class="topbar">
-    <a class="brand" href="#"><span class="brand-mark">F1</span><span>THE <b>F1 RACE</b></span></a>
-    <div class="topbar-right"><span class="live-dot"></span> FUJI SPEEDWAY · JAPAN</div>
+<main class="race-game" aria-label="The F1 Race">
+  <canvas id="race-canvas" aria-label="Full-screen Fuji circuit racing game"></canvas>
+  <div class="vignette" aria-hidden="true"></div>
+  <header class="race-topbar">
+    <a class="brand" href="#" aria-label="The F1 Race home"><span class="brand-mark">F1</span><span>THE <b>F1 RACE</b></span></a>
+    <div class="track-name"><i></i> FUJI SPEEDWAY <span>·</span> JAPAN</div>
+    <div class="top-actions">
+      <button id="pause-button" class="icon-button" type="button" aria-label="Pause race">Ⅱ</button>
+      <button id="fullscreen-button" class="icon-button" type="button" aria-label="Toggle fullscreen">⛶</button>
+    </div>
   </header>
-  <section class="game-layout">
-    <aside class="intro-panel">
-      <p class="eyebrow">ARCADE RACING EXPERIENCE</p>
-      <h1>CHASE THE<br><em>HORIZON.</em></h1>
-      <p class="intro-copy">Find your racing line beneath Mount Fuji. Five rivals are on the grid. Keep it smooth, pick your moments, and fight for the lead.</p>
-      <div class="track-card">
-        <div class="track-card-top"><span>01 / CIRCUIT</span><span class="track-status">AVAILABLE</span></div>
-        <h2>Fuji International</h2><p>Shizuoka Prefecture, Japan</p>
-        <div class="track-stats"><div><b>4.56</b><small>KM TRACK</small></div><div><b>16</b><small>CORNERS</small></div><div><b>06</b><small>DRIVERS</small></div></div>
-      </div>
-      <div class="controls-help">
-        <span class="eyebrow">CONTROLS</span>
-        <div><kbd>W</kbd><kbd>↑</kbd><span>Accelerate</span></div>
-        <div><kbd>S</kbd><kbd>↓</kbd><span>Brake</span></div>
-        <div><kbd>A</kbd><kbd>←</kbd><span>Steer left</span></div>
-        <div><kbd>D</kbd><kbd>→</kbd><span>Steer right</span></div>
-      </div>
-      <button id="start-button" class="start-button">START RACE <span>↗</span></button>
-      <p class="fine-print">Fictional arcade racing experience. Not affiliated with Formula 1.</p>
-    </aside>
-    <section class="race-panel" aria-label="Racing game">
-      <div class="race-hud">
-        <div><small>SESSION</small><b id="session-label">READY</b></div>
-        <div><small>POSITION</small><b id="position-label">P1 <span>/ 06</span></b></div>
-        <div><small>TIME</small><b id="time-label">00:00.000</b></div>
-        <div><small>LAP</small><b id="lap-label">01 <span>/ 03</span></b></div>
-        <div><small>SPEED</small><b><span id="speed-label">0</span><i> KM/H</i></b></div>
-      </div>
-      <div class="canvas-wrap">
-        <canvas id="race-canvas" aria-label="Fuji circuit racing game"></canvas>
-        <div class="countdown" id="countdown" aria-live="polite"></div>
-        <div class="race-message" id="race-message">PRESS START TO ENTER THE CIRCUIT</div>
-        <div class="mobile-controls" aria-label="Touch driving controls">
-          <div class="steer-controls"><button data-control="left" aria-label="Steer left">◀</button><button data-control="right" aria-label="Steer right">▶</button></div>
-          <div class="pedal-controls"><button data-control="brake">BRAKE</button><button data-control="accelerate">GO</button></div>
-        </div>
-      </div>
-      <section class="leaderboard" aria-label="Live race leaderboard">
-        <div class="leaderboard-heading"><span>LIVE STANDINGS</span><span>6 DRIVERS</span></div>
-        <ol id="leaderboard-list">
-          <li class="player-row"><span class="rank">01</span><span class="driver-swatch player-swatch"></span><span class="driver-name">YOU <small>PLAYER</small></span><b>GRID</b></li>
-          <li><span class="rank">02</span><span class="driver-swatch" style="--driver-color:#45a5e8"></span><span class="driver-name">K. SATO</span><b>GRID</b></li>
-          <li><span class="rank">03</span><span class="driver-swatch" style="--driver-color:#f1bd4b"></span><span class="driver-name">M. TANAKA</span><b>GRID</b></li>
-          <li><span class="rank">04</span><span class="driver-swatch" style="--driver-color:#9b79df"></span><span class="driver-name">L. MORI</span><b>GRID</b></li>
-          <li><span class="rank">05</span><span class="driver-swatch" style="--driver-color:#55c49a"></span><span class="driver-name">A. KOBAYASHI</span><b>GRID</b></li>
-          <li><span class="rank">06</span><span class="driver-swatch" style="--driver-color:#e58b55"></span><span class="driver-name">R. NAKAMURA</span><b>GRID</b></li>
-        </ol>
-      </section>
-      <div class="race-footer"><span><i class="footer-dot"></i> FUJI CIRCUIT · DRY CONDITIONS</span><span id="status-label">ENGINE STANDBY</span></div>
-    </section>
+
+  <section class="hud" aria-label="Race telemetry">
+    <div class="hud-block"><small>POSITION</small><strong id="position-label">P1<span> / 06</span></strong></div>
+    <div class="hud-block"><small>LAP</small><strong id="lap-label">01<span> / 03</span></strong></div>
+    <div class="hud-block time-block"><small>TIME</small><strong id="time-label">00:00.000</strong></div>
+    <div class="hud-block speed-block"><strong><span id="speed-label">000</span><small>KM/H</small></strong><div class="speed-track"><i id="speed-bar"></i></div></div>
   </section>
-  <footer class="site-footer"><span>THE F1 RACE © 2026</span><span>BUILT FOR THE LOVE OF SPEED</span></footer>
+
+  <aside class="standings" aria-label="Live standings">
+    <div class="standings-head"><span>LIVE TIMING</span><b>POS</b></div>
+    <ol id="leaderboard-list">
+      <li class="player-row"><span class="rank">01</span><i style="--driver-color:#ed4148"></i><span>YOU</span><b>GRID</b></li>
+      <li><span class="rank">02</span><i style="--driver-color:#45a5e8"></i><span>K. SATO</span><b>GRID</b></li>
+      <li><span class="rank">03</span><i style="--driver-color:#f1bd4b"></i><span>M. TANAKA</span><b>GRID</b></li>
+      <li><span class="rank">04</span><i style="--driver-color:#9b79df"></i><span>L. MORI</span><b>GRID</b></li>
+      <li><span class="rank">05</span><i style="--driver-color:#55c49a"></i><span>A. KOBAYASHI</span><b>GRID</b></li>
+      <li><span class="rank">06</span><i style="--driver-color:#e58b55"></i><span>R. NAKAMURA</span><b>GRID</b></li>
+    </ol>
+  </aside>
+
+  <div class="race-message" id="race-message">FUJI INTERNATIONAL SPEEDWAY <span>—</span> 3 LAP SPRINT</div>
+  <div class="countdown" id="countdown" aria-live="assertive"></div>
+
+  <section class="start-screen" id="start-screen">
+    <div class="start-card">
+      <p class="eyebrow">JAPAN · SHIZUOKA PREFECTURE</p>
+      <h1>CHASE THE<br><em>HORIZON.</em></h1>
+      <p>Three laps. Five rivals. One mountain in your mirrors.</p>
+      <div class="start-meta"><span>4.563 KM <small>TRACK LENGTH</small></span><span>16 <small>CORNERS</small></span><span>06 <small>DRIVERS</small></span></div>
+      <button id="start-button" class="start-button" type="button">START RACE <span>↗</span></button>
+      <div class="keyboard-help">WASD / ARROWS TO DRIVE <span>·</span> ESC TO PAUSE</div>
+    </div>
+  </section>
+
+  <div class="mobile-controls" aria-label="Touch driving controls">
+    <div class="steer-controls"><button data-control="left" aria-label="Steer left">◀</button><button data-control="right" aria-label="Steer right">▶</button></div>
+    <div class="pedal-controls"><button data-control="brake">BRAKE</button><button data-control="accelerate">GO</button></div>
+  </div>
+  <footer class="race-bottom"><span><i></i> DRY TRACK</span><span id="status-label">ENGINE STANDBY</span><span>THE F1 RACE · ARCADE SIMULATION</span></footer>
 </main>
 <script type="module" src="js/main.js"></script>
-</body></html>
+</body>
+</html>
