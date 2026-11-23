@@ -211,20 +211,21 @@ export function createRenderer(canvas) {
       const a = roadPoints[i], b = roadPoints[i+1];
       const leftA = a.x - 5.5, rightA = a.x + 5.5;
       const leftB = b.x - 5.5, rightB = b.x + 5.5;
-      const roadTint = i % 2 ? [.19,.21,.23] : [.22,.24,.26];
+      const worldSegment = Math.floor(travelledThisLap / segmentLength) + i;
+      const roadTint = worldSegment % 2 ? [.19,.21,.23] : [.22,.24,.26];
       mesh.quad([leftA,a.y,a.z],[rightA,a.y,a.z],[rightB,b.y,b.z],[leftB,b.y,b.z],roadTint);
       mesh.quad([leftA-.42,a.y+.025,a.z],[leftA,a.y+.025,a.z],[leftB,b.y+.025,b.z],[leftB-.42,b.y+.025,b.z],i%2?[.88,.85,.78]:[.78,.18,.2]);
       mesh.quad([rightA,a.y+.025,a.z],[rightA+.42,a.y+.025,a.z],[rightB+.42,b.y+.025,b.z],[rightB,b.y+.025,b.z],i%2?[.88,.85,.78]:[.78,.18,.2]);
-      if (i % 9 === 0) {
+      if (worldSegment % 9 === 0) {
         const stripeWidth = .12;
         mesh.quad([a.x-stripeWidth,a.y+.035,a.z],[a.x+stripeWidth,a.y+.035,a.z],[b.x+stripeWidth,b.y+.035,b.z],[b.x-stripeWidth,b.y+.035,b.z],[.82,.82,.75]);
       }
-      if (i % 7 === 0 && i > 4 && i % 21 !== 0) {
+      if (worldSegment % 7 === 0 && i > 4 && worldSegment % 21 !== 0) {
         mesh.tree(a.x - 9 - (i%3), a.z, 2.8 + (i%4)*.2);
         mesh.tree(a.x + 10 + (i%4), a.z, 3.1);
       }
       // Grandstands on BOTH sides, with visible coloured spectator rows.
-      if (i % 21 === 0 && i > 8) {
+      if (worldSegment % 21 === 0 && i > 8) {
         for (const side of [-1, 1]) {
           const sx = a.x + side * 10.2;
           mesh.box(sx, .05, a.z, 5.8, 1.05, 12, [.25,.29,.32]);
@@ -241,7 +242,7 @@ export function createRenderer(canvas) {
           mesh.box(sx, 2.55, a.z - 4.9, 6.25, .12, .22, [.85,.13,.16]);
         }
       }
-      if (i % 28 === 0 && i > 8) {
+      if (worldSegment % 28 === 0 && i > 8) {
         mesh.box(a.x + 15, .05, a.z, 5.8, 2.0, 8.5, [.22,.27,.3]);
         mesh.box(a.x + 15, 2.08, a.z, 6.2, .18, 8.8, [.76,.12,.14]);
       }
@@ -278,12 +279,18 @@ export function createRenderer(canvas) {
     }
 
     const playerRoad = roadPoints[3];
-    const playerWorldX = playerRoad.x + playerX * 4.2;
+    const trackCenterX = playerRoad.x;
+    const playerWorldX = trackCenterX + playerX * 4.2;
     addCar(mesh, playerWorldX, playerRoad.y, 9, 1, offRoad ? [.72,.25,.12] : [.84,.12,.16]);
 
-    const projection = perspective(Math.PI / 3.15, canvas.width / canvas.height, .1, 1000);
-    const eye = [playerWorldX + cameraShake * .012, 5.5, -8];
-    const target = [playerRoad.x + playerX * 1.7, 1.15, 33];
+    // Keep the camera aligned with the circuit, not locked to the player's car.
+    // This makes left/right steering visibly move the car across the road.
+    const aspect = canvas.width / canvas.height;
+    const baseFov = aspect < .8 ? 1.08 : .96;
+    const speedFov = clamp(speed / 330, 0, 1) * .12;
+    const projection = perspective(baseFov + speedFov, aspect, .1, 1000);
+    const eye = [trackCenterX + cameraShake * .012, 5.5, -8];
+    const target = [trackCenterX, 1.15, 33];
     const view = lookAt(eye, target, [0,1,0]);
     const viewProjection = multiply(projection, view);
 
