@@ -41,3 +41,11 @@ button{font:inherit}
 .icon-button.muted{color:#ff8585;background:#ffffff24}
 @media(max-width:760px){.hud{gap:10px}.gear-block{min-width:35px}.gear-block strong{font-size:22px}.rpm-track{width:34px}}
 @media(max-width:430px){.gear-block{min-width:30px}}
+
+/* Milestone 7 — championship entry and season summary */
+.championship-button{width:100%;margin-top:9px;padding:13px 16px;border:1px solid #ffffff55;background:#0c2536d9;color:#f3f7fa;text-align:left;font:700 10px var(--mono);letter-spacing:.1em;cursor:pointer;transition:background .2s,border-color .2s}
+.championship-button:hover{background:#173b52;border-color:#e8b84e}
+.championship-button span{float:right}
+.championship-summary{margin:10px 0 0!important;color:#a9bdca!important;font:8px var(--mono)!important;letter-spacing:.06em;line-height:1.6!important}
+.championship-button.hidden{display:none}
+@media(max-width:760px){.championship-button{padding:12px;font-size:9px}.championship-summary{font-size:7px!important}}

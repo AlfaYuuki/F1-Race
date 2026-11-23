@@ -54,3 +54,8 @@ The automated suite checks track sampling, physics bounds/reset behavior, AI sta
 ## Simulation notes
 
 This is an original arcade simulation using a Fuji-inspired layout and simplified vehicle dynamics. It is not a licensed Formula 1 product or a professional motorsport simulator. Circuit geometry is stylized, not a surveyed reproduction of the real circuit.
+
+### Milestone 7 — Advanced AI and championship mode
+- AI drivers use skill, aggression, corner confidence, traffic awareness and passing-line decisions
+- Five-round championship with a points table, round results and season winner
+- Championship progress is saved locally on the device; quick race remains available

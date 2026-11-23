@@ -1,17 +1,37 @@
 import { createGame } from './game.js';
 import { bindControls } from './controls.js';
 import { createEngineAudio } from './audio.js';
+import { createChampionship } from './championship.js';
 
 const canvas = document.querySelector('#race-canvas');
 const leaderboard = document.querySelector('#leaderboard-list');
 const startScreen = document.querySelector('#start-screen');
 const startButton = document.querySelector('#start-button');
+const championshipButton = document.querySelector('#championship-button');
+const championshipSummary = document.querySelector('#championship-summary');
 const audioButton = document.querySelector('#audio-button');
 const audio = createEngineAudio();
+const championship = createChampionship();
+let championshipActive = false;
+let roundRecorded = false;
 
 const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[character]));
+
+function renderChampionshipSummary() {
+  const season = championship.getState();
+  if (!season.hasSeason) {
+    championshipSummary.textContent = '5 ROUNDS · POINTS SERIES · YOUR RESULTS SAVE ON THIS DEVICE';
+    return;
+  }
+  const player = season.standings.find(driver => driver.id === 'player');
+  const leader = season.standings[0];
+  const status = season.completed ? 'SEASON COMPLETE' : `ROUND ${season.round + 1}/${championship.rounds}`;
+  championshipSummary.textContent = `${status} · YOU: ${player?.points ?? 0} PTS · LEADER: ${leader.name} ${leader.points} PTS`;
+  championshipButton.textContent = season.completed ? 'START NEW SEASON 🏆' :
+    season.round > 0 ? 'NEXT CHAMPIONSHIP ROUND ↗' : 'START CHAMPIONSHIP 🏆';
+}
 
 const game = createGame(canvas, {
   onUpdate: ({ speed, lap, time, state, position, standings, offRoad, lastLap, bestLap, sector, sectorTime }) => {
@@ -36,8 +56,19 @@ const game = createGame(canvas, {
 
     audio.update(rpm, 0, gear, state === 'running');
     if (state === 'finished') {
+      if (championshipActive && !roundRecorded) {
+        const season = championship.recordResult(standings);
+        roundRecorded = true;
+        const player = season.standings.find(driver => driver.id === 'player');
+        const playerPosition = standings.findIndex(driver => driver.isPlayer) + 1;
+        document.querySelector('#race-message').textContent = season.completed
+          ? `CHAMPIONSHIP COMPLETE — YOU FINISHED P${season.standings.findIndex(driver => driver.id === 'player') + 1} · ${player.points} PTS`
+          : `ROUND ${season.round} COMPLETE — P${playerPosition} · ${player.points} CHAMPIONSHIP POINTS`;
+        renderChampionshipSummary();
+      }
       startScreen.classList.remove('hidden');
-      startButton.textContent = 'RACE AGAIN ↗';
+      startButton.textContent = 'QUICK RACE ↗';
+      championshipButton.classList.remove('hidden');
     }
     if (standings) {
       leaderboard.innerHTML = standings.map((driver, index) =>
@@ -51,7 +82,8 @@ const game = createGame(canvas, {
   onStart: () => {
     audio.resume();
     startScreen.classList.add('hidden');
-    startButton.textContent = 'RESTART RACE ↗';
+    roundRecorded = false;
+    startButton.textContent = 'QUICK RACE ↗';
   },
   onPause: paused => {
     document.querySelector('#pause-button').textContent = paused ? '▶' : 'Ⅱ';
@@ -60,7 +92,18 @@ const game = createGame(canvas, {
 
 bindControls(game);
 
-startButton.addEventListener('click', () => game.start());
+startButton.addEventListener('click', () => {
+  championshipActive = false;
+  game.start();
+});
+championshipButton.addEventListener('click', () => {
+  let season = championship.getState();
+  if (!season.hasSeason || season.completed) season = championship.startNewSeason();
+  championshipActive = true;
+  renderChampionshipSummary();
+  document.querySelector('#race-message').textContent = `CHAMPIONSHIP ROUND ${season.round + 1} OF ${championship.rounds}`;
+  game.start();
+});
 audioButton.addEventListener('click', () => {
   const enabled = audio.toggle();
   audioButton.classList.toggle('muted', !enabled);
@@ -78,9 +121,10 @@ document.querySelector('#fullscreen-button').addEventListener('click', async () 
   try {
     if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
     else await document.exitFullscreen();
-  } catch (error) {
+  } catch {
     document.querySelector('#race-message').textContent = 'FULLSCREEN IS NOT AVAILABLE IN THIS BROWSER';
   }
 });
 
+renderChampionshipSummary();
 game.init();
