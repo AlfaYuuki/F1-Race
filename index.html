@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
   <meta name="theme-color" content="#07111d">
+  <meta name="application-name" content="The F1 Race">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="The F1 Race">
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+  <link rel="apple-touch-icon" href="assets/icon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
   <meta name="description" content="The F1 Race — a full-screen Fuji Circuit arcade racing experience.">
   <title>The F1 Race — Fuji Circuit</title>
   <link rel="stylesheet" href="css/main.css">
@@ -16,6 +23,7 @@
     <a class="brand" href="#" aria-label="The F1 Race home"><span class="brand-mark">F1</span><span>THE <b>F1 RACE</b></span></a>
     <div class="track-name"><i></i> FUJI SPEEDWAY <span>·</span> JAPAN</div>
     <div class="top-actions">
+      <button id="install-button" class="icon-button install-button" type="button" aria-label="Install The F1 Race" title="Install The F1 Race" hidden>↓</button>
       <button id="audio-button" class="icon-button" type="button" aria-label="Toggle engine audio" title="Toggle engine audio">♫</button>
       <button id="pause-button" class="icon-button" type="button" aria-label="Pause race">Ⅱ</button>
       <button id="fullscreen-button" class="icon-button" type="button" aria-label="Toggle fullscreen">⛶</button>
@@ -72,5 +80,6 @@
   <footer class="race-bottom"><span><i></i> DRY TRACK</span><span id="status-label">ENGINE STANDBY</span><span>THE F1 RACE · ARCADE SIMULATION</span></footer>
 </main>
 <script type="module" src="js/main.js"></script>
+<script type="module" src="js/pwa.js"></script>
 </body>
 </html>

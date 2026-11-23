@@ -244,3 +244,7 @@ button{font:inherit}
   .start-meta{padding:8px 0 12px}
   .race-bottom{height:25px}
 }
+
+/* PWA install affordance */
+.install-button[hidden]{display:none}
+.install-button{color:#9cf0c0;border-color:#68dfa066}
