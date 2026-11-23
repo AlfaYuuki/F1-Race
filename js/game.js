@@ -19,7 +19,7 @@ export function createGame(canvas,callbacks={}) {
     notify('GET READY');let count=5;const countdown=document.querySelector('#countdown');countdown.dataset.lit='0';countdown.textContent='';
     callbacks.onStart?.();
     updateHud();
-    countdownTimer=setInterval(()=>{count--;if(count>0){countdown.dataset.lit=String(6-count);countdown.setAttribute('aria-label',`${6-count} of 5 start lights`);}
+    countdownTimer=setInterval(()=>{count--;if(count>0){countdown.dataset.lit=String(5-count);countdown.setAttribute('aria-label',`${6-count} of 5 start lights`);}
       else if(count===0){countdown.dataset.lit='5';countdown.textContent='GO!';countdown.setAttribute('aria-label','Go');}
       else{clearInterval(countdownTimer);countdown.dataset.lit='0';countdown.textContent='';countdown.removeAttribute('aria-label');state='running';notify('RACE ON — FIND YOUR LINE!');last=performance.now();raf=requestAnimationFrame(frame);}},650);
   }
