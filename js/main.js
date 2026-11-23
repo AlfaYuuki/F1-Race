@@ -8,6 +8,7 @@ const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({'&':'&am
 const game = createGame(canvas, {
   onUpdate: ({ speed, lap, time, state, position, standings }) => {
     document.querySelector('#speed-label').textContent = Math.round(speed);
+    document.querySelector('#time-label').textContent = time;
     document.querySelector('#lap-label').innerHTML = `${String(lap).padStart(2,'0')} <span>/ 03</span>`;
     document.querySelector('#session-label').textContent = state === 'running' ? 'RACING' : state.toUpperCase();
     document.querySelector('#position-label').innerHTML = `P${position} <span>/ 06</span>`;
