@@ -34,3 +34,10 @@ button{font:inherit}
 .icon-button.muted{color:#ff8585;background:#ffffff24}
 @media(max-width:760px){.hud{gap:10px}.gear-block{min-width:35px}.gear-block strong{font-size:22px}.rpm-track{width:34px}.timing-panel{left:12px;bottom:48px;gap:10px;padding:8px}.timing-panel small{font-size:6px}.timing-panel strong{font-size:9px}}
 @media(max-width:430px){.gear-block{min-width:30px}.timing-panel{bottom:107px}}
+
+/* Milestone 5: compact RPM and gear telemetry */
+.gear-block{min-width:44px}.gear-block strong{font-size:27px}.gear-block>small:last-child{font-size:7px}
+.rpm-track{height:3px;width:43px;background:#ffffff38;margin-top:3px}.rpm-track i{display:block;height:100%;width:0;background:#e9b64c;transition:width .1s}
+.icon-button.muted{color:#ff8585;background:#ffffff24}
+@media(max-width:760px){.hud{gap:10px}.gear-block{min-width:35px}.gear-block strong{font-size:22px}.rpm-track{width:34px}}
+@media(max-width:430px){.gear-block{min-width:30px}}

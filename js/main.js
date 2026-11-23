@@ -1,14 +1,21 @@
 import { createGame } from './game.js';
 import { bindControls } from './controls.js';
 import { createEngineAudio } from './audio.js';
+import { createEngineAudio } from './audio.js';
 const canvas=document.querySelector('#race-canvas'),leaderboard=document.querySelector('#leaderboard-list');
 const escapeHtml=value=>String(value).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const startScreen=document.querySelector('#start-screen'),startButton=document.querySelector('#start-button');
+const audio=createEngineAudio(),audioButton=document.querySelector('#audio-button');
 const audio=createEngineAudio(),audioButton=document.querySelector('#audio-button');
 const game=createGame(canvas,{
   onUpdate:({speed,rpm,gear,lap,time,state,position,standings,offRoad,lastLap,bestLap,sector,sectorTime})=>{
     document.querySelector('#speed-label').textContent=String(Math.round(speed)).padStart(3,'0');
     document.querySelector('#speed-bar').style.width=`${Math.min(100,speed/330*100)}%`;
+    const gear=speed<8?0:Math.min(8,Math.floor(speed/42)+1),rpm=Math.round(Math.min(12000,900+(speed%42)/42*9300+(state==='running'?500:0)));
+    document.querySelector('#gear-label').textContent=gear||'N';
+    document.querySelector('#rpm-label').textContent=`${Math.round(rpm/100)*100} RPM`;
+    document.querySelector('#rpm-bar').style.width=`${Math.min(100,rpm/12000*100)}%`;
+    audio.update(rpm,0,gear,state==='running');
     document.querySelector('#rpm-label').textContent=`${Math.round(rpm/100)*100} RPM`;
     document.querySelector('#rpm-bar').style.width=`${Math.min(100,rpm/12000*100)}%`;
     document.querySelector('#gear-label').textContent=speed<3?'N':String(gear);
@@ -29,6 +36,8 @@ const game=createGame(canvas,{
 });
 bindControls(game);
 startButton.addEventListener('click',()=>game.start());
+audioButton.addEventListener('click',()=>{const enabled=audio.toggle();audioButton.classList.toggle('muted',!enabled);audioButton.textContent=enabled?'♫':'♪';});
+window.addEventListener('keydown',event=>{if(event.code==='KeyM'){const enabled=audio.toggle();audioButton.classList.toggle('muted',!enabled);audioButton.textContent=enabled?'♫':'♪';}});
 audioButton.addEventListener('click',()=>{const enabled=audio.toggle();audioButton.classList.toggle('muted',!enabled);audioButton.textContent=enabled?'♫':'♪';});
 window.addEventListener('keydown',event=>{if(event.code==='KeyM'){const enabled=audio.toggle();audioButton.classList.toggle('muted',!enabled);audioButton.textContent=enabled?'♫':'♪';}});
 document.querySelector('#pause-button').addEventListener('click',()=>game.togglePause());
