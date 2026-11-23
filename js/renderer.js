@@ -164,7 +164,7 @@ export function createRenderer(canvas) {
     return fallbackRenderer();
   }
 
-  let width = 1, height = 1, dpr = 1, lost = false, impactFlash = 0;
+  let width = 1, height = 1, dpr = 1, lost = false, impactFlash = 0, cameraX = 0, cameraHeight = 5.5;
   function resize() {
     const rect = canvas.getBoundingClientRect();
     dpr = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -187,7 +187,7 @@ export function createRenderer(canvas) {
     }
   }
 
-  function render({ position = 0, playerX = 0, speed = 0, offRoad = false, running = false, opponents = [], cameraShake = 0 }) {
+  function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, dt = 1/60 }) {
     if (lost) return;
     const mesh = createGeometry();
     const roadSegments = 118;
@@ -284,7 +284,19 @@ export function createRenderer(canvas) {
     const playerRoad = roadPoints[3];
     const trackCenterX = playerRoad.x;
     const playerWorldX = trackCenterX + playerX * 4.2;
-    addCar(mesh, playerWorldX, playerRoad.y, 9, 1, offRoad ? [.72,.25,.12] : [.84,.12,.16]);
+    const suspensionBob = running ? Math.sin(position * 4563 * .72) * Math.min(.075, speed / 330 * .075) : 0;
+    addCar(mesh, playerWorldX, playerRoad.y + suspensionBob, 9, 1, offRoad ? [.72,.25,.12] : [.84,.12,.16]);
+
+    // Rubber trails appear behind the rear tyres when lateral grip is being used.
+    if (running && Math.abs(lateralVelocity) > .48) {
+      const markStrength = clamp((Math.abs(lateralVelocity) - .42) * .24, .035, .16);
+      for (const side of [-1, 1]) {
+        const markX = playerWorldX + side * .72;
+        mesh.quad([markX-.12,playerRoad.y+.045,4.2],[markX+.12,playerRoad.y+.045,4.2],
+          [markX+.12,playerRoad.y+.045,7.2],[markX-.12,playerRoad.y+.045,7.2],
+          [.055,.06,.065].map(channel => channel * (1-markStrength)));
+      }
+    }
 
     // Keep the camera aligned with the circuit, not locked to the player's car.
     // This makes left/right steering visibly move the car across the road.
@@ -292,8 +304,13 @@ export function createRenderer(canvas) {
     const baseFov = aspect < .8 ? 1.08 : .96;
     const speedFov = clamp(speed / 330, 0, 1) * .12;
     const projection = perspective(baseFov + speedFov, aspect, .1, 1000);
-    const eye = [trackCenterX + cameraShake * .012, 5.5, -8];
-    const target = [trackCenterX, 1.15, 33];
+    const followTargetX = trackCenterX + playerX * 1.35;
+    const followTargetY = 5.5 + clamp(speed / 330, 0, 1) * .28 - clamp(speedDelta / 180, -1, 1) * .12;
+    const followEase = 1 - Math.exp(-Math.max(.001, dt) * 4.2);
+    cameraX += (followTargetX - cameraX) * followEase;
+    cameraHeight += (followTargetY - cameraHeight) * followEase;
+    const eye = [cameraX + cameraShake * .012, cameraHeight, -8];
+    const target = [cameraX + (playerWorldX - cameraX) * .42, 1.15, 33];
     const view = lookAt(eye, target, [0,1,0]);
     const viewProjection = multiply(projection, view);
 

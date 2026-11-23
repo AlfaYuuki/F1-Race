@@ -73,3 +73,10 @@ This is an original arcade simulation using a Fuji-inspired layout and simplifie
 - Added a checkered start/finish stripe at the start line and each lap crossing.
 - Added spectator grandstands and coloured crowd rows on both sides of the track.
 - Preserved the chase-camera view, existing controls, physics, HUD, AI and mobile layout.
+
+### Milestone 9 — Race feel and immersion
+- Added a five-light start sequence followed by a green GO prompt
+- Added a smooth, partial chase-camera follow so the car visibly moves across the circuit without losing track context
+- Camera height responds subtly to speed and acceleration changes
+- Added suspension movement and tyre rubber marks during high lateral-load moments
+- Preserved the full-screen Fuji scene, existing touch/keyboard controls, AI and championship

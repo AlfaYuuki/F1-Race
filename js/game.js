@@ -16,12 +16,12 @@ export function createGame(canvas,callbacks={}) {
   function start(){
     if(state==='running'||state==='countdown')return;
     cancelAnimationFrame(raf);clearInterval(countdownTimer);physics.reset();elapsed=0;raceDistance=0;lap=1;collisionCooldown=0;impactPulse=0;opponents.reset();lapElapsed=0;lastLap=null;bestLap=null;sector=1;sectorElapsed=0;state='countdown';
-    notify('GET READY');let count=3;document.querySelector('#countdown').textContent=count;
+    notify('GET READY');let count=5;const countdown=document.querySelector('#countdown');countdown.dataset.lit='0';countdown.textContent='';
     callbacks.onStart?.();
     updateHud();
-    countdownTimer=setInterval(()=>{count--;if(count>0)document.querySelector('#countdown').textContent=count;
-      else if(count===0)document.querySelector('#countdown').textContent='GO!';
-      else{clearInterval(countdownTimer);document.querySelector('#countdown').textContent='';state='running';notify('RACE ON — FIND YOUR LINE!');last=performance.now();raf=requestAnimationFrame(frame);}},800);
+    countdownTimer=setInterval(()=>{count--;if(count>0){countdown.dataset.lit=String(6-count);countdown.setAttribute('aria-label',`${6-count} of 5 start lights`);}
+      else if(count===0){countdown.dataset.lit='5';countdown.textContent='GO!';countdown.setAttribute('aria-label','Go');}
+      else{clearInterval(countdownTimer);countdown.dataset.lit='0';countdown.textContent='';countdown.removeAttribute('aria-label');state='running';notify('RACE ON — FIND YOUR LINE!');last=performance.now();raf=requestAnimationFrame(frame);}},650);
   }
   function togglePause(){
     if(state==='running'){state='paused';cancelAnimationFrame(raf);input.clear();notify('PAUSED — PRESS ESC OR ▶ TO RESUME');updateHud();callbacks.onPause?.(true);}
@@ -31,6 +31,7 @@ export function createGame(canvas,callbacks={}) {
     if(state!=='running')return;
     const dt=Math.min((now-last)/1000,.035);last=now;elapsed+=dt*1000;lapElapsed+=dt*1000;sectorElapsed+=dt*1000;
     const previousLapIndex=Math.floor(raceDistance/LAP_DISTANCE);
+    const previousSpeed=physics.speed;
     const progress=(raceDistance%LAP_DISTANCE)/LAP_DISTANCE,curve=curveAt(progress);
     physics.update(dt,input,curve);
     raceDistance+=physics.speed/3.6*dt;
@@ -48,7 +49,7 @@ export function createGame(canvas,callbacks={}) {
     if(raceDistance>=TOTAL_DISTANCE){raceDistance=TOTAL_DISTANCE;state='finished';physics.speed=0;notify('CHEQUERED FLAG — RACE COMPLETE!');}
     lap=Math.min(TOTAL_LAPS,Math.floor(raceDistance/LAP_DISTANCE)+1);
     const rivalCars=opponents.drivers.map(d=>({...d,relativeDistance:d.distance-raceDistance}));
-    renderer.render({position:raceDistance/LAP_DISTANCE,playerX:physics.playerX,speed:physics.speed,offRoad:physics.offRoad,running:state==='running',opponents:rivalCars,cameraShake:impactPulse>0?Math.sin(now*.05)*impactPulse*3:0,skid:Math.abs(physics.lateralVelocity)>.42,dt});
+    renderer.render({position:raceDistance/LAP_DISTANCE,playerX:physics.playerX,speed:physics.speed,speedDelta:(physics.speed-previousSpeed)/Math.max(dt,.001),lateralVelocity:physics.lateralVelocity,offRoad:physics.offRoad,running:state==='running',opponents:rivalCars,cameraShake:impactPulse>0?Math.sin(now*.05)*impactPulse*3:0,skid:Math.abs(physics.lateralVelocity)>.42,dt});
     updateHud();if(state==='running')raf=requestAnimationFrame(frame);else updateHud();
   }
   function idleFrame(now){
