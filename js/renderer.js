@@ -189,19 +189,24 @@ export function createRenderer(canvas) {
     const mesh = createGeometry();
     const roadSegments = 118;
     const segmentLength = 4.2;
+    const lapDistance = 4563;
+    const travelledThisLap = ((position * lapDistance) % lapDistance + lapDistance) % lapDistance;
+    // Shift every world segment towards the camera as distance increases. Without
+    // this offset the car moves in the physics model but the road appears frozen.
+    const scrollOffset = travelledThisLap % segmentLength;
     let centerX = 0;
     const roadPoints = [];
 
     for (let i = 0; i <= roadSegments; i++) {
-      const z = i * segmentLength;
-      const progress = position + z / 4563;
+      const z = i * segmentLength - scrollOffset;
+      const progress = position + z / lapDistance;
       const curve = curveAt(progress);
       centerX += curve * .018;
       const elevation = elevationAt(progress) * 1.5;
       roadPoints.push({ z, x: centerX, y: elevation });
     }
 
-    mesh.quad([-700,-2,-20],[700,-2,-20],[700,-2,520],[-700,-2,520],[.28,.43,.29]);
+    mesh.quad([-700,-2,-30],[700,-2,-30],[700,-2,520],[-700,-2,520],[.28,.43,.29]);
     for (let i = 0; i < roadSegments; i++) {
       const a = roadPoints[i], b = roadPoints[i+1];
       const leftA = a.x - 5.5, rightA = a.x + 5.5;
@@ -214,13 +219,49 @@ export function createRenderer(canvas) {
         const stripeWidth = .12;
         mesh.quad([a.x-stripeWidth,a.y+.035,a.z],[a.x+stripeWidth,a.y+.035,a.z],[b.x+stripeWidth,b.y+.035,b.z],[b.x-stripeWidth,b.y+.035,b.z],[.82,.82,.75]);
       }
-      if (i % 7 === 0 && i > 4) {
+      if (i % 7 === 0 && i > 4 && i % 21 !== 0) {
         mesh.tree(a.x - 9 - (i%3), a.z, 2.8 + (i%4)*.2);
         mesh.tree(a.x + 10 + (i%4), a.z, 3.1);
       }
+      // Grandstands on BOTH sides, with visible coloured spectator rows.
+      if (i % 21 === 0 && i > 8) {
+        for (const side of [-1, 1]) {
+          const sx = a.x + side * 10.2;
+          mesh.box(sx, .05, a.z, 5.8, 1.05, 12, [.25,.29,.32]);
+          mesh.box(sx, 1.12, a.z, 6.1, .18, 12.4, [.72,.74,.76]);
+          for (let row = 0; row < 3; row++) {
+            for (let seat = 0; seat < 9; seat++) {
+              const crowdX = sx + (seat - 4) * .57;
+              const crowdY = 1.35 + row * .34;
+              const crowdZ = a.z + (row - 1) * 2.2;
+              const palette = [[.82,.2,.19],[.88,.78,.55],[.16,.3,.48],[.83,.83,.82],[.22,.55,.39]];
+              mesh.box(crowdX, crowdY, crowdZ, .28, .3, .28, palette[(seat + row + i) % palette.length]);
+            }
+          }
+          mesh.box(sx, 2.55, a.z - 4.9, 6.25, .12, .22, [.85,.13,.16]);
+        }
+      }
       if (i % 28 === 0 && i > 8) {
-        mesh.box(a.x + 13, .05, a.z, 5.8, 2.0, 8.5, [.22,.27,.3]);
-        mesh.box(a.x + 13, 2.08, a.z, 6.2, .18, 8.8, [.76,.12,.14]);
+        mesh.box(a.x + 15, .05, a.z, 5.8, 2.0, 8.5, [.22,.27,.3]);
+        mesh.box(a.x + 15, 2.08, a.z, 6.2, .18, 8.8, [.76,.12,.14]);
+      }
+    }
+
+    // Checkered start/finish stripe: visible at the start, then again as the
+    // player approaches the lap line. It is the same physical line each lap.
+    let lineZ = travelledThisLap < 28
+      ? -travelledThisLap - scrollOffset
+      : lapDistance - travelledThisLap - scrollOffset;
+    if (lineZ > -22 && lineZ < 500) {
+      const nearest = clamp(Math.round((lineZ + scrollOffset) / segmentLength), 0, roadSegments);
+      const lineRoad = roadPoints[nearest];
+      const tileWidth = 11 / 12;
+      for (let tile = 0; tile < 12; tile++) {
+        const x0 = lineRoad.x - 5.5 + tile * tileWidth;
+        const x1 = x0 + tileWidth;
+        const tint = tile % 2 ? [.08,.09,.1] : [.96,.96,.91];
+        mesh.quad([x0,lineRoad.y+.055,lineZ-.48],[x1,lineRoad.y+.055,lineZ-.48],
+          [x1,lineRoad.y+.055,lineZ+.48],[x0,lineRoad.y+.055,lineZ+.48],tint);
       }
     }
 

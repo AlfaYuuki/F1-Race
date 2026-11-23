@@ -66,3 +66,10 @@ This is an original arcade simulation using a Fuji-inspired layout and simplifie
 - Capped render resolution and device-pixel ratio for mobile GPU and memory budgets
 - Added context-loss handling, orientation/resize updates and mobile safe-area spacing
 - Preserved the existing HUD, race logic, AI, championship and touch controls
+
+
+### Race-world motion and circuit atmosphere fix
+- Road segments and roadside scenery now scroll continuously relative to player distance, making forward movement visible at speed.
+- Added a checkered start/finish stripe at the start line and each lap crossing.
+- Added spectator grandstands and coloured crowd rows on both sides of the track.
+- Preserved the chase-camera view, existing controls, physics, HUD, AI and mobile layout.
