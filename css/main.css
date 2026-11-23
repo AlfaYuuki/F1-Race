@@ -71,3 +71,176 @@ button{font:inherit}
 .countdown[data-lit="5"] .start-light{background:#283038;box-shadow:inset 0 2px 5px #000b}
 .countdown[data-lit="5"] .countdown-go{color:#79f0a9}
 @media(max-width:760px){.start-light-panel{gap:9px;padding:12px 16px}.start-light{width:25px;height:25px}}
+
+
+/* =========================================================
+   VISUAL UPDATE — broadcast-grade racing HUD
+   Retains the full-screen game and all existing controls.
+   ========================================================= */
+:root{
+  --panel:rgba(5,13,22,.78);
+  --panel-edge:rgba(219,237,248,.19);
+  --panel-glow:rgba(105,176,211,.10);
+  --red:#ff3448;
+  --ice:#dcebf4;
+  --muted:#91a7b7;
+}
+.race-game{background:#091722}
+#race-canvas{filter:saturate(1.08) contrast(1.035)}
+.vignette{
+  background:
+    radial-gradient(ellipse at 50% 52%,transparent 34%,rgba(2,8,14,.18) 100%),
+    linear-gradient(180deg,rgba(2,8,15,.72),transparent 19%,transparent 70%,rgba(2,8,15,.62));
+}
+.race-topbar{
+  height:62px;padding:0 clamp(14px,2.5vw,38px);
+  border-bottom:1px solid var(--panel-edge);
+  background:linear-gradient(180deg,rgba(4,12,20,.92),rgba(4,12,20,.48));
+  box-shadow:0 8px 28px #0002;
+}
+.brand{gap:13px;font-size:10px;letter-spacing:.2em}
+.brand-mark{
+  position:relative;background:linear-gradient(145deg,#ff5966,#c91830);
+  box-shadow:0 4px 18px #f044444d;font-size:25px;padding:1px 10px;
+}
+.track-name{font-size:9px;letter-spacing:.18em;color:#eaf4f9}
+.track-name i{box-shadow:0 0 0 4px #68dfa01c,0 0 15px #68dfa0}
+.icon-button{
+  width:38px;height:36px;border-radius:7px;
+  border-color:#d8e8f433;background:rgba(10,26,39,.78);
+  box-shadow:inset 0 1px #ffffff12;transition:.18s ease;
+}
+.icon-button:hover{border-color:#fff9;background:#ffffff20;transform:translateY(-1px)}
+.hud,.standings,.timing-panel{
+  background:linear-gradient(145deg,rgba(7,20,32,.88),rgba(5,13,22,.72));
+  border:1px solid var(--panel-edge);border-radius:9px;
+  box-shadow:0 14px 42px #0003,inset 0 1px var(--panel-glow);
+  backdrop-filter:blur(14px) saturate(130%);
+}
+.hud{
+  top:80px;left:clamp(12px,2vw,30px);gap:clamp(13px,1.8vw,27px);
+  padding:14px 18px;border-left:3px solid var(--red);
+}
+.hud-block{min-width:54px;gap:6px}
+.hud-block>small,.timing-panel small{
+  color:#9bb0bf;font-size:8px;letter-spacing:.17em;
+}
+.hud-block strong{font-size:25px;text-shadow:0 2px 12px #0006}
+.hud-block strong span{color:#8da4b4}
+.speed-block>strong{font-size:39px;color:#fff}
+.speed-block>strong small{color:#9fb5c4}
+.speed-track,.rpm-track{height:4px;border-radius:9px;overflow:hidden;background:#e7f1f51c}
+.speed-track i{background:linear-gradient(90deg,#f7b84c,#ff4353);box-shadow:0 0 12px #ff435366}
+.rpm-track i{background:linear-gradient(90deg,#5ccda0,#f0c24d,#ff4353)}
+.gear-block strong{font-size:30px;color:#ff5362}
+.standings{top:80px;right:clamp(12px,2vw,30px);width:196px;padding:13px}
+.standings-head{font-size:8px;color:#d9e7ef;letter-spacing:.17em;border-color:#dcebf41c}
+.standings li{
+  height:30px;font-size:11px;border-color:#dcebf40d;
+  transition:background .15s;
+}
+.standings li.player-row{background:linear-gradient(90deg,#f044442c,transparent);border-left:2px solid var(--red)}
+.standings .rank{color:#8da5b5}
+.standings li b{color:#9fb2bf;font-size:8px}
+.timing-panel{left:clamp(12px,2vw,30px);bottom:53px;gap:22px;padding:12px 16px}
+.timing-panel strong{font-size:13px;font-variant-numeric:tabular-nums}
+.race-message{
+  top:23px;padding:8px 15px;border:1px solid #dcebf426;border-radius:30px;
+  background:#07152299;backdrop-filter:blur(8px);
+  font-size:8px;letter-spacing:.2em;
+}
+.race-message span{color:#ff5362}
+.start-screen{
+  background:linear-gradient(90deg,rgba(2,9,16,.82),rgba(2,9,16,.36) 52%,transparent 100%),
+    linear-gradient(0deg,rgba(2,9,16,.28),transparent 60%);
+}
+.start-card{
+  position:relative;overflow:hidden;width:min(450px,calc(100vw - 36px));
+  margin-left:clamp(18px,7vw,112px);padding:clamp(23px,3vw,34px);
+  border:1px solid #dcebf43b;border-radius:12px;
+  background:linear-gradient(145deg,rgba(6,19,31,.94),rgba(7,19,30,.76));
+  box-shadow:0 28px 100px #0008,inset 0 1px #ffffff18;
+  backdrop-filter:blur(18px) saturate(125%);
+}
+.start-card:before{
+  content:"";position:absolute;top:0;left:0;width:76px;height:3px;
+  background:linear-gradient(90deg,#ff3448,transparent);
+}
+.eyebrow{color:#ff7782;font-size:9px;letter-spacing:.22em}
+.start-card h1{font-size:clamp(58px,7vw,88px);letter-spacing:-.035em;text-shadow:0 8px 30px #0008}
+.start-card h1 em{color:#ff5362;text-shadow:0 0 24px #f044443d}
+.start-card>p:not(.eyebrow){color:#c4d3dc;font-size:12px}
+.start-meta{gap:clamp(16px,3vw,30px);border-color:#dcebf426}
+.start-meta span{font-size:21px}
+.start-meta small{color:#8fa6b5;font-size:8px}
+.start-button{
+  border-radius:6px;padding:17px 19px;
+  background:linear-gradient(105deg,#fa3449,#cf1f37);
+  box-shadow:0 8px 24px #e32b4140;
+  transition:filter .18s,transform .18s,box-shadow .18s;
+}
+.start-button:hover{background:linear-gradient(105deg,#ff5264,#e72a43);box-shadow:0 12px 30px #e32b415c}
+.championship-button{border-radius:6px;background:#10283a;border-color:#dcebf43a}
+.championship-button:hover{background:#173d55;border-color:#e8b84e}
+.championship-summary{color:#91a8b8!important}
+.keyboard-help{color:#9bb0bd;letter-spacing:.12em}
+.race-bottom{
+  height:36px;padding:0 clamp(12px,2vw,30px);
+  border-top:1px solid #dcebf41a;background:rgba(4,12,20,.74);
+  backdrop-filter:blur(10px);font-size:8px;color:#aebfca;
+}
+.mobile-controls button{
+  border:1px solid #e4f2fa70;border-radius:12px;
+  background:linear-gradient(145deg,rgba(10,28,42,.9),rgba(4,13,22,.82));
+  box-shadow:0 8px 25px #0005,inset 0 1px #ffffff20;
+  backdrop-filter:blur(12px);font-size:13px;
+  -webkit-user-select:none;user-select:none;
+}
+.mobile-controls button:active{transform:scale(.94);background:#24465b}
+.pedal-controls button:last-child{
+  background:linear-gradient(145deg,#ff4c5d,#c91f35);
+  border-color:#ff9ba5;box-shadow:0 8px 24px #e32b4148;
+}
+.countdown .start-light-panel{
+  border-color:#8093a1;background:linear-gradient(180deg,#26323d,#080e15);
+  box-shadow:0 20px 65px #0009,inset 0 1px #ffffff1a;
+}
+.countdown .start-light{width:clamp(22px,3.5vw,38px);height:clamp(22px,3.5vw,38px)}
+@media(max-width:760px){
+  .race-topbar{height:52px;padding:0 12px}
+  .brand{font-size:9px;gap:8px}.brand-mark{font-size:21px}
+  .top-actions{gap:5px}.icon-button{width:33px;height:32px}
+  .hud{top:62px;left:9px;gap:8px;padding:9px 10px;border-left-width:2px}
+  .hud-block{min-width:34px}.hud-block>small{font-size:6px}
+  .hud-block strong{font-size:18px}.speed-block{min-width:67px}
+  .speed-block>strong{font-size:27px}.gear-block strong{font-size:22px}
+  .standings{top:62px;right:9px;width:125px;padding:7px}
+  .standings-head{font-size:6px}.standings li{height:23px;font-size:8px;gap:4px}
+  .standings li b{font-size:6px}
+  .timing-panel{left:9px;bottom:48px;gap:9px;padding:8px 9px}
+  .timing-panel small{font-size:6px}.timing-panel strong{font-size:9px}
+  .start-card{margin:0;width:min(390px,calc(100vw - 28px));padding:22px;border-radius:10px}
+  .start-card h1{font-size:clamp(56px,15vw,68px)}
+  .race-message{top:34%;font-size:6px;letter-spacing:.12em}
+  .mobile-controls{left:12px;right:12px;bottom:calc(43px + env(safe-area-inset-bottom))}
+  .mobile-controls button{min-width:58px;height:58px}
+  .race-bottom{height:30px;font-size:6px}
+}
+@media(max-width:390px){
+  .hud{gap:6px;padding:8px}.hud-block{min-width:30px}
+  .speed-block{min-width:58px}.speed-block>strong{font-size:24px}
+  .standings{width:112px}.standings li{font-size:7px}
+  .time-block{display:none}
+  .timing-panel{bottom:112px}
+}
+@media(orientation:landscape) and (max-height:520px){
+  .race-topbar{height:42px}.hud,.standings{top:49px}
+  .hud{padding:7px 10px}.standings{padding:6px}
+  .standings li{height:20px}.timing-panel{bottom:38px}
+  .mobile-controls{bottom:36px}.mobile-controls button{height:48px;min-width:52px}
+  .start-card{padding:15px;width:min(370px,calc(100vw - 30px))}
+  .start-card h1{font-size:48px;margin-bottom:10px}
+  .start-card>p:not(.eyebrow){margin-bottom:10px}
+  .start-meta{padding:8px 0 12px}
+  .race-bottom{height:25px}
+}
