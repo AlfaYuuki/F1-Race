@@ -40,12 +40,15 @@ function lookAt(eye, center, up) {
   let zx = eye[0] - center[0], zy = eye[1] - center[1], zz = eye[2] - center[2];
   let length = Math.hypot(zx, zy, zz) || 1;
   zx /= length; zy /= length; zz /= length;
-  let xx = up[1] * zz - up[2] * zy;
-  let xy = up[2] * zx - up[0] * zz;
-  let xz = up[0] * zy - up[1] * zx;
+  // Camera looks toward +Z in this world. Build its right axis as
+  // cross(view direction, world up); the previous cross order mirrored X,
+  // making right steering render on the left side of the screen.
+  let xx = zy * up[2] - zz * up[1];
+  let xy = zz * up[0] - zx * up[2];
+  let xz = zx * up[1] - zy * up[0];
   length = Math.hypot(xx, xy, xz) || 1;
   xx /= length; xy /= length; xz /= length;
-  const yx = zy * xz - zz * xy, yy = zz * xx - zx * xz, yz = zx * xy - zy * xx;
+  const yx = xy * zz - xz * zy, yy = xz * zx - xx * zz, yz = xx * zy - xy * zx;
   return new Float32Array([
     xx, yx, zx, 0,
     xy, yy, zy, 0,
