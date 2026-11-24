@@ -28,6 +28,17 @@ let roundRecorded = false;
 const escapeHtml = value => String(value).replace(/[&<>"']/g, character => ({
   '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
 }[character]));
+function showEngineerAlert(alert) {
+  if(!alert)return;
+  document.querySelector('#engineer-panel').hidden=false;
+  document.querySelector('#engineer-level').textContent=alert.level.toUpperCase();
+  document.querySelector('#engineer-title').textContent=alert.title;
+  document.querySelector('#engineer-message').textContent=alert.message;
+  document.querySelector('#engineer-action').textContent=alert.action;
+  document.querySelector('#engineer-panel').dataset.level=alert.level;
+  if(alert.level==='warning'||alert.level==='critical')audio.playRadio(alert.message);
+}
+
 
 function renderChampionshipSummary() {
   const season = championship.getState();
@@ -147,15 +158,7 @@ const game = createGame(canvas, {
       fuel, tireWear, compound, damage, offRoad, weather,
       lastLapMs, bestLapMs, fuelFlow:live.fuelFlow, now:performance.now()
     });
-    if (engineerAlert) {
-      document.querySelector('#engineer-panel').hidden=false;
-      document.querySelector('#engineer-level').textContent=engineerAlert.level.toUpperCase();
-      document.querySelector('#engineer-title').textContent=engineerAlert.title;
-      document.querySelector('#engineer-message').textContent=engineerAlert.message;
-      document.querySelector('#engineer-action').textContent=engineerAlert.action;
-      document.querySelector('#engineer-panel').dataset.level=engineerAlert.level;
-      if(engineerAlert.level==='warning'||engineerAlert.level==='critical')audio.playRadio(engineerAlert.message);
-    }
+    if (engineerAlert) showEngineerAlert(engineerAlert);
 
     document.querySelector('#speed-label').textContent = String(Math.round(speed)).padStart(3, '0');
     document.querySelector('#speed-bar').style.width = `${Math.min(100, speed / 330 * 100)}%`;
@@ -219,6 +222,7 @@ const game = createGame(canvas, {
       }
     }
   },
+  onSector: ({sector,time}) => { const alert=raceEngineer.recordSector({sector,time,now:performance.now()}); if(alert)showEngineerAlert(alert); },
   onMessage: message => {
     if (/PIT|YELLOW FLAG|GREEN FLAG|SAFETY CAR|TIME PENALTY|CONTACT|CHEQUERED/i.test(message)) audio.playRadio(message);
     document.querySelector('#race-message').textContent = platform === 'android'
