@@ -11,7 +11,7 @@ const COMPOUNDS = {
 export function createPhysics() {
   return {
     speed: 0, playerX: 0, distance: 0, offRoad: false, lateralVelocity: 0, rpm: 850, gear: 1,
-    fuel: 100, tireWear: 0, compound: 'MEDIUM', damage: 0, pitStops: 0,\n    carConfig: { stats: { power:1, grip:1, braking:1, durability:1 }, setup: { aero:50, suspension:50, brakeBias:56, differential:50 } },\n    setCarConfig(config) { if (config?.stats) this.carConfig = config; },
+    fuel: 100, tireWear: 0, compound: 'MEDIUM', damage: 0, pitStops: 0,\n    carConfig: { stats: { power:1, grip:1, braking:1, durability:1 }, setup: { aero:50, suspension:50, brakeBias:56, differential:50 } },\n    setCarConfig(config) { if (config?.stats) this.carConfig = config; },\n    carConfig: { stats: { power:1, grip:1, braking:1, durability:1 }, setup: { aero:50, suspension:50, brakeBias:56, differential:50 } },\n    setCarConfig(config) { if (config?.stats) this.carConfig = config; },
     update(dt, input, curve, steerAxis = 0, options = {}) {
       const accelerating = input.has('accelerate'), braking = input.has('brake');
       const stats = this.carConfig.stats;\n      const weatherGrip = clamp(Number(options.weatherGrip) || 1, .5, 1.05);\n      const weatherWear = clamp(Number(options.weatherWear) || 1, .8, 1.5);\n      const maxSpeed = options.pitLimiter ? 80 : (this.fuel <= 0 ? 95 : 330 * stats.power);
