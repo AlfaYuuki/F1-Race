@@ -596,3 +596,36 @@ button,select,input{touch-action:manipulation}
   .mobile-controls button{height:48px;min-width:52px}
   .race-bottom{height:18px}
 }
+
+
+/* LANDSCAPE COCKPIT CLEARANCE — keep telemetry between the pedal groups,
+   and reserve a separate row above the accelerator for the BOX command. */
+@media (orientation:landscape) and (pointer:coarse) {
+  .pit-telemetry{
+    left:50%;right:auto;transform:translateX(-50%);
+    bottom:calc(25px + 76px + 14px + env(safe-area-inset-bottom));
+    width:max-content;max-width:min(46vw,520px);
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:clamp(8px,1.2vw,15px);
+    padding:7px 10px;
+  }
+  .pit-telemetry>div{min-width:clamp(45px,5vw,68px)}
+  .pit-telemetry small{font-size:7px}
+  .pit-telemetry strong{font-size:clamp(8px,.9vw,10px)}
+  .pit-button{
+    right:max(14px,env(safe-area-inset-right));
+    bottom:calc(25px + 76px + 14px + 40px + 12px + env(safe-area-inset-bottom));
+    min-width:84px;min-height:40px;
+  }
+}
+@media (orientation:landscape) and (pointer:coarse) and (max-height:520px) {
+  .pit-telemetry{
+    bottom:calc(20px + 48px + 10px + env(safe-area-inset-bottom));
+    max-width:min(44vw,450px);padding:5px 8px;gap:7px;
+  }
+  .pit-telemetry>div{min-width:40px}
+  .pit-button{
+    bottom:calc(20px + 48px + 10px + 34px + 8px + env(safe-area-inset-bottom));
+    min-height:34px;padding:6px 10px;
+  }
+}
