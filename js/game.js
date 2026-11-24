@@ -28,14 +28,12 @@ export function createGame(canvas,callbacks={}) {
     else if(state==='paused'){state='running';last=performance.now();notify('RACE RESUMED');raf=requestAnimationFrame(frame);callbacks.onPause?.(false);}
   }
   function frame(now){
-    if(state!=='running')return;
-    const dt=Math.min((now-last)/1000,.035);last=now;elapsed+=dt*1000;lapElapsed+=dt*1000;sectorElapsed+=dt*1000;
+    if(!['running','pit-entry','pit-service'].includes(state))return;
+    const dt=Math.min((now-last)/1000,.035);last=now;elapsed+=dt*1000;if(state==='running'){lapElapsed+=dt*1000;sectorElapsed+=dt*1000;}
     const previousLapIndex=Math.floor(raceDistance/LAP_DISTANCE);
     const previousSpeed=physics.speed;
     const progress=(raceDistance%LAP_DISTANCE)/LAP_DISTANCE,curve=curveAt(progress);
-    physics.update(dt,input,curve);
-    raceDistance+=physics.speed/3.6*dt;
-    opponents.update(dt,raceDistance,curveAt);
+    if(state==='pit-entry'){physics.speed=Math.max(0,physics.speed-125*dt);if(physics.speed<=1){physics.speed=0;state='pit-service';pitTimer=4.2;notify('PIT BOX — CREW WORKING');callbacks.onPitService?.(true);}}else if(state==='pit-service'){pitTimer-=dt;if(pitTimer<=0){physics.service(pitCompound,pitFuel);pitStops++;state='running';notify('PIT RELEASE — '+pitCompound+' TYRES FITTED');callbacks.onPitService?.(false);}}else{physics.update(dt,input,curve);raceDistance+=physics.speed/3.6*dt;opponents.update(dt,raceDistance,curveAt);}
     collisionCooldown=Math.max(0,collisionCooldown-dt);impactPulse=Math.max(0,impactPulse-dt*3.8);
     if(collisionCooldown===0){
       const rival=opponents.drivers.find(d=>Math.abs(d.distance-raceDistance)<7.5&&Math.abs((d.currentLane??d.lane)-physics.playerX)<.27);
@@ -50,7 +48,7 @@ export function createGame(canvas,callbacks={}) {
     lap=Math.min(TOTAL_LAPS,Math.floor(raceDistance/LAP_DISTANCE)+1);
     const rivalCars=opponents.drivers.map(d=>({...d,relativeDistance:d.distance-raceDistance}));
     renderer.render({position:raceDistance/LAP_DISTANCE,playerX:physics.playerX,speed:physics.speed,speedDelta:(physics.speed-previousSpeed)/Math.max(dt,.001),lateralVelocity:physics.lateralVelocity,offRoad:physics.offRoad,running:state==='running',opponents:rivalCars,cameraShake:impactPulse>0?Math.sin(now*.05)*impactPulse*3:0,skid:Math.abs(physics.lateralVelocity)>.42,dt});
-    updateHud();if(state==='running')raf=requestAnimationFrame(frame);else updateHud();
+    updateHud();if(['running','pit-entry','pit-service'].includes(state))raf=requestAnimationFrame(frame);else updateHud();
   }
   function idleFrame(now){
     if(state==='running'||state==='countdown')return;
