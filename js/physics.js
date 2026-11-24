@@ -12,11 +12,14 @@ export function createPhysics() {
   return {
     speed: 0, playerX: 0, distance: 0, offRoad: false, lateralVelocity: 0, rpm: 850, gear: 1,
     fuel: 100, tireWear: 0, compound: 'MEDIUM', damage: 0, pitStops: 0,
+    telemetry: { throttle:0, brake:0, steering:0, lateralG:0, longitudinalG:0, grip:100, fuelFlow:0 },
     carConfig: { stats: { power:1, grip:1, braking:1, durability:1 }, setup: { aero:50, suspension:50, brakeBias:56, differential:50 } },
     setCarConfig(config) { if (config?.stats) this.carConfig = config; },
     carConfig: { stats: { power:1, grip:1, braking:1, durability:1 }, setup: { aero:50, suspension:50, brakeBias:56, differential:50 } },
     setCarConfig(config) { if (config?.stats) this.carConfig = config; },
     update(dt, input, curve, steerAxis = 0, options = {}) {
+      const previousSpeed = this.speed;
+      const previousFuel = this.fuel;
       const accelerating = input.has('accelerate'), braking = input.has('brake');
       const stats = this.carConfig.stats;
       const weatherGrip = clamp(Number(options.weatherGrip) || 1, .5, 1.05);
@@ -51,11 +54,23 @@ export function createPhysics() {
         this.lateralVelocity *= .94;
       }
       this.playerX = clamp(this.playerX, -1.35, 1.35);
+      const longitudinalG = dt > 0 ? ((this.speed - previousSpeed) / 3.6) / dt / 9.81 : 0;
+      const lateralG = clamp((steer * .85 - curve * .7 + this.lateralVelocity * .45) * velocityRatio, -3.5, 3.5);
+      this.telemetry = {
+        throttle: accelerating ? 100 : 0,
+        brake: braking ? 100 : 0,
+        steering: Math.round(steer * 100),
+        lateralG,
+        longitudinalG,
+        grip: clamp(tyreGrip * damageGrip * 100, 0, 100),
+        fuelFlow: dt > 0 ? Math.max(0, (previousFuel - this.fuel) / dt * 60) : 0
+      };
       this.distance += this.speed / 3.6 * dt;
       this.gear = this.speed < 8 ? 1 : Math.min(8, Math.max(1, Math.floor(this.speed / 42) + 1));
       const gearProgress = (this.speed - (this.gear - 1) * 42) / 42;
       this.rpm = Math.round(Math.max(850, Math.min(12000, 900 + gearProgress * 9300 + (accelerating ? 650 : 0))));
     },
+    getTelemetry() { return { ...this.telemetry }; },
     impact(direction = 1) {
       this.speed = Math.max(35, this.speed - 48);
       this.lateralVelocity += direction * .7;
@@ -75,6 +90,7 @@ export function createPhysics() {
       this.speed = 0; this.playerX = 0; this.distance = 0; this.offRoad = false;
       this.lateralVelocity = 0; this.rpm = 850; this.gear = 1;
       this.fuel = 100; this.tireWear = 0; this.compound = 'MEDIUM'; this.damage = 0; this.pitStops = 0;
+      this.telemetry = { throttle:0, brake:0, steering:0, lateralG:0, longitudinalG:0, grip:100, fuelFlow:0 };
     }
   };
 }
