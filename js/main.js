@@ -171,7 +171,7 @@ const game = createGame(canvas, {
     }
   },
   onMessage: message => {
-    if (/PIT|YELLOW FLAG|GREEN FLAG|CONTACT|CHEQUERED/i.test(message)) audio.playRadio(message);
+    if (/PIT|YELLOW FLAG|GREEN FLAG|SAFETY CAR|TIME PENALTY|CONTACT|CHEQUERED/i.test(message)) audio.playRadio(message);
     document.querySelector('#race-message').textContent = platform === 'android'
       ? message.replace('PRESS ESC OR ▶', 'TAP ▶')
       : message;
@@ -189,7 +189,7 @@ const game = createGame(canvas, {
     const root=document.querySelector('.race-game');
     root.dataset.weather=weather.rain>.65?'heavyRain':weather.rain>.12?'lightRain':weather.label==='OVERCAST'?'cloudy':'dry';
     const label=document.querySelector('.race-bottom>span:first-child');
-    label.innerHTML='<i></i> '+(weather.yellowFlag?'YELLOW FLAG':weather.label);
+    label.innerHTML='<i></i> '+(weather.safetyCar?'SAFETY CAR':weather.yellowFlag?'YELLOW FLAG':weather.label);
   },
   onPause: paused => {
     document.querySelector('#pause-button').textContent = paused ? '▶' : 'Ⅱ';
