@@ -9,7 +9,7 @@ export function createGame(canvas,callbacks={}) {
   const physics=createPhysics(),renderer=createRenderer(canvas),input=new Set(),opponents=createOpponents(LAP_DISTANCE);
   let state='ready',last=0,elapsed=0,raceDistance=0,lap=1,countdownTimer=null,raf=0,collisionCooldown=0,impactPulse=0;
   let lapElapsed=0,lastLap=null,bestLap=null,sector=1,sectorElapsed=0;
-  let steerAxis=0,pitPhase=null,pitTimer=0,pitPlan=null,currentWeather=weatherSystem.getState(),lastYellow=false;
+  let steerAxis=0,pitPhase=null,pitTimer=0,pitPlan=null,currentWeather=weatherSystem.getState(),lastYellow=false,lastSafetyCar=false,penaltyDistance=0;
   const notify=message=>callbacks.onMessage?.(message);
   function setInput(action,active){active?input.add(action):input.delete(action);}
   function setSteerAxis(value){steerAxis=Number.isFinite(value)?Math.max(-1,Math.min(1,value)):0;}
@@ -22,12 +22,12 @@ export function createGame(canvas,callbacks={}) {
     return true;
   }
   function updateHud(){
-    const standings=opponents.getStandings(raceDistance),position=standings.findIndex(d=>d.isPlayer)+1;
+    const standings=opponents.getStandings(Math.max(0,raceDistance-penaltyDistance)),position=standings.findIndex(d=>d.isPlayer)+1;
     callbacks.onUpdate?.({speed:physics.speed,rpm:physics.rpm,gear:physics.gear,lap,time:formatTime(elapsed),state,position,standings,offRoad:physics.offRoad,lastLap:formatTime(lastLap),bestLap:formatTime(bestLap),sector:sector===1?'S1':sector===2?'S2':'S3',sectorTime:formatTime(sectorElapsed),fuel:physics.fuel,tireWear:physics.tireWear,compound:physics.compound,damage:physics.damage,pitStops:physics.pitStops,pitPhase,weather:currentWeather,throttle:input.has('accelerate')?1:0,skid:Math.min(1,Math.abs(physics.lateralVelocity))});
   }
   function start(){
     if(state==='running'||state==='countdown')return;
-    cancelAnimationFrame(raf);clearInterval(countdownTimer);physics.reset();weatherSystem.reset();currentWeather=weatherSystem.getState();lastYellow=false;callbacks.onWeather?.(currentWeather);elapsed=0;raceDistance=0;lap=1;collisionCooldown=0;impactPulse=0;opponents.reset();lapElapsed=0;lastLap=null;bestLap=null;sector=1;sectorElapsed=0;pitPhase=null;pitPlan=null;
+    cancelAnimationFrame(raf);clearInterval(countdownTimer);physics.reset();weatherSystem.reset();currentWeather=weatherSystem.getState();lastYellow=false;lastSafetyCar=false;callbacks.onWeather?.(currentWeather);elapsed=0;raceDistance=0;penaltyDistance=0;lap=1;collisionCooldown=0;impactPulse=0;opponents.reset();lapElapsed=0;lastLap=null;bestLap=null;sector=1;sectorElapsed=0;pitPhase=null;pitPlan=null;
     callbacks.onPitService?.(false);notify('GET READY');let count=5;const countdown=document.querySelector('#countdown');countdown.dataset.lit='0';countdown.textContent='';
     callbacks.onStart?.();callbacks.onWeather?.(currentWeather);updateHud();
     countdownTimer=setInterval(()=>{count--;if(count>0){countdown.dataset.lit=String(5-count);countdown.setAttribute('aria-label',String(6-count)+' of 5 start lights');}
@@ -47,7 +47,7 @@ export function createGame(canvas,callbacks={}) {
       physics.speed=0;physics.rpm=850;pitTimer-=dt;
       if(pitTimer<=0){physics.applyPitService(pitPlan.compound,pitPlan.fuelTarget,pitPlan.repair);pitPhase='exit';pitTimer=1.25;callbacks.onPitService?.(false);notify('PIT SERVICE COMPLETE — RELEASED');}
     } else {
-      physics.update(dt,pitPhase==='entry'?new Set():input,curve,pitPhase==='entry'?0:steerAxis,{pitLimiter:pitPhase==='entry'||pitPhase==='exit',yellowFlag:currentWeather.yellowFlag,weatherGrip:currentWeather.grip,weatherWear:currentWeather.wear});
+      physics.update(dt,pitPhase==='entry'?new Set():input,curve,pitPhase==='entry'?0:steerAxis,{pitLimiter:pitPhase==='entry'||pitPhase==='exit',yellowFlag:currentWeather.yellowFlag,safetyCar:currentWeather.safetyCar,weatherGrip:currentWeather.grip,weatherWear:currentWeather.wear});
       if(pitPhase==='entry'){pitTimer-=dt;if(pitTimer<=0){pitPhase='service';pitTimer=4.2;physics.speed=0;callbacks.onPitService?.(true);notify('CAR IN PIT BOX — CREW AT WORK');}}
       else if(pitPhase==='exit'){pitTimer-=dt;if(pitTimer<=0){pitPhase=null;pitPlan=null;notify('PIT EXIT — BACK TO RACING');}}
       raceDistance+=physics.speed/3.6*dt;
@@ -56,7 +56,7 @@ export function createGame(canvas,callbacks={}) {
     collisionCooldown=Math.max(0,collisionCooldown-dt);impactPulse=Math.max(0,impactPulse-dt*3.8);
     if(!pitPhase&&collisionCooldown===0){
       const rival=opponents.drivers.find(d=>Math.abs(d.distance-raceDistance)<7.5&&Math.abs((d.currentLane??d.lane)-physics.playerX)<.27);
-      if(rival){physics.impact(physics.playerX<=(rival.currentLane??rival.lane)?-1:1);collisionCooldown=1.1;impactPulse=1;renderer.triggerImpact?.();notify('CONTACT — DAMAGE +8%');}
+      if(rival){physics.impact(physics.playerX<=(rival.currentLane??rival.lane)?-1:1);collisionCooldown=1.1;impactPulse=1;penaltyDistance+=Math.max(35,physics.speed/3.6*3);renderer.triggerImpact?.();notify('CONTACT — 3 SECOND TIME PENALTY');}
     }
     const currentLapIndex=Math.floor(raceDistance/LAP_DISTANCE),lapProgress=(raceDistance%LAP_DISTANCE)/LAP_DISTANCE;
     const currentSector=lapProgress<1/3?1:lapProgress<2/3?2:3;
