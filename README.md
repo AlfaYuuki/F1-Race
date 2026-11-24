@@ -154,6 +154,7 @@ The final checks should still be run in a real browser and on a physical Android
 - Fuel-range estimate based on current fuel flow and lap duration, with pit-window guidance
 - Tyre degradation and damage warnings, including repair recommendations
 - Wet/dry tyre-compound strategy advice based on current track conditions
-- Off-track recovery, lap-pace feedback and nearby-rival passing opportunities
+- Sector-by-sector pace comparison against the driver's personal best, plus lap-pace feedback
+- Off-track recovery and nearby-rival passing opportunities
 - Position-gain acknowledgement and per-alert cooldowns to prevent radio spam
 - Engineer advice is advisory: it never takes control of the car or triggers a pit stop automatically
