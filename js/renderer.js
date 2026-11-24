@@ -189,7 +189,7 @@ export function createRenderer(canvas) {
     }
   }
 
-  function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, dt = 1/60 }) {
+  function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, playerColor = '#df3039', dt = 1/60 }) {
     if (lost) return;
     const mesh = createGeometry();
     const roadSegments = touchQuality ? 84 : 118;
@@ -287,7 +287,7 @@ export function createRenderer(canvas) {
     const trackCenterX = playerRoad.x;
     const playerWorldX = trackCenterX + playerX * 4.2;
     const suspensionBob = running ? Math.sin(position * 4563 * .72) * Math.min(.075, speed / 330 * .075) : 0;
-    addCar(mesh, playerWorldX, playerRoad.y + suspensionBob, 9, 1, offRoad ? [.72,.25,.12] : [.84,.12,.16]);
+    addCar(mesh, playerWorldX, playerRoad.y + suspensionBob, 9, 1, offRoad ? [.72,.25,.12] : hexColor(playerColor));
 
     // Rubber trails appear behind the rear tyres when lateral grip is being used.
     if (running && Math.abs(lateralVelocity) > .48) {
