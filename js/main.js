@@ -1,7 +1,8 @@
 import { createGame } from './game.js';
 import { bindControls } from './controls.js';
 import { createEngineAudio } from './audio.js';
-import { createChampionship } from './championship.js';\nimport { createGarage, CARS } from './garage.js';
+import { createChampionship } from './championship.js';
+import { createGarage, CARS } from './garage.js';
 import { LAP_DISTANCE, TOTAL_LAPS } from './track.js';
 import { PLATFORMS, detectPlatform, loadSettings, saveSetting, controlHint } from './platform.js';
 
@@ -13,7 +14,9 @@ const championshipButton = document.querySelector('#championship-button');
 const championshipSummary = document.querySelector('#championship-summary');
 const audioButton = document.querySelector('#audio-button');
 const audio = createEngineAudio();
-const championship = createChampionship();\nconst garage = createGarage();\nlet raceRewardRecorded = false;
+const championship = createChampionship();
+const garage = createGarage();
+let raceRewardRecorded = false;
 let championshipActive = false;
 let roundRecorded = false;
 
@@ -61,7 +64,8 @@ function openGarage() {
   document.querySelector('#garage-screen').hidden=false;
 }
 function closeGarage() { document.querySelector('#garage-screen').hidden=true; }
-\n// ---- Platform / control scheme ----
+
+// ---- Platform / control scheme ----
 const platformScreen = document.querySelector('#platform-screen');
 const platformClose = document.querySelector('#platform-close');
 const tiltToggle = document.querySelector('#tilt-toggle');
@@ -144,7 +148,8 @@ const game = createGame(canvas, {
     document.querySelector('#pit-button').textContent=pitPhase ? (pitPhase==='service'?'IN BOX':'PIT '+pitPhase.toUpperCase()) : 'BOX ↗';
     document.querySelector('#pit-button').disabled=state!=='running';
     audio.update(rpm, throttle ?? 0, gear, state === 'running', { skid: skid ?? 0, rain: weather?.rain ?? 0 });
-    if (state === 'finished') {\n      if (!raceRewardRecorded) { const reward=garage.awardCredits(position); raceRewardRecorded=true; document.querySelector('#garage-feedback').textContent='RACE REWARD · CR '+reward.toLocaleString(); renderGarage(); }
+    if (state === 'finished') {
+      if (!raceRewardRecorded) { const reward=garage.awardCredits(position); raceRewardRecorded=true; document.querySelector('#garage-feedback').textContent='RACE REWARD · CR '+reward.toLocaleString(); renderGarage(); }
       if (championshipActive && !roundRecorded) {
         const season = championship.recordResult(standings);
         roundRecorded = true;
@@ -166,18 +171,26 @@ const game = createGame(canvas, {
     }
   },
   onMessage: message => {
+    if (/PIT|YELLOW FLAG|GREEN FLAG|CONTACT|CHEQUERED/i.test(message)) audio.playRadio(message);
     document.querySelector('#race-message').textContent = platform === 'android'
       ? message.replace('PRESS ESC OR ▶', 'TAP ▶')
       : message;
   },
   onStart: () => {
+    raceRewardRecorded=false;
     audio.resume();
     controls?.calibrate();
     startScreen.classList.add('hidden');
     roundRecorded = false;
     startButton.textContent = 'QUICK RACE ↗';
   },
-  onPitService: active => { document.querySelector('#pit-overlay').hidden=!active; },\n  onWeather: weather => {\n    const root=document.querySelector('.race-game');\n    root.dataset.weather=weather.rain>.65?'heavyRain':weather.rain>.12?'lightRain':weather.label==='OVERCAST'?'cloudy':'dry';\n    const label=document.querySelector('.race-bottom>span:first-child');\n    label.innerHTML='<i></i> '+(weather.yellowFlag?'YELLOW FLAG':weather.label);\n  },
+  onPitService: active => { document.querySelector('#pit-overlay').hidden=!active; },
+  onWeather: weather => {
+    const root=document.querySelector('.race-game');
+    root.dataset.weather=weather.rain>.65?'heavyRain':weather.rain>.12?'lightRain':weather.label==='OVERCAST'?'cloudy':'dry';
+    const label=document.querySelector('.race-bottom>span:first-child');
+    label.innerHTML='<i></i> '+(weather.yellowFlag?'YELLOW FLAG':weather.label);
+  },
   onPause: paused => {
     document.querySelector('#pause-button').textContent = paused ? '▶' : 'Ⅱ';
   }
@@ -198,12 +211,14 @@ document.querySelector('#pit-fuel').addEventListener('input',event=>{document.qu
 
 startButton.addEventListener('click', () => {
   championshipActive = false;
+  game.setCarConfig(garage.getCar());
   game.start();
 });
 championshipButton.addEventListener('click', () => {
   let season = championship.getState();
   if (!season.hasSeason || season.completed) season = championship.startNewSeason();
   championshipActive = true;
+  game.setCarConfig(garage.getCar());
   renderChampionshipSummary();
   document.querySelector('#race-message').textContent = `CHAMPIONSHIP ROUND ${season.round + 1} OF ${championship.rounds}`;
   game.start();
@@ -227,7 +242,17 @@ window.addEventListener('keydown', event => {
     toggleFullscreen();
   }
 });
-document.querySelector('#pause-button').addEventListener('click', () => game.togglePause());\ndocument.querySelector('#garage-open').addEventListener('click', openGarage);\ndocument.querySelector('#garage-close').addEventListener('click', closeGarage);\ndocument.querySelector('#garage-screen').addEventListener('click', event => {\n  const carButton=event.target.closest('[data-car]');\n  const upgradeButton=event.target.closest('[data-upgrade]');\n  if(carButton){const id=carButton.dataset.car;const ok=garage.selectCar(id)||garage.purchaseCar(id);if(ok){game.setCarConfig(garage.getCar());renderGarage();}else document.querySelector('#garage-feedback').textContent='Not enough credits to unlock this car.';}\n  if(upgradeButton){const ok=garage.upgrade(upgradeButton.dataset.upgrade);if(ok){game.setCarConfig(garage.getCar());renderGarage();}else document.querySelector('#garage-feedback').textContent='Upgrade unavailable — check credits or level cap.';}\n});\ndocument.querySelectorAll('[data-setup]').forEach(input=>input.addEventListener('input',()=>{garage.setSetup(input.dataset.setup,input.value);game.setCarConfig(garage.getCar());}));\ndocument.querySelector('#garage-livery').addEventListener('input',event=>{garage.setLivery(event.target.value);renderGarage();game.setCarConfig(garage.getCar());});
+document.querySelector('#pause-button').addEventListener('click', () => game.togglePause());
+document.querySelector('#garage-open').addEventListener('click', openGarage);
+document.querySelector('#garage-close').addEventListener('click', closeGarage);
+document.querySelector('#garage-screen').addEventListener('click', event => {
+  const carButton=event.target.closest('[data-car]');
+  const upgradeButton=event.target.closest('[data-upgrade]');
+  if(carButton){const id=carButton.dataset.car;const ok=garage.selectCar(id)||garage.purchaseCar(id);if(ok){game.setCarConfig(garage.getCar());renderGarage();}else document.querySelector('#garage-feedback').textContent='Not enough credits to unlock this car.';}
+  if(upgradeButton){const ok=garage.upgrade(upgradeButton.dataset.upgrade);if(ok){game.setCarConfig(garage.getCar());renderGarage();}else document.querySelector('#garage-feedback').textContent='Upgrade unavailable — check credits or level cap.';}
+});
+document.querySelectorAll('[data-setup]').forEach(input=>input.addEventListener('input',()=>{garage.setSetup(input.dataset.setup,input.value);game.setCarConfig(garage.getCar());}));
+document.querySelector('#garage-livery').addEventListener('input',event=>{garage.setLivery(event.target.value);renderGarage();game.setCarConfig(garage.getCar());});
 async function toggleFullscreen() {
   try {
     if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
@@ -266,6 +291,7 @@ tiltInvertToggle.addEventListener('change', () => {
 });
 
 renderChampionshipSummary();
+renderGarage();
 game.init();
 applyPlatform();
 if (!hasChosenPlatform) openPlatformPicker();
