@@ -35,7 +35,7 @@ export function createRenderer(canvas) {
   }
   function spawnParticles(x,y,count,sparks=false){for(let i=0;i<count;i++)particles.push({x:x+(Math.random()-.5)*22,y:y+Math.random()*7,vx:(Math.random()-.5)*(sparks?150:24),vy:sparks?-Math.random()*125:-Math.random()*30,life:sparks?.28:.7,max:sparks?.28:.7,size:sparks?1+Math.random()*2:4+Math.random()*7,sparks});if(particles.length>120)particles.splice(0,particles.length-120);}
   function drawParticles(dt){particles=particles.filter(p=>p.life>0);for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(!p.sparks)p.size+=dt*8;ctx.globalAlpha=Math.max(0,p.life/p.max)*.45;ctx.fillStyle=p.sparks?'#ffd16a':'#d5d8d4';ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;}
-  function render({position=0,playerX=0,speed=0,offRoad=false,running=false,opponents=[],cameraShake=0,skid=false,dt=.016}) {
+  function render({position=0,playerX=0,speed=0,offRoad=false,running=false,opponents=[],cameraShake=0,playerColor='#df3039',skid=false,dt=.016}) {
     if(!width||!height)resize();
     const horizon=height*.405 + Math.sin(position*Math.PI*2)*height*.012;
     const sky=ctx.createLinearGradient(0,0,0,horizon);
@@ -93,7 +93,7 @@ export function createRenderer(canvas) {
     const playerScreenX=width*.5+playerX*width*.29,playerY=height*.875;
     if(running&&offRoad&&Math.random()<.8)spawnParticles(playerScreenX,playerY,2,false);
     if(running&&skid){skidClock+=dt*speed*.02;if(skidClock>.9){spawnParticles(playerScreenX,playerY+8,1,false);skidClock=0;}}
-    ctx.save();ctx.translate(cameraShake,0);car(playerScreenX,playerY,Math.max(.68,Math.min(1.2,width/900)),'#df3039',true);ctx.restore();
+    ctx.save();ctx.translate(cameraShake,0);car(playerScreenX,playerY,Math.max(.68,Math.min(1.2,width/900)),playerColor,true);ctx.restore();
     drawParticles(dt);
     if(impactFlash>0){impactFlash=Math.max(0,impactFlash-dt*4);ctx.fillStyle=`rgba(255,220,160,${impactFlash*.18})`;ctx.fillRect(0,0,width,height);}
     if(offRoad){ctx.fillStyle='rgba(110,75,35,.16)';ctx.fillRect(0,0,width,height);}
