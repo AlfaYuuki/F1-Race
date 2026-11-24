@@ -15,17 +15,17 @@ export function createOpponents(lapDistance = 4563) {
     speed: driver.pace * (.94 + index * .008),
     currentLane: driver.lane,
     targetLane: driver.lane,
-    overtakes: 0
+    overtakes: 0, fuel:100, tireWear:0, compound:'MEDIUM', pitTimer:0, pitStops:0
   }));
 
-  function update(dt, playerDistance, curveAt) {
+  function update(dt, playerDistance, curveAt, weather = {}) {
     const traffic = [
       { id: 'player', distance: playerDistance, currentLane: 0 },
       ...drivers
     ];
 
     for (const driver of drivers) {
-      const progress = (driver.distance % lapDistance) / lapDistance;
+      if (driver.pitTimer > 0) {\n        driver.pitTimer = Math.max(0, driver.pitTimer - dt);\n        driver.speed += (0 - driver.speed) * Math.min(1, dt * 2.8);\n        if (driver.pitTimer === 0) { driver.fuel = 100; driver.tireWear = 0; driver.pitStops++; driver.compound = weather.rain > .3 ? 'INTER' : 'MEDIUM'; }\n        driver.distance += driver.speed / 3.6 * dt;\n        continue;\n      }\n      driver.fuel = Math.max(0, driver.fuel - dt * (.055 + driver.speed / 330 * .045));\n      driver.tireWear = Math.min(100, driver.tireWear + dt * (driver.compound === 'SOFT' ? .16 : .1) * (weather.wear || 1));\n      const wetMismatch = weather.rain > .55 && driver.compound !== 'INTER';\n      const dryMismatch = weather.rain < .12 && driver.compound === 'INTER';\n      if (driver.fuel < 18 || driver.tireWear > 82 || (wetMismatch && driver.pitStops < 2) || (dryMismatch && driver.pitStops < 2)) {\n        driver.pitTimer = 5.8 + (1-driver.skill)*2.2;\n        driver.speed = Math.max(0, driver.speed * .55);\n      }\n      const progress = (driver.distance % lapDistance) / lapDistance;
       const cornerLoad = Math.abs(curveAt(progress));
       const rhythm = Math.sin(driver.distance * .001 + driver.skill * 8) * (2.2 + (1 - driver.skill) * 5);
       const trafficAhead = traffic
@@ -64,7 +64,7 @@ export function createOpponents(lapDistance = 4563) {
 
       const cornerPenalty = cornerLoad * (15 + (1 - driver.skill) * 27);
       const consistencyLoss = Math.abs(Math.sin(driver.distance * .00063 + driver.skill * 4)) * (1 - driver.skill) * 5;
-      const targetSpeed = clamp(driver.pace + rhythm + draftBonus - cornerPenalty - consistencyLoss, 125, 285);
+      const weatherPenalty = (weather.rain || 0) * (driver.compound === 'INTER' ? 5 : 32);\n      const wearPenalty = driver.tireWear * .13;\n      const targetSpeed = clamp(driver.pace + rhythm + draftBonus - cornerPenalty - consistencyLoss - weatherPenalty - wearPenalty, 125, 285);
       driver.speed += (targetSpeed - driver.speed) * Math.min(1, dt * (1.1 + driver.skill * 1.5));
       driver.distance += driver.speed / 3.6 * dt;
     }
@@ -84,7 +84,7 @@ export function createOpponents(lapDistance = 4563) {
       driver.speed = driver.pace * .96;
       driver.currentLane = driver.lane;
       driver.targetLane = driver.lane;
-      driver.overtakes = 0;
+      driver.overtakes = 0; driver.fuel = 100; driver.tireWear = 0; driver.compound = 'MEDIUM'; driver.pitTimer = 0; driver.pitStops = 0;
     }
   }
 
