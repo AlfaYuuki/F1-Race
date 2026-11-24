@@ -135,15 +135,15 @@ function choosePlatform(id) {
 }
 
 const game = createGame(canvas, {
-  onUpdate: ({ speed, lap, time, state, position, standings, offRoad, lastLap, bestLap, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, throttle, skid }) => {
+  onUpdate: ({ speed, rpm, gear, lap, time, state, position, standings, offRoad, lastLap, bestLap, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, throttle, skid, telemetry = {} }) => {
     const raceOrder = standings ? [...standings].sort((a, b) => b.distance - a.distance) : [];
     const playerPosition = raceOrder.length ? raceOrder.findIndex(driver => driver.isPlayer || driver.id === 'player') + 1 : position;
-    const gear = speed < 8 ? 0 : Math.min(8, Math.floor(speed / 42) + 1);
-    const rpm = Math.round(Math.min(12000, 900 + (speed % 42) / 42 * 9300 + (state === 'running' ? 500 : 0)));
+    const displayGear = speed < 8 ? 'N' : gear;
+    const live = telemetry || {};
 
     document.querySelector('#speed-label').textContent = String(Math.round(speed)).padStart(3, '0');
     document.querySelector('#speed-bar').style.width = `${Math.min(100, speed / 330 * 100)}%`;
-    document.querySelector('#gear-label').textContent = gear || 'N';
+    document.querySelector('#gear-label').textContent = displayGear || 'N';
     document.querySelector('#rpm-label').textContent = `${Math.round(rpm / 100) * 100} RPM`;
     document.querySelector('#rpm-bar').style.width = `${Math.min(100, rpm / 12000 * 100)}%`;
     document.querySelector('#last-lap-label').textContent = lastLap || '--:--.---';
@@ -163,6 +163,17 @@ const game = createGame(canvas, {
     document.querySelector('#tyre-bar').style.width=tireWear+'%';
     document.querySelector('#damage-value').textContent=Math.round(damage)+'%';
     document.querySelector('#pit-stops-value').textContent=String(pitStops);
+    const throttlePct=Math.max(0,Math.min(100,Number(live.throttle)||0));
+    const brakePct=Math.max(0,Math.min(100,Number(live.brake)||0));
+    document.querySelector('#throttle-value').textContent=Math.round(throttlePct)+'%';
+    document.querySelector('#throttle-bar').style.width=throttlePct+'%';
+    document.querySelector('#brake-value').textContent=Math.round(brakePct)+'%';
+    document.querySelector('#brake-bar').style.width=brakePct+'%';
+    document.querySelector('#steering-value').textContent=(Number(live.steering)||0)>0?'+ '+Math.round(live.steering)+'%':Math.round(Number(live.steering)||0)+'%';
+    document.querySelector('#lateral-g-value').textContent=(Number(live.lateralG)||0).toFixed(2)+' G';
+    document.querySelector('#longitudinal-g-value').textContent=(Number(live.longitudinalG)||0).toFixed(2)+' G';
+    document.querySelector('#grip-value').textContent=Math.round(Number(live.grip)||0)+'%';
+    document.querySelector('#fuel-flow-value').textContent=(Number(live.fuelFlow)||0).toFixed(2)+'%/MIN';
     document.querySelector('#pit-button').textContent=pitPhase ? (pitPhase==='service'?'IN BOX':'PIT '+pitPhase.toUpperCase()) : 'BOX ↗';
     document.querySelector('#pit-button').disabled=state!=='running';
     audio.update(rpm, throttle ?? 0, gear, state === 'running', { skid: skid ?? 0, rain: weather?.rain ?? 0 });
