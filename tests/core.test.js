@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createPhysics } from '../js/physics.js';
 import { createOpponents } from '../js/opponents.js';
-import { curveAt, elevationAt, LAP_DISTANCE, TOTAL_DISTANCE } from '../js/track.js';
+import { curveAt, elevationAt, LAP_DISTANCE, TOTAL_DISTANCE, TOTAL_LAPS } from '../js/track.js';
 
 test('track samples stay finite and wrap around one lap', () => {
   for (let i = -20; i <= 120; i++) {
@@ -11,7 +11,7 @@ test('track samples stay finite and wrap around one lap', () => {
     assert.ok(Number.isFinite(elevationAt(p)));
   }
   assert.equal(LAP_DISTANCE, 4563);
-  assert.equal(TOTAL_DISTANCE, LAP_DISTANCE * 3);
+  assert.equal(TOTAL_DISTANCE, LAP_DISTANCE * TOTAL_LAPS);
   assert.equal(curveAt(0), curveAt(1));
 });
 
