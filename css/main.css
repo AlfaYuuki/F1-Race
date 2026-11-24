@@ -968,3 +968,114 @@ button,select,input{touch-action:manipulation}
     min-width: 0;
   }
 }
+
+
+/* MILESTONE 16 — device-reviewed layout correction.
+   The telemetry and engineer now occupy separate central lanes.
+   The start menu becomes a true modal and removes touch controls beneath it. */
+@media (orientation: landscape) and (pointer: coarse) and (max-height: 520px) {
+  .pit-telemetry {
+    position: absolute;
+    left: calc(50% - 7px);
+    right: auto;
+    top: 48%;
+    bottom: auto;
+    transform: translateX(-50%);
+    width: min(330px, calc(100vw - 584px));
+    max-width: 330px;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 5px 8px;
+    padding: 7px 9px;
+    z-index: 5;
+    box-sizing: border-box;
+  }
+  .pit-telemetry > div { min-width: 0; gap: 2px; }
+  .pit-telemetry small { font-size: 6px; line-height: 1.15; letter-spacing: .06em; }
+  .pit-telemetry strong { font-size: 8px; line-height: 1.2; white-space: nowrap; }
+  .pit-telemetry .pit-meter { height: 3px; }
+
+  .engineer-panel {
+    position: absolute;
+    top: 24%;
+    left: calc(50% + 107px);
+    right: auto;
+    bottom: auto;
+    transform: translateX(-50%);
+    width: min(220px, calc(100vw - 700px));
+    min-width: 190px;
+    max-width: 220px;
+    padding: 7px 9px;
+    z-index: 5;
+    box-sizing: border-box;
+  }
+  .engineer-heading { font-size: 7px; }
+  .engineer-heading b { font-size: 6px; }
+  .engineer-panel > strong { margin-top: 4px; font-size: 11px; }
+  .engineer-panel > p { margin: 3px 0 5px; font-size: 8px; line-height: 1.3; }
+  .engineer-action { gap: 5px; padding-top: 4px; }
+  .engineer-action span, .engineer-action b { font-size: 6px; }
+
+  /* Start screen is above every driving control and scrolls as one modal. */
+  .start-screen {
+    position: absolute;
+    z-index: 30;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+             max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    overflow: auto;
+    overscroll-behavior: contain;
+    box-sizing: border-box;
+    background: rgba(2, 9, 16, .78);
+    backdrop-filter: blur(8px);
+  }
+  .start-screen.hidden { pointer-events: none; }
+  .start-card {
+    width: min(560px, 100%);
+    max-height: calc(100dvh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    margin: 0 auto;
+    padding: 15px 18px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    transform: none;
+    box-sizing: border-box;
+  }
+  .start-card .eyebrow { margin-bottom: 8px; font-size: 7px; }
+  .start-card h1 { margin: 0 0 8px; font-size: clamp(38px, 9vh, 52px); line-height: .86; }
+  .start-card > p:not(.eyebrow) { margin: 0 0 9px; font-size: 9px; line-height: 1.35; }
+  .start-meta { gap: 18px; padding: 8px 0 10px; }
+  .start-meta span { font-size: 16px; }
+  .start-meta small { margin-top: 1px; font-size: 6px; }
+  .start-button { padding: 11px 13px; font-size: 9px; }
+  .championship-button { margin-top: 6px; padding: 9px 12px; font-size: 8px; }
+  .championship-summary { margin-top: 6px !important; font-size: 6px !important; }
+  .keyboard-help { margin-top: 8px; font-size: 6px; }
+  .start-card .platform-change { margin-top: 7px; padding: 7px; font-size: 6px; }
+
+  /* Never leave touch controls floating over the start/menu modal. */
+  .race-game:has(#start-screen:not(.hidden)) .mobile-controls,
+  .race-game:has(#start-screen:not(.hidden)) .pit-telemetry,
+  .race-game:has(#start-screen:not(.hidden)) .pit-button,
+  .race-game:has(#start-screen:not(.hidden)) .engineer-panel {
+    display: none !important;
+  }
+}
+
+/* Narrow landscape phones: preserve a usable center lane without
+   allowing either panel to collide with the left/right touch clusters. */
+@media (orientation: landscape) and (pointer: coarse) and (max-height: 520px) and (max-width: 760px) {
+  .pit-telemetry {
+    left: 50%;
+    width: min(300px, calc(100vw - 520px));
+    gap: 4px 6px;
+    padding: 6px 7px;
+  }
+  .engineer-panel {
+    left: calc(50% + 90px);
+    width: min(205px, calc(100vw - 650px));
+    min-width: 175px;
+  }
+}
