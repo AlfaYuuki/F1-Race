@@ -858,3 +858,113 @@ button,select,input{touch-action:manipulation}
   .engineer-panel>p{font-size:8px;margin:3px 0 5px}
   .engineer-action{padding-top:4px}
 }
+
+
+/* MILESTONE 16 — cockpit panel visibility pass.
+   Reserve the central lane for telemetry and keep every panel outside
+   the steering / pedal hit areas on landscape touch screens. */
+@media (orientation: landscape) and (pointer: coarse) {
+  .pit-telemetry {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    bottom: calc(25px + 76px + 14px + env(safe-area-inset-bottom));
+    width: min(560px, calc(100vw - 440px));
+    max-width: 560px;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 9px 14px;
+    padding: 9px 12px;
+    z-index: 5;
+  }
+  .pit-telemetry > div { min-width: 0; gap: 4px; }
+  .pit-telemetry small { font-size: 8px; letter-spacing: .09em; }
+  .pit-telemetry strong { font-size: clamp(9px, 1vw, 12px); }
+  .pit-telemetry .pit-meter { height: 4px; }
+
+  .engineer-panel {
+    top: clamp(132px, 21vh, 158px);
+    left: 65%;
+    width: min(420px, calc(100vw - 900px));
+    min-width: 320px;
+    padding: 11px 14px;
+    z-index: 8;
+  }
+  .engineer-panel > strong { font-size: 16px; }
+  .engineer-panel > p { font-size: 11px; line-height: 1.45; }
+  .engineer-heading { font-size: 9px; }
+  .engineer-action span, .engineer-action b { font-size: 8px; }
+
+  .timing-panel { z-index: 4; }
+  .pit-button { z-index: 7; }
+  .mobile-controls { z-index: 9; }
+}
+
+/* Medium landscape screens: put the engineer in the open track area,
+   and keep telemetry in a narrower four-column cockpit strip. */
+@media (orientation: landscape) and (pointer: coarse) and (max-width: 1199px) {
+  .engineer-panel {
+    top: clamp(150px, 34vh, 220px);
+    left: 50%;
+    width: min(360px, calc(100vw - 300px));
+    min-width: 0;
+    padding: 8px 10px;
+  }
+  .engineer-panel > strong { font-size: 13px; }
+  .engineer-panel > p { font-size: 9px; }
+  .engineer-heading { font-size: 8px; }
+  .engineer-action span, .engineer-action b { font-size: 7px; }
+
+  .pit-telemetry {
+    width: min(500px, calc(100vw - 440px));
+    gap: 7px 9px;
+    padding: 7px 9px;
+  }
+  .pit-telemetry small { font-size: 7px; }
+  .pit-telemetry strong { font-size: 9px; }
+}
+
+/* Very short landscape phones: compact cards, never let telemetry
+   drift into the touch-control row. */
+@media (orientation: landscape) and (pointer: coarse) and (max-height: 520px) {
+  .pit-telemetry {
+    bottom: calc(20px + 48px + 10px + env(safe-area-inset-bottom));
+    width: min(500px, calc(100vw - 440px));
+    gap: 5px 8px;
+    padding: 6px 8px;
+  }
+  .pit-telemetry small { font-size: 6px; }
+  .pit-telemetry strong { font-size: 8px; }
+  .pit-telemetry .pit-meter { height: 3px; }
+
+  .engineer-panel {
+    top: clamp(112px, 30vh, 150px);
+    padding: 6px 8px;
+  }
+  .engineer-panel > strong { font-size: 12px; margin-top: 4px; }
+  .engineer-panel > p { font-size: 8px; margin: 3px 0 5px; }
+  .engineer-action { padding-top: 4px; }
+}
+
+/* On narrow portrait screens, show all telemetry in a readable
+   three-column grid instead of squeezing twelve fields into four. */
+@media (orientation: portrait) and (max-width: 600px) {
+  .pit-telemetry {
+    left: 10px;
+    right: 10px;
+    bottom: calc(112px + env(safe-area-inset-bottom));
+    width: auto;
+    max-width: none;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 10px;
+    padding: 9px 10px;
+  }
+  .pit-telemetry small { font-size: 7px; }
+  .pit-telemetry strong { font-size: 9px; }
+  .engineer-panel {
+    top: calc(50% - 56px);
+    left: 50%;
+    width: min(340px, calc(100vw - 24px));
+    min-width: 0;
+  }
+}
