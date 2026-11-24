@@ -629,3 +629,44 @@ button,select,input{touch-action:manipulation}
     min-height:34px;padding:6px 10px;
   }
 }
+
+
+/* Cockpit HUD spacing — responsive landscape touch layout.
+   Nudge pit telemetry down and the BOX command upward without
+   changing the steering, brake, or accelerator controls. */
+@media (orientation: landscape) and (pointer: coarse) {
+  .pit-telemetry {
+    bottom: calc(
+      25px + 76px + 14px
+      - clamp(8px, 2vh, 14px)
+      + env(safe-area-inset-bottom)
+    );
+  }
+
+  .pit-button {
+    bottom: calc(
+      25px + 76px + 14px + 40px + 12px
+      + clamp(36px, 7vh, 50px)
+      + env(safe-area-inset-bottom)
+    );
+  }
+}
+
+/* Keep the same visual separation on short landscape phones. */
+@media (orientation: landscape) and (pointer: coarse) and (max-height: 520px) {
+  .pit-telemetry {
+    bottom: calc(
+      20px + 48px + 10px
+      - clamp(6px, 1.5vh, 9px)
+      + env(safe-area-inset-bottom)
+    );
+  }
+
+  .pit-button {
+    bottom: calc(
+      20px + 48px + 10px + 34px + 8px
+      + clamp(28px, 6vh, 36px)
+      + env(safe-area-inset-bottom)
+    );
+  }
+}
