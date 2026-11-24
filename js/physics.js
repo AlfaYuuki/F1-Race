@@ -11,23 +11,23 @@ const COMPOUNDS = {
 export function createPhysics() {
   return {
     speed: 0, playerX: 0, distance: 0, offRoad: false, lateralVelocity: 0, rpm: 850, gear: 1,
-    fuel: 100, tireWear: 0, compound: 'MEDIUM', damage: 0, pitStops: 0,
+    fuel: 100, tireWear: 0, compound: 'MEDIUM', damage: 0, pitStops: 0,\n    carConfig: { stats: { power:1, grip:1, braking:1, durability:1 }, setup: { aero:50, suspension:50, brakeBias:56, differential:50 } },\n    setCarConfig(config) { if (config?.stats) this.carConfig = config; },
     update(dt, input, curve, steerAxis = 0, options = {}) {
       const accelerating = input.has('accelerate'), braking = input.has('brake');
-      const maxSpeed = options.pitLimiter ? 80 : (this.fuel <= 0 ? 95 : 330);
+      const stats = this.carConfig.stats;\n      const weatherGrip = clamp(Number(options.weatherGrip) || 1, .5, 1.05);\n      const weatherWear = clamp(Number(options.weatherWear) || 1, .8, 1.5);\n      const maxSpeed = options.pitLimiter ? 80 : (this.fuel <= 0 ? 95 : 330 * stats.power);
       const speedFactor = 1 - this.speed / (maxSpeed + 30);
-      const throttle = accelerating ? (this.fuel > 0 ? 118 : 24) * Math.max(.18, speedFactor) : 0;
+      const throttle = accelerating ? (this.fuel > 0 ? 118 * stats.power : 24) * Math.max(.18, speedFactor) : 0;
       const drag = 7 + this.speed * .105;
-      const brakeForce = braking ? 245 : 0;
+      const brakeForce = braking ? 245 * stats.braking : 0;
       this.speed = clamp(this.speed + (throttle - drag - brakeForce) * dt, 0, maxSpeed);
       if (this.fuel > 0 && this.speed > 2) {
         this.fuel = Math.max(0, this.fuel - (FUEL_BURN_BASE + this.speed / 330 * FUEL_BURN_SPEED) * dt);
       }
-      if (this.speed > 35) this.tireWear = Math.min(100, this.tireWear + COMPOUNDS[this.compound].wear * dt * (this.offRoad ? 1.8 : 1));
+      if (this.speed > 35) this.tireWear = Math.min(100, this.tireWear + COMPOUNDS[this.compound].wear * dt * weatherWear * (this.offRoad ? 1.8 : 1));
       const digital = (input.has('right') ? 1 : 0) - (input.has('left') ? 1 : 0);
       const steer = clamp(digital + (Number.isFinite(steerAxis) ? steerAxis : 0), -1, 1);
       const velocityRatio = this.speed / 330;
-      const tyreGrip = COMPOUNDS[this.compound].grip * (1 - this.tireWear / 100 * .62);
+      const setupGrip = .92 + (this.carConfig.setup?.aero ?? 50) / 625;\n      const suspensionGrip = .94 + (this.carConfig.setup?.suspension ?? 50) / 800;\n      const tyreGrip = COMPOUNDS[this.compound].grip * (1 - this.tireWear / 100 * .62) * stats.grip * setupGrip * suspensionGrip * weatherGrip;
       const damageGrip = 1 - this.damage / 100 * .42;
       const grip = (this.offRoad ? .42 : 1) * tyreGrip * damageGrip;
       const steeringResponse = (1.15 + velocityRatio * 1.5) * grip;
@@ -50,7 +50,7 @@ export function createPhysics() {
       this.speed = Math.max(35, this.speed - 48);
       this.lateralVelocity += direction * .7;
       this.playerX = clamp(this.playerX + direction * .09, -1.25, 1.25);
-      this.damage = Math.min(100, this.damage + 8);
+      this.damage = Math.min(100, this.damage + 8 / Math.max(.5, this.carConfig.stats.durability));
       this.rpm = Math.max(900, this.rpm - 1800);
     },
     applyPitService(compound, fuelTarget, repair = true) {
