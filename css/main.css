@@ -735,3 +735,33 @@ button,select,input{touch-action:manipulation}
 @keyframes rain-sweep{from{background-position:0 0}to{background-position:32px 80px}}
 @media(max-width:680px){.garage-cars{grid-template-columns:1fr}.garage-car{display:grid;grid-template-columns:76px 1fr;column-gap:10px}.garage-car .car-swatch{grid-row:span 3;height:62px;margin:0}.garage-car p{min-height:0;margin:3px 0}.garage-workshop{grid-template-columns:1fr}.garage-panel{max-height:100%}}
 @media(orientation:landscape) and (max-height:520px){.garage-panel{padding:10px 14px}.garage-heading{margin-bottom:8px}.garage-heading h2{font-size:28px}.garage-car{padding:8px}.garage-car .car-swatch{height:34px;margin-bottom:5px}.garage-car p{min-height:0;margin:4px 0;font-size:9px}.garage-workshop{margin-top:8px;gap:8px}.garage-workshop section{padding:8px}.garage-upgrade{padding:6px}.garage-footer{margin-top:8px}.garage-footer button{min-height:34px}}
+
+
+/* START SCREEN / COUNTDOWN VISIBILITY FIX */
+.countdown[hidden]{display:none!important}
+.countdown.active{display:flex}
+.start-screen.hidden{display:none!important}
+
+/* Landscape touch: keep the complete start menu inside the available viewport. */
+@media (orientation:landscape) and (pointer:coarse) {
+  .start-screen{
+    display:grid;
+    place-items:center;
+    padding:calc(58px + env(safe-area-inset-top)) 14px calc(36px + env(safe-area-inset-bottom));
+    overflow-y:auto;
+    overscroll-behavior:contain;
+  }
+  .start-card{
+    width:min(610px,calc(100vw - 32px));
+    max-height:calc(100dvh - 94px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    margin:0 auto;
+    padding:clamp(18px,2.6vh,28px);
+    overflow-x:hidden;
+    overflow-y:auto;
+  }
+  .start-card h1{font-size:clamp(46px,6.2vw,76px)}
+  .start-card>p:not(.eyebrow){margin-bottom:14px}
+  .start-meta{padding:10px 0 14px}
+  .start-button{padding:14px 16px}
+  .championship-button{padding:11px 14px}
+}
