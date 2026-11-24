@@ -127,3 +127,12 @@ This is an original arcade simulation using a Fuji-inspired layout and simplifie
 - Extended automated validation and tests for garage persistence and weather transitions
 
 The final checks should still be run in a real browser and on a physical Android device. The automated checks validate source structure and simulation logic; they cannot fully verify GPU performance, installed-PWA update timing, audio output or touch ergonomics.
+
+
+### Save manager — backup, restore and delete
+- Garage progress, championship results and Android/Windows control preferences continue to auto-save locally on the device
+- Added a Save Manager on the start screen with a local-save status summary
+- Download a versioned JSON backup that can be kept outside the browser
+- Restore a validated backup after confirmation; invalid files are rejected without replacing the current save
+- Delete all known F1 Race save keys after a separate confirmation, then reload into a fresh game
+- Save deletion does not clear the PWA installation, service-worker cache or unrelated browser storage
