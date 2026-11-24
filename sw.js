@@ -41,7 +41,7 @@ self.addEventListener('fetch', event => {
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request, { cache: 'no-store' })
-        .then(response => {
+        .then(async response => {
           if (response.ok) {
             const copy = response.clone();
             await caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
@@ -55,7 +55,7 @@ self.addEventListener('fetch', event => {
 
   event.respondWith(
     fetch(request, { cache: 'no-cache' })
-      .then(response => {
+      .then(async response => {
         if (response.ok) {
           const copy = response.clone();
           await caches.open(CACHE_NAME).then(cache => cache.put(request, copy));
