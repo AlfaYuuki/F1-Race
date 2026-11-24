@@ -41,6 +41,10 @@ export function createGame(canvas,callbacks={}) {
   function frame(now){
     if(state!=='running')return;
     const dt=Math.min((now-last)/1000,.035);last=now;elapsed+=dt*1000;
+    currentWeather=weatherSystem.update(dt);
+    if(currentWeather.yellowFlag!==lastYellow){lastYellow=currentWeather.yellowFlag;notify(lastYellow?'YELLOW FLAG — REDUCE SPEED, NO OVERTAKING':'GREEN FLAG — RACING RESUMES');}
+    if(currentWeather.safetyCar!==lastSafetyCar){lastSafetyCar=currentWeather.safetyCar;notify(lastSafetyCar?'SAFETY CAR DEPLOYED — HOLD POSITION':'SAFETY CAR IN — RACE RESUMES');}
+    callbacks.onWeather?.(currentWeather);
     const previousLapIndex=Math.floor(raceDistance/LAP_DISTANCE),previousSpeed=physics.speed;
     const progress=(raceDistance%LAP_DISTANCE)/LAP_DISTANCE,curve=curveAt(progress);
     if(pitPhase==='service'){
