@@ -9,9 +9,9 @@ function parseLapTime(value) {
 
 export function createRaceEngineer(options={}) {
   const cooldownMs=Math.max(5000,Number(options.cooldownMs)||18000);
-  let lastIssued=new Map(),lastAlert=null,lastPosition=null,lastLap=null,lastAnyIssued=-Infinity;
+  let lastIssued=new Map(),lastAlert=null,lastPosition=null,lastLap=null,lastAnyIssued=-Infinity,bestSectors=new Map();
   function reset() {
-    lastIssued=new Map();lastAlert=null;lastPosition=null;lastLap=null;lastAnyIssued=-Infinity;
+    lastIssued=new Map();lastAlert=null;lastPosition=null;lastLap=null;lastAnyIssued=-Infinity;bestSectors=new Map();
     return getStatus();
   }
   function getStatus() {
@@ -20,6 +20,23 @@ export function createRaceEngineer(options={}) {
       message:'Monitoring fuel, tyres, pace and track conditions.',
       action:'PUSH WHEN READY'
     };
+  }
+  function recordSector({sector,time,now=Date.now()}={}) {
+    const value=Number(time);
+    if(!Number.isFinite(value)||value<=0)return null;
+    const key=String(sector||'SECTOR');
+    const previous=bestSectors.get(key);
+    if(previous===undefined||value<previous){bestSectors.set(key,value);return null;}
+    const delta=(value/previous-1)*100;
+    if(delta<3.5||now-lastAnyIssued<cooldownMs)return null;
+    const alert={
+      key:'sector-loss-'+key,level:'info',title:key+' TIME LOSS',
+      message:`This sector was ${delta.toFixed(1)}% slower than your best. Focus on clean braking and corner exits.`,
+      action:'FIND TIME IN '+key,priority:35,at:now
+    };
+    if(now-(lastIssued.get(alert.key)??-Infinity)<cooldownMs)return null;
+    lastIssued.set(alert.key,now);lastAnyIssued=now;lastAlert=alert;
+    return getStatus();
   }
   function update(snapshot={}) {
     if(snapshot.state!=='running') return null;
@@ -78,5 +95,5 @@ export function createRaceEngineer(options={}) {
     lastAlert={...next,at:now};
     return getStatus();
   }
-  return {update,reset,getStatus};
+  return {update,reset,getStatus,recordSector};
 }
