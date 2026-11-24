@@ -97,7 +97,33 @@ This is an original arcade simulation using a Fuji-inspired layout and simplifie
 - Added suspension movement and tyre rubber marks during high lateral-load moments
 - Preserved the full-screen Fuji scene, existing touch/keyboard controls, AI and championship
 
-### Milestone 10 — Platform control picker
+### Platform control picker — Android / Windows input milestone
 - First-run chooser for Android (touch + optional tilt) or Windows (keyboard + gamepad), saved per device and switchable at any time
 - Touch buttons are shown only in the Android profile; keyboard hints only in the Windows profile
 - Analog steering axis in the physics step (used by tilt and gamepad sticks); keyboard/button steering is unchanged
+
+
+### Milestone 10 — Advanced race simulation
+- Added changing dry, overcast, light-rain and heavy-rain conditions with gradual grip and tyre-wear effects
+- AI rivals now manage fuel, tyre wear, compound choice and pit windows, including wet-weather strategy
+- Added yellow-flag cautions, safety-car pace control and three-second contact penalties
+- Connected weather grip, tyre compounds, vehicle upgrades and setup values to the driving model
+
+### Milestone 11 — Car garage and upgrades
+- Added three selectable car profiles with distinct power, grip, braking and durability characteristics
+- Added credits, car unlocks and five upgrade levels for engine, grip, brakes and chassis
+- Added aero, suspension, brake-bias and differential setup tuning
+- Added player livery customization; garage progress saves locally on the device
+
+### Milestone 12 — Audio and immersion
+- Expanded synthesized engine audio with gear-change cues, tyre-slip squeal and rain ambience
+- Added optional browser speech-synthesis team-radio calls for pit events, contact and race-control messages
+- Audio remains gesture-activated and can be muted from the top bar
+
+### Milestone 13 — Performance and final polish
+- Added a lower-geometry quality profile for touch devices and a bounded WebGL pixel budget
+- Reduced 2D fallback pixel ratio and added canvas ResizeObserver support
+- Versioned the PWA shell and added the garage/weather modules to its offline app shell
+- Extended automated validation and tests for garage persistence and weather transitions
+
+The final checks should still be run in a real browser and on a physical Android device. The automated checks validate source structure and simulation logic; they cannot fully verify GPU performance, installed-PWA update timing, audio output or touch ergonomics.
