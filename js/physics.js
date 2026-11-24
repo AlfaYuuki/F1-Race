@@ -1,5 +1,8 @@
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-// Calibrated against the sampled Fuji layout: a full tank supports one 12.5-lap stint.\nconst FUEL_BURN_BASE = 0.06;\nconst FUEL_BURN_SPEED = 0.06;\nconst COMPOUNDS = {
+// Calibrated against the sampled Fuji layout: a full tank supports one 12.5-lap stint.
+const FUEL_BURN_BASE = 0.06;
+const FUEL_BURN_SPEED = 0.06;
+const COMPOUNDS = {
   SOFT: { grip: 1.08, wear: 0.18 },
   MEDIUM: { grip: 1, wear: 0.115 },
   HARD: { grip: 0.94, wear: 0.07 },
