@@ -976,7 +976,7 @@ button,select,input{touch-action:manipulation}
 @media (orientation: landscape) and (pointer: coarse) and (max-height: 520px) {
   .pit-telemetry {
     position: absolute;
-    left: calc(50% - 7px);
+    left: calc(50% + 8px);
     right: auto;
     top: 48%;
     bottom: auto;
