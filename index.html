@@ -24,6 +24,7 @@
     <div class="track-name"><i></i> FUJI SPEEDWAY <span>·</span> JAPAN</div>
     <div class="top-actions">
       <button id="install-button" class="icon-button install-button" type="button" aria-label="Install The F1 Race" title="Install The F1 Race" hidden>↓</button>
+      <button id="controls-button" class="icon-button" type="button" aria-label="Change controls (Android / Windows)" title="Change controls">🎮</button>
       <button id="audio-button" class="icon-button" type="button" aria-label="Toggle engine audio" title="Toggle engine audio">♫</button>
       <button id="pause-button" class="icon-button" type="button" aria-label="Pause race">Ⅱ</button>
       <button id="fullscreen-button" class="icon-button" type="button" aria-label="Toggle fullscreen">⛶</button>
@@ -50,6 +51,10 @@
     </ol>
   </aside>
 
+  <section class="pit-telemetry"><div><small>FUEL</small><strong id="fuel-value">100%</strong><i class="pit-meter"><b id="fuel-bar"></b></i></div><div><small>TYRES</small><strong id="tyre-value">MEDIUM · 0%</strong><i class="pit-meter"><b id="tyre-bar"></b></i></div><div><small>DAMAGE</small><strong id="damage-value">0%</strong></div><div><small>PIT STOPS</small><strong id="pit-stops-value">0</strong></div></section>
+  <button id="pit-button" class="pit-button" type="button" disabled>BOX ↗</button>
+  <section id="pit-dialog" class="pit-dialog" hidden><div class="pit-card"><p class="eyebrow">TEAM RADIO · PIT WALL</p><h2>PIT STRATEGY</h2><label for="pit-compound">TYRE COMPOUND</label><select id="pit-compound"><option value="SOFT">SOFT — HIGH GRIP / HIGH WEAR</option><option value="MEDIUM" selected>MEDIUM — BALANCED</option><option value="HARD">HARD — LONG LIFE</option><option value="INTER">INTERMEDIATE — WET TRACK</option></select><label for="pit-fuel">FUEL LOAD <output id="fuel-choice">100%</output></label><input id="pit-fuel" type="range" min="20" max="100" value="100" step="5"><p class="pit-note">Pit service takes about 4.2 seconds. Tyres, fuel and damage are serviced together.</p><div class="pit-actions"><button id="pit-cancel" type="button">CANCEL</button><button id="pit-confirm" type="button">BOX THIS LAP</button></div></div></section>
+  <section id="pit-overlay" class="pit-overlay" hidden><div class="pit-service-card"><span class="pit-spinner"></span><p>CREW AT WORK</p><strong>CAR IN PIT BOX</strong><small>TYRES · FUEL · REPAIRS</small></div></section>
   <section class="timing-panel" aria-label="Lap timing"><div><small>LAST LAP</small><strong id="last-lap-label">--:--.---</strong></div><div><small>BEST LAP</small><strong id="best-lap-label">--:--.---</strong></div><div><small>SECTOR</small><strong id="sector-label">S1 --:--.---</strong></div></section>
 
   <div class="race-message" id="race-message">FUJI INTERNATIONAL SPEEDWAY <span>—</span> 3 LAP SPRINT</div>
@@ -69,12 +74,56 @@
       <button id="start-button" class="start-button" type="button">QUICK RACE <span>↗</span></button>
       <button id="championship-button" class="championship-button" type="button">START CHAMPIONSHIP <span>🏆</span></button>
       <p id="championship-summary" class="championship-summary">5 ROUNDS · POINTS SERIES · YOUR RESULTS SAVE ON THIS DEVICE</p>
-      <div class="keyboard-help">WASD / ARROWS TO DRIVE <span>·</span> ESC TO PAUSE</div>
+      <div class="keyboard-help" id="controls-help">WASD / ARROWS TO DRIVE <span>·</span> ESC TO PAUSE</div>
+      <button id="platform-change" class="platform-change" type="button">CONTROLS: <b id="platform-current">WINDOWS</b> <span>· CHANGE</span></button>
+    </div>
+  </section>
+
+  <section id="platform-screen" class="platform-screen" role="dialog" aria-modal="true" aria-labelledby="platform-title" hidden>
+    <div class="platform-panel">
+      <p class="eyebrow">CONTROL SETUP</p>
+      <h2 id="platform-title">WHAT ARE YOU RACING ON?</h2>
+      <p class="platform-sub">Pick your device and the controls and on-screen layout switch to match. Change it any time with the 🎮 button.</p>
+      <div class="platform-grid">
+        <article class="platform-card" id="card-android">
+          <header>
+            <svg class="platform-icon" viewBox="0 0 48 48" aria-hidden="true"><rect x="14" y="4" width="20" height="40" rx="4" fill="none" stroke="currentColor" stroke-width="2.5"/><circle cx="24" cy="38" r="2" fill="currentColor"/><path d="M20 9h8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+            <div><h3>ANDROID</h3><small>PHONE · TABLET · TOUCH</small></div>
+            <em class="detected">DETECTED</em>
+          </header>
+          <ul class="platform-list">
+            <li><b>◀ ▶</b><span>Steer buttons under your left thumb</span></li>
+            <li><b>GO</b><span>Hold to accelerate</span></li>
+            <li><b>BRAKE</b><span>Hold to slow down</span></li>
+            <li><b>TILT</b><span>Optional — turn the phone like a steering wheel</span></li>
+          </ul>
+          <label class="platform-option"><input type="checkbox" id="tilt-toggle"> TILT STEERING</label>
+          <label class="platform-option"><input type="checkbox" id="tilt-invert"> INVERT TILT DIRECTION</label>
+          <p class="platform-status" id="tilt-status" aria-live="polite"></p>
+          <button id="platform-android" class="platform-choice" type="button" data-platform="android">USE ANDROID CONTROLS</button>
+        </article>
+        <article class="platform-card" id="card-windows">
+          <header>
+            <svg class="platform-icon" viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="7" width="38" height="25" rx="2.5" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M17 40h14M24 32v8" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+            <div><h3>WINDOWS</h3><small>PC · KEYBOARD · GAMEPAD</small></div>
+            <em class="detected">DETECTED</em>
+          </header>
+          <ul class="platform-list">
+            <li><b><kbd>W</kbd><kbd>↑</kbd></b><span>Accelerate</span></li>
+            <li><b><kbd>S</kbd><kbd>↓</kbd><kbd>Space</kbd></b><span>Brake</span></li>
+            <li><b><kbd>A</kbd><kbd>D</kbd><kbd>←</kbd><kbd>→</kbd></b><span>Steer</span></li>
+            <li><b><kbd>P</kbd><kbd>Esc</kbd></b><span>Pause · <kbd>M</kbd> mute · <kbd>F</kbd> fullscreen</span></li>
+            <li><b>PAD</b><span>Xbox / standard gamepad — RT gas, LT brake, left stick steers, Start pauses</span></li>
+          </ul>
+          <button id="platform-windows" class="platform-choice" type="button" data-platform="windows">USE WINDOWS CONTROLS</button>
+        </article>
+      </div>
+      <button id="platform-close" class="platform-close" type="button" hidden>CANCEL</button>
     </div>
   </section>
 
   <div class="mobile-controls" aria-label="Touch driving controls">
-    <div class="steer-controls"><button data-control="left" aria-label="Steer left">◀</button><button data-control="right" aria-label="Steer right">▶</button></div>
+    <div class="steer-controls"><button data-control="left" aria-label="Steer left">◀</button><button data-control="right" aria-label="Steer right">▶</button><div class="tilt-badge" id="tilt-badge" aria-hidden="true"><span>TILT TO STEER</span><i class="tilt-meter"><b id="tilt-dot"></b></i></div></div>
     <div class="pedal-controls"><button data-control="brake">BRAKE</button><button data-control="accelerate">GO</button></div>
   </div>
   <footer class="race-bottom"><span><i></i> DRY TRACK</span><span id="status-label">ENGINE STANDBY</span><span>THE F1 RACE · ARCADE SIMULATION</span></footer>

@@ -3,7 +3,7 @@ const approach = (value, target, amount) => value < target ? Math.min(target, va
 export function createPhysics() {
   return {
     speed: 0, playerX: 0, distance: 0, offRoad: false, lateralVelocity: 0, rpm: 850, gear: 1,
-    update(dt, input, curve) {
+    update(dt, input, curve, steerAxis = 0) {
       const accelerating = input.has('accelerate'), braking = input.has('brake');
       const maxSpeed = 330;
       const speedFactor = 1 - this.speed / (maxSpeed + 30);
@@ -12,7 +12,9 @@ export function createPhysics() {
       const brakeForce = braking ? 245 : 0;
       this.speed = clamp(this.speed + (throttle - drag - brakeForce) * dt, 0, maxSpeed);
 
-      const steer = (input.has('right') ? 1 : 0) - (input.has('left') ? 1 : 0);
+      // Digital keys/buttons plus an optional analog axis (tilt or gamepad stick) in [-1, 1].
+      const digital = (input.has('right') ? 1 : 0) - (input.has('left') ? 1 : 0);
+      const steer = clamp(digital + (Number.isFinite(steerAxis) ? steerAxis : 0), -1, 1);
       const velocityRatio = this.speed / maxSpeed;
       const grip = this.offRoad ? .42 : 1;
       const steeringResponse = (1.15 + velocityRatio * 1.5) * grip;
