@@ -65,7 +65,7 @@ export function createGame(canvas,callbacks={}) {
     }
     const currentLapIndex=Math.floor(raceDistance/LAP_DISTANCE),lapProgress=(raceDistance%LAP_DISTANCE)/LAP_DISTANCE;
     const currentSector=lapProgress<1/3?1:lapProgress<2/3?2:3;
-    if(currentSector!==sector){notify('SECTOR '+sector+' COMPLETE — '+formatTime(sectorElapsed));sector=currentSector;sectorElapsed=0;}
+    if(currentSector!==sector){notify('SECTOR '+sector+' COMPLETE — '+formatTime(sectorElapsed));callbacks.onSector?.({sector:'S'+sector,time:sectorElapsed});sector=currentSector;sectorElapsed=0;}
     if(currentLapIndex>previousLapIndex){lastLap=lapElapsed;bestLap=bestLap===null?lastLap:Math.min(bestLap,lastLap);lapElapsed=0;sector=1;sectorElapsed=0;notify('LAP '+(currentLapIndex+1)+' — '+formatTime(lastLap));}
     if(raceDistance>=TOTAL_DISTANCE){raceDistance=TOTAL_DISTANCE;state='finished';physics.speed=0;pitPhase=null;callbacks.onPitService?.(false);notify('CHEQUERED FLAG — RACE COMPLETE!');}
     lap=Math.min(TOTAL_LAPS,Math.floor(raceDistance/LAP_DISTANCE)+1);
