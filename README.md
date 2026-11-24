@@ -136,3 +136,14 @@ The final checks should still be run in a real browser and on a physical Android
 - Restore a validated backup after confirmation; invalid files are rejected without replacing the current save
 - Delete all known F1 Race save keys after a separate confirmation, then reload into a fresh game
 - Save deletion does not clear the PWA installation, service-worker cache or unrelated browser storage
+
+
+### Advanced live telemetry
+- Live throttle and brake input percentages with activity meters
+- Steering input percentage with left/right sign
+- Longitudinal G calculated from measured speed change
+- Lateral G estimate from steering, track curvature and vehicle response (an arcade-model estimate, not calibrated real-world sensor data)
+- Estimated available grip based on tyre compound, wear, damage and weather grip
+- Live fuel flow in percentage of tank per minute
+- Dashboard uses engine RPM and gear values from the physics simulation
+- Responsive multi-column telemetry panel for landscape mobile and desktop
