@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createDataManager, DATA_KEYS } from '../js/data-manager.js';
+import { createChampionship } from '../js/championship.js';
 
 function memoryStorage(seed = {}) {
   const values = new Map(Object.entries(seed));
@@ -72,4 +73,20 @@ test('save manager handles unavailable storage safely', () => {
   assert.throws(() => manager.createBackup());
   assert.equal(manager.deleteAll().ok, false);
   assert.equal(manager.restoreBackup({}).ok, false);
+});
+
+
+test('save manager accepts a real championship save', () => {
+  const storage = memoryStorage();
+  const series = createChampionship(storage);
+  series.startNewSeason();
+  series.recordResult([
+    { id: 'player', name: 'YOU' },
+    { id: 'sato', name: 'K. SATO' },
+    { id: 'tanaka', name: 'M. TANAKA' }
+  ]);
+  const backup = createDataManager(storage).createBackup();
+  const target = memoryStorage();
+  assert.deepEqual(createDataManager(target).restoreBackup(backup), { ok: true });
+  assert.equal(createChampionship(target).getState().round, 1);
 });
