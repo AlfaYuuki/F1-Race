@@ -19,6 +19,7 @@ const championship = createChampionship();
 const garage = createGarage();
 const dataManager = createDataManager();
 let raceRewardRecorded = false;
+let lastLeaderboardRefresh = 0;
 let championshipActive = false;
 let roundRecorded = false;
 
@@ -135,6 +136,8 @@ function choosePlatform(id) {
 
 const game = createGame(canvas, {
   onUpdate: ({ speed, lap, time, state, position, standings, offRoad, lastLap, bestLap, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, throttle, skid }) => {
+    const raceOrder = standings ? [...standings].sort((a, b) => b.distance - a.distance) : [];
+    const playerPosition = raceOrder.length ? raceOrder.findIndex(driver => driver.isPlayer || driver.id === 'player') + 1 : position;
     const gear = speed < 8 ? 0 : Math.min(8, Math.floor(speed / 42) + 1);
     const rpm = Math.round(Math.min(12000, 900 + (speed % 42) / 42 * 9300 + (state === 'running' ? 500 : 0)));
 
@@ -148,7 +151,7 @@ const game = createGame(canvas, {
     document.querySelector('#sector-label').textContent = `${sector || 'S1'} ${sectorTime || '--:--.---'}`;
     document.querySelector('#time-label').textContent = time;
     document.querySelector('#lap-label').innerHTML = `${String(lap).padStart(2, '0')}<span> / ${String(TOTAL_LAPS).padStart(2, '0')}</span>`;
-    document.querySelector('#position-label').innerHTML = `P${position}<span> / 06</span>`;
+    document.querySelector('#position-label').innerHTML = `P${playerPosition || position}<span> / 06</span>`;
     document.querySelector('#status-label').textContent = pitPhase ? 'PIT LANE' : offRoad ? 'OFF TRACK' :
       state === 'running' ? 'ENGINE ACTIVE' :
       state === 'finished' ? 'SESSION COMPLETE' :
@@ -179,10 +182,14 @@ const game = createGame(canvas, {
       startButton.textContent = 'QUICK RACE ↗';
       championshipButton.classList.remove('hidden');
     }
-    if (standings) {
-      leaderboard.innerHTML = standings.map((driver, index) =>
-        `<li class="${driver.isPlayer ? 'player-row' : ''}"><span class="rank">${String(index + 1).padStart(2, '0')}</span><i style="--driver-color:${driver.color}"></i><span>${escapeHtml(driver.name)}</span><b>${state === 'ready' ? 'GRID' : `L${Math.min(TOTAL_LAPS, Math.floor(driver.distance / LAP_DISTANCE) + 1)}`}</b></li>`
-      ).join('');
+    if (raceOrder.length) {
+      const now = performance.now();
+      if (state !== 'running' || now - lastLeaderboardRefresh >= 300) {
+        leaderboard.innerHTML = raceOrder.map((driver, index) =>
+          `<li class="${driver.isPlayer || driver.id === 'player' ? 'player-row' : ''}"><span class="rank">${String(index + 1).padStart(2, '0')}</span><i style="--driver-color:${driver.color}"></i><span>${escapeHtml(driver.name)}</span><b>${state === 'ready' ? 'GRID' : `L${Math.min(TOTAL_LAPS, Math.floor(driver.distance / LAP_DISTANCE) + 1)}`}</b></li>`
+        ).join('');
+        lastLeaderboardRefresh = now;
+      }
     }
   },
   onMessage: message => {
