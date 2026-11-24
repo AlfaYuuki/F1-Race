@@ -164,14 +164,16 @@ export function createRenderer(canvas) {
     return fallbackRenderer();
   }
 
-  let width = 1, height = 1, dpr = 1, lost = false, impactFlash = 0, cameraX = 0, cameraHeight = 5.5;\n  const touchQuality = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+  let width = 1, height = 1, dpr = 1, lost = false, impactFlash = 0, cameraX = 0, cameraHeight = 5.5;
+  const touchQuality = window.matchMedia?.('(pointer: coarse)').matches ?? false;
   function resize() {
     const rect = canvas.getBoundingClientRect();
     dpr = Math.min(window.devicePixelRatio || 1, touchQuality ? 1.2 : 1.5);
     width = Math.max(1, rect.width);
     height = Math.max(1, rect.height);
     const maxDimension = 1920;
-    const pixelBudgetScale = Math.sqrt(1500000 / Math.max(1, width * height));\n    const scale = Math.min(dpr, maxDimension / Math.max(width, height), pixelBudgetScale);
+    const pixelBudgetScale = Math.sqrt(1500000 / Math.max(1, width * height));
+    const scale = Math.min(dpr, maxDimension / Math.max(width, height), pixelBudgetScale);
     canvas.width = Math.max(1, Math.round(width * scale));
     canvas.height = Math.max(1, Math.round(height * scale));
     gl.viewport(0, 0, canvas.width, canvas.height);
