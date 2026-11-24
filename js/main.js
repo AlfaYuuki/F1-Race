@@ -3,6 +3,7 @@ import { bindControls } from './controls.js';
 import { createEngineAudio } from './audio.js';
 import { createChampionship } from './championship.js';
 import { createGarage, CARS } from './garage.js';
+import { createDataManager } from './data-manager.js';
 import { LAP_DISTANCE, TOTAL_LAPS } from './track.js';
 import { PLATFORMS, detectPlatform, loadSettings, saveSetting, controlHint } from './platform.js';
 
@@ -16,6 +17,7 @@ const audioButton = document.querySelector('#audio-button');
 const audio = createEngineAudio();
 const championship = createChampionship();
 const garage = createGarage();
+const dataManager = createDataManager();
 let raceRewardRecorded = false;
 let championshipActive = false;
 let roundRecorded = false;
@@ -38,6 +40,19 @@ function renderChampionshipSummary() {
     season.round > 0 ? 'NEXT CHAMPIONSHIP ROUND ↗' : 'START CHAMPIONSHIP 🏆';
 }
 
+
+function openDataManager() {
+  if(game.getState()==='running') game.togglePause();
+  controls?.releaseAll();
+  const summary=dataManager.getSummary();
+  document.querySelector('#data-autosave').textContent=summary.available?'AUTO-SAVE ACTIVE':'DEVICE STORAGE UNAVAILABLE';
+  document.querySelector('#data-summary').textContent=summary.available
+    ? `${summary.keys.length} SAVE RECORDS · ${(summary.bytes/1024).toFixed(1)} KB STORED ON THIS DEVICE`
+    : 'Your browser is blocking local storage. Backups and progress saving may not work.';
+  document.querySelector('#data-feedback').textContent='Backups include garage progress, championship results and control preferences.';
+  document.querySelector('#data-screen').hidden=false;
+}
+function closeDataManager() { document.querySelector('#data-screen').hidden=true; }
 
 function renderGarage() {
   const state = garage.getState();
@@ -245,6 +260,48 @@ window.addEventListener('keydown', event => {
   }
 });
 document.querySelector('#pause-button').addEventListener('click', () => game.togglePause());
+document.querySelector('#data-open').addEventListener('click',openDataManager);
+document.querySelector('#data-close').addEventListener('click',closeDataManager);
+document.querySelector('#data-back').addEventListener('click',closeDataManager);
+document.querySelector('#data-export').addEventListener('click',()=>{
+  try {
+    const backup=dataManager.createBackup();
+    const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+    const url=URL.createObjectURL(blob);
+    const link=document.createElement('a');
+    link.href=url;
+    link.download=`the-f1-race-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(link);link.click();link.remove();URL.revokeObjectURL(url);
+    document.querySelector('#data-feedback').textContent='Backup downloaded. Keep this JSON file somewhere safe.';
+  } catch(error) {
+    document.querySelector('#data-feedback').textContent=error.message||'Could not create a backup on this device.';
+  }
+});
+document.querySelector('#data-import').addEventListener('click',()=>document.querySelector('#data-file').click());
+document.querySelector('#data-file').addEventListener('change',async event=>{
+  const file=event.target.files?.[0];if(!file)return;
+  try {
+    if(file.size>1024*1024)throw new Error('Backup file is too large (maximum 1 MB).');
+    const backup=JSON.parse(await file.text());
+    if(!window.confirm('Restore this backup? Your current F1 Race save data will be replaced.'))return;
+    const result=dataManager.restoreBackup(backup);
+    if(!result.ok)throw new Error(result.error);
+    window.alert('Backup restored. The game will reload with your restored progress.');
+    window.location.reload();
+  } catch(error) {
+    document.querySelector('#data-feedback').textContent=error instanceof SyntaxError
+      ? 'That file is not valid JSON. No data was changed.'
+      : error.message||'Could not restore this backup.';
+  } finally { event.target.value=''; }
+});
+document.querySelector('#data-delete').addEventListener('click',()=>{
+  const confirmed=window.confirm('DELETE ALL F1 RACE SAVE DATA? This permanently removes your garage, credits, upgrades, championship results and control preferences from this device. This cannot be undone unless you have a backup.');
+  if(!confirmed)return;
+  const result=dataManager.deleteAll();
+  if(!result.ok){document.querySelector('#data-feedback').textContent=result.error;return;}
+  window.alert('All F1 Race save data has been deleted. The game will now reload with a fresh save.');
+  window.location.reload();
+});
 document.querySelector('#garage-open').addEventListener('click', openGarage);
 document.querySelector('#garage-close').addEventListener('click', closeGarage);
 document.querySelector('#garage-screen').addEventListener('click', event => {
