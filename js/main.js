@@ -88,7 +88,7 @@ function choosePlatform(id) {
 }
 
 const game = createGame(canvas, {
-  onUpdate: ({ speed, lap, time, state, position, standings, offRoad, lastLap, bestLap, sector, sectorTime, fuel, tireWear, compound, damage, pitStops }) => {
+  onUpdate: ({ speed, lap, time, state, position, standings, offRoad, lastLap, bestLap, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase }) => {
     const gear = speed < 8 ? 0 : Math.min(8, Math.floor(speed / 42) + 1);
     const rpm = Math.round(Math.min(12000, 900 + (speed % 42) / 42 * 9300 + (state === 'running' ? 500 : 0)));
 
@@ -103,7 +103,7 @@ const game = createGame(canvas, {
     document.querySelector('#time-label').textContent = time;
     document.querySelector('#lap-label').innerHTML = `${String(lap).padStart(2, '0')}<span> / 03</span>`;
     document.querySelector('#position-label').innerHTML = `P${position}<span> / 06</span>`;
-    document.querySelector('#status-label').textContent = offRoad ? 'OFF TRACK' :
+    document.querySelector('#status-label').textContent = pitPhase ? 'PIT LANE' : offRoad ? 'OFF TRACK' :
       state === 'running' ? 'ENGINE ACTIVE' :
       state === 'finished' ? 'SESSION COMPLETE' :
       state === 'paused' ? 'PAUSED' : 'ENGINE STANDBY';
@@ -114,6 +114,7 @@ const game = createGame(canvas, {
     document.querySelector('#tyre-bar').style.width=tireWear+'%';
     document.querySelector('#damage-value').textContent=Math.round(damage)+'%';
     document.querySelector('#pit-stops-value').textContent=String(pitStops);
+    document.querySelector('#pit-button').textContent=pitPhase ? (pitPhase==='service'?'IN BOX':'PIT '+pitPhase.toUpperCase()) : 'BOX ↗';
     document.querySelector('#pit-button').disabled=state!=='running';
     audio.update(rpm, 0, gear, state === 'running');
     if (state === 'finished') {
@@ -165,7 +166,7 @@ controls = bindControls(game, {
 const pitDialog=document.querySelector('#pit-dialog');
 document.querySelector('#pit-button').addEventListener('click',()=>{if(game.getState()==='running')pitDialog.hidden=false;});
 document.querySelector('#pit-cancel').addEventListener('click',()=>{pitDialog.hidden=true;});
-document.querySelector('#pit-confirm').addEventListener('click',()=>{if(game.requestPit(document.querySelector('#pit-compound').value,Number(document.querySelector('#pit-fuel').value)))pitDialog.hidden=true;});
+document.querySelector('#pit-confirm').addEventListener('click',()=>{if(game.requestPit(document.querySelector('#pit-compound').value,Number(document.querySelector('#pit-fuel').value),document.querySelector('#pit-repair').checked))pitDialog.hidden=true;});
 document.querySelector('#pit-fuel').addEventListener('input',event=>{document.querySelector('#fuel-choice').textContent=event.target.value+'%';});
 
 startButton.addEventListener('click', () => {

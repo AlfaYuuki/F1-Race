@@ -405,3 +405,5 @@ body.tilt-on .tilt-badge{display:flex}
   .platform-choice{padding:11px 14px}
   .platform-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 }
+
+.pit-repair{display:flex!important;align-items:center;justify-content:flex-start!important;gap:9px;margin:13px 0!important;color:#d9e5ec!important}.pit-repair input{width:16px!important;height:16px;accent-color:#ed3449}
