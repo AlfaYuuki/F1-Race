@@ -24,7 +24,12 @@ export function createWeather(random = Math.random) {
     }
     if(transition>0){transition=Math.max(0,transition-dt);if(!transition)current=target;}
     if(yellowFlag>0)yellowFlag=Math.max(0,yellowFlag-dt);
-    if(eventCooldown===0 && yellowFlag===0 && elapsed>35 && random()<dt*.0008){yellowFlag=12+random()*5;eventCooldown=65;}
+    if(safetyCar>0)safetyCar=Math.max(0,safetyCar-dt);
+    if(eventCooldown===0 && yellowFlag===0 && elapsed>35 && random()<dt*.0008){
+      yellowFlag=12+random()*5;
+      if(random()<.28)safetyCar=18+random()*8;
+      eventCooldown=65;
+    }
     const a=WEATHER[current],b=WEATHER[target],blend=transition>0?1-transition/8:0;
     return {
       ...a,
@@ -33,6 +38,7 @@ export function createWeather(random = Math.random) {
       rain:a.rain+(b.rain-a.rain)*blend,
       temperature:Math.round(a.temperature+(b.temperature-a.temperature)*blend),
       yellowFlag:yellowFlag>0,
+      safetyCar:safetyCar>0,
       flagTime:yellowFlag,
       changed: transition>0
     };
