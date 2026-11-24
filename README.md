@@ -147,3 +147,13 @@ The final checks should still be run in a real browser and on a physical Android
 - Live fuel flow in percentage of tank per minute
 - Dashboard uses engine RPM and gear values from the physics simulation
 - Responsive multi-column telemetry panel for landscape mobile and desktop
+
+
+### Race engineer and strategy intelligence
+- Live race engineer panel with priority-coded radio recommendations
+- Fuel-range estimate based on current fuel flow and lap duration, with pit-window guidance
+- Tyre degradation and damage warnings, including repair recommendations
+- Wet/dry tyre-compound strategy advice based on current track conditions
+- Off-track recovery, lap-pace feedback and nearby-rival passing opportunities
+- Position-gain acknowledgement and per-alert cooldowns to prevent radio spam
+- Engineer advice is advisory: it never takes control of the car or triggers a pit stop automatically
