@@ -164,14 +164,14 @@ export function createRenderer(canvas) {
     return fallbackRenderer();
   }
 
-  let width = 1, height = 1, dpr = 1, lost = false, impactFlash = 0, cameraX = 0, cameraHeight = 5.5;
+  let width = 1, height = 1, dpr = 1, lost = false, impactFlash = 0, cameraX = 0, cameraHeight = 5.5;\n  const touchQuality = window.matchMedia?.('(pointer: coarse)').matches ?? false;
   function resize() {
     const rect = canvas.getBoundingClientRect();
-    dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    dpr = Math.min(window.devicePixelRatio || 1, touchQuality ? 1.2 : 1.5);
     width = Math.max(1, rect.width);
     height = Math.max(1, rect.height);
     const maxDimension = 1920;
-    const scale = Math.min(dpr, maxDimension / Math.max(width, height));
+    const pixelBudgetScale = Math.sqrt(1500000 / Math.max(1, width * height));\n    const scale = Math.min(dpr, maxDimension / Math.max(width, height), pixelBudgetScale);
     canvas.width = Math.max(1, Math.round(width * scale));
     canvas.height = Math.max(1, Math.round(height * scale));
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -190,7 +190,7 @@ export function createRenderer(canvas) {
   function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, dt = 1/60 }) {
     if (lost) return;
     const mesh = createGeometry();
-    const roadSegments = 118;
+    const roadSegments = touchQuality ? 84 : 118;
     const segmentLength = 4.2;
     const lapDistance = 4563;
     const travelledThisLap = ((position * lapDistance) % lapDistance + lapDistance) % lapDistance;
@@ -235,7 +235,7 @@ export function createRenderer(canvas) {
           mesh.box(sx, 1.12, a.z, 6.1, .18, 12.4, [.72,.74,.76]);
           for (let row = 0; row < 3; row++) {
             for (let seat = 0; seat < 9; seat++) {
-              const crowdX = sx + (seat - 4) * .57;
+              const crowdX = sx + (seat - (touchQuality ? 2.5 : 4)) * .57;
               const crowdY = 1.35 + row * .34;
               const crowdZ = a.z + (row - 1) * 2.2;
               const palette = [[.82,.2,.19],[.88,.78,.55],[.16,.3,.48],[.83,.83,.82],[.22,.55,.39]];
