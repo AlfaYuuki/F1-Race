@@ -1,5 +1,6 @@
 let installPrompt = null;
 const installButton = document.querySelector('#install-button');
+let refreshing = false;
 
 window.addEventListener('beforeinstallprompt', event => {
   event.preventDefault();
@@ -21,9 +22,31 @@ window.addEventListener('appinstalled', () => {
 });
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js', { scope: './' }).catch(error => {
-      console.warn('The F1 Race offline support could not be registered:', error);
-    });
-  }, { once: true });
+  // If an installed app receives a new controller, reload once to use the new app shell.
+  const hadController = Boolean(navigator.serviceWorker.controller);
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController && !refreshing) {
+      refreshing = true;
+      location.reload();
+    }
+  });
+
+  async function registerAndCheckForUpdates() {
+    try {
+      const registration = await navigator.serviceWorker.register('./sw.js', {
+        scope: './',
+        updateViaCache: 'none'
+      });
+      await registration.update();
+      if (registration.waiting) registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    } catch (error) {
+      console.warn('The F1 Race offline support could not be updated:', error);
+    }
+  }
+
+  window.addEventListener('load', registerAndCheckForUpdates, { once: true });
+  window.addEventListener('focus', () => { void registerAndCheckForUpdates(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') void registerAndCheckForUpdates();
+  });
 }
