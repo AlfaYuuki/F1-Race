@@ -41,7 +41,8 @@ export function createPhysics() {
       const grip = (this.offRoad ? .42 : 1) * tyreGrip * damageGrip;
       const steeringResponse = (1.15 + velocityRatio * 1.5) * grip;
       this.lateralVelocity += steer * steeringResponse * dt;
-      this.lateralVelocity *= Math.max(0, 1 - dt * (3.2 + velocityRatio * 1.2));
+      const diffStability = .9 + (this.carConfig.setup?.differential ?? 50) / 500;
+      this.lateralVelocity *= Math.max(0, 1 - dt * (3.2 + velocityRatio * 1.2) * diffStability);
       this.lateralVelocity -= curve * velocityRatio * .28 * dt;
       this.playerX += this.lateralVelocity * dt * (1.4 + velocityRatio * 1.2);
       this.offRoad = Math.abs(this.playerX) > .88;
