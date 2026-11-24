@@ -100,7 +100,9 @@ export function createRenderer(canvas) {
     if(!running){ctx.fillStyle='rgba(5,15,25,.06)';ctx.fillRect(0,0,width,height);}
   }
   const LAP_SCROLL=180;
-  window.addEventListener('resize',resize,{passive:true});\n  if(typeof ResizeObserver!=='undefined'){const observer=new ResizeObserver(resize);observer.observe(canvas);}\n  resize();
+  window.addEventListener('resize',resize,{passive:true});
+  if(typeof ResizeObserver!=='undefined'){const observer=new ResizeObserver(resize);observer.observe(canvas);}
+  resize();
   function triggerImpact(){impactFlash=1;spawnParticles(width*.5,height*.86,18,true);}
   return {render,resize,triggerImpact};
 }
