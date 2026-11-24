@@ -1,0 +1,75 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createDataManager, DATA_KEYS } from '../js/data-manager.js';
+
+function memoryStorage(seed = {}) {
+  const values = new Map(Object.entries(seed));
+  return {
+    getItem:key=>values.has(key)?values.get(key):null,
+    setItem:(key,value)=>values.set(key,String(value)),
+    removeItem:key=>values.delete(key),
+    values
+  };
+}
+
+const garage = JSON.stringify({
+  credits: 900, selectedCar: 'falcon', ownedCars: ['falcon'],
+  upgrades: { power: 1, grip: 0, braking: 0, durability: 0 },
+  setup: { aero: 50, suspension: 50, brakeBias: 56, differential: 50 },
+  livery: '#ed3548'
+});
+
+test('save manager exports only game save keys and reports local save status', () => {
+  const storage = memoryStorage({ 'the-f1-race-garage-v1': garage, unrelated: 'keep me' });
+  const manager = createDataManager(storage);
+  const backup = manager.createBackup();
+  assert.equal(backup.format, 'the-f1-race-save');
+  assert.equal(backup.version, 1);
+  assert.deepEqual(Object.keys(backup.data), ['the-f1-race-garage-v1']);
+  assert.equal(manager.getSummary().garage, true);
+  assert.equal(manager.getSummary().available, true);
+});
+
+test('save manager restores a valid backup and leaves unrelated browser data untouched', () => {
+  const storage = memoryStorage({ 'the-f1-race-garage-v1': garage, 'f1race.platform': 'windows', unrelated: 'keep' });
+  const manager = createDataManager(storage);
+  const backup = manager.createBackup();
+  storage.setItem('the-f1-race-garage-v1', 'corrupt');
+  storage.setItem('f1race.platform', 'android');
+  assert.deepEqual(manager.restoreBackup(backup), { ok: true });
+  assert.equal(storage.getItem('the-f1-race-garage-v1'), garage);
+  assert.equal(storage.getItem('f1race.platform'), 'windows');
+  assert.equal(storage.getItem('unrelated'), 'keep');
+});
+
+test('save manager rejects malformed or unsafe backups without changing data', () => {
+  const storage = memoryStorage({ 'the-f1-race-garage-v1': garage });
+  const manager = createDataManager(storage);
+  const invalid = { format: 'the-f1-race-save', version: 1, data: { 'the-f1-race-garage-v1': '{bad json' } };
+  assert.equal(manager.restoreBackup(invalid).ok, false);
+  assert.equal(storage.getItem('the-f1-race-garage-v1'), garage);
+  assert.equal(manager.restoreBackup({ format: 'other', version: 1, data: {} }).ok, false);
+  assert.equal(manager.restoreBackup({ format: 'the-f1-race-save', version: 1, data: { 'unknown.key': 'x' } }).ok, false);
+  assert.equal(DATA_KEYS.includes('unrelated'), false);
+});
+
+test('delete all removes game progress and controls but not unrelated browser data', () => {
+  const storage = memoryStorage({
+    'the-f1-race-garage-v1': garage,
+    'f1race.platform': 'android',
+    'f1race.tilt': '1',
+    unrelated: 'keep'
+  });
+  const manager = createDataManager(storage);
+  assert.deepEqual(manager.deleteAll(), { ok: true });
+  assert.deepEqual(manager.getSummary().keys, []);
+  assert.equal(storage.getItem('unrelated'), 'keep');
+});
+
+test('save manager handles unavailable storage safely', () => {
+  const manager = createDataManager(null);
+  assert.equal(manager.getSummary().available, false);
+  assert.throws(() => manager.createBackup());
+  assert.equal(manager.deleteAll().ok, false);
+  assert.equal(manager.restoreBackup({}).ok, false);
+});
