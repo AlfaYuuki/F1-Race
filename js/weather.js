@@ -7,7 +7,7 @@ const WEATHER = {
 const clamp=(n,min,max)=>Math.max(min,Math.min(max,n));
 
 export function createWeather(random = Math.random) {
-  let current='dry', target='dry', transition=0, elapsed=0, nextChange=45, yellowFlag=0, eventCooldown=0;
+  let current='dry', target='dry', transition=0, elapsed=0, nextChange=45, yellowFlag=0, safetyCar=0, eventCooldown=0;
   function reset() {
     current='dry'; target=random()<.35?'cloudy':'dry'; transition=0; elapsed=0; nextChange=45+random()*35; yellowFlag=0; eventCooldown=0;
   }
@@ -37,7 +37,7 @@ export function createWeather(random = Math.random) {
       changed: transition>0
     };
   }
-  function getState(){return { ...WEATHER[current], current, target, yellowFlag:yellowFlag>0, flagTime:yellowFlag }; }
+  function getState(){return { ...WEATHER[current], current, target, yellowFlag:yellowFlag>0, safetyCar:safetyCar>0, flagTime:yellowFlag }; }
   reset();
   return { reset, update, getState };
 }
