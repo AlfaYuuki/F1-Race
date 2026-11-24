@@ -62,7 +62,7 @@ export function createPhysics() {
         steering: Math.round(steer * 100),
         lateralG,
         longitudinalG,
-        grip: clamp(tyreGrip * damageGrip * 100, 0, 100),
+        grip: clamp(grip * 100, 0, 100),
         fuelFlow: dt > 0 ? Math.max(0, (previousFuel - this.fuel) / dt * 60) : 0
       };
       this.distance += this.speed / 3.6 * dt;
