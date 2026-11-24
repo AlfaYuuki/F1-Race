@@ -407,3 +407,102 @@ body.tilt-on .tilt-badge{display:flex}
 }
 
 .pit-repair{display:flex!important;align-items:center;justify-content:flex-start!important;gap:9px;margin:13px 0!important;color:#d9e5ec!important}.pit-repair input{width:16px!important;height:16px;accent-color:#ed3449}
+
+
+/* MOBILE FIT & READABILITY REPAIR
+   Keep the full-screen circuit while giving every live panel its own safe area. */
+html,body{min-height:100%;overscroll-behavior:none}
+.race-game{min-height:320px;height:100vh;height:100dvh;padding:
+  env(safe-area-inset-top) env(safe-area-inset-right)
+  env(safe-area-inset-bottom) env(safe-area-inset-left)}
+.pit-dialog,.pit-overlay{padding: max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));overflow-y:auto}
+.pit-card{max-height:calc(100dvh - 24px - env(safe-area-inset-top) - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain}
+.pit-card select,.pit-card input,.pit-actions button{min-height:44px}
+button,select,input{touch-action:manipulation}
+.mobile-controls{padding-bottom:env(safe-area-inset-bottom)}
+@media(max-width:760px){
+  .race-topbar{left:env(safe-area-inset-left);right:env(safe-area-inset-right)}
+  .hud{top:calc(61px + env(safe-area-inset-top));left:max(8px,env(safe-area-inset-left));max-width:calc(100vw - 132px);gap:clamp(3px,1.2vw,8px);padding:8px 7px}
+  .hud-block{min-width:clamp(25px,7vw,34px)}
+  .hud-block>small{font-size:clamp(5px,1.45vw,7px);letter-spacing:.04em}
+  .hud-block strong{font-size:clamp(15px,4.2vw,19px)}
+  .speed-block{min-width:clamp(48px,13vw,67px)}
+  .speed-block>strong{font-size:clamp(21px,6vw,27px)}
+  .gear-block{min-width:26px}
+  .gear-block strong{font-size:20px}
+  .rpm-track{width:100%}
+  .standings{top:calc(61px + env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));width:clamp(104px,29vw,120px);padding:7px}
+  .standings-head{font-size:6px;padding-bottom:5px}
+  .standings li{height:clamp(20px,5.8vw,23px);font-size:clamp(7px,2vw,8px);gap:4px;padding:0 2px}
+  .standings .rank{width:12px;font-size:7px}
+  .standings li b{font-size:6px}
+  .pit-telemetry{
+    left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));
+    bottom:calc(112px + env(safe-area-inset-bottom));justify-content:space-between;
+    display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;
+    padding:7px 8px;border-radius:8px
+  }
+  .pit-telemetry>div{min-width:0;gap:3px}
+  .pit-telemetry small{font-size:6px;letter-spacing:.08em}
+  .pit-telemetry strong{font-size:clamp(7px,2vw,9px);white-space:nowrap}
+  .pit-meter{width:100%}
+  .pit-button{right:max(8px,env(safe-area-inset-right));bottom:calc(169px + env(safe-area-inset-bottom));min-height:40px;padding:9px 12px}
+  .timing-panel{left:max(8px,env(safe-area-inset-left));bottom:calc(169px + env(safe-area-inset-bottom));gap:7px;padding:7px 8px}
+  .timing-panel div+div{padding-left:7px}
+  .timing-panel small{font-size:6px}
+  .timing-panel strong{font-size:8px}
+  .mobile-controls{
+    left:max(10px,env(safe-area-inset-left));right:max(10px,env(safe-area-inset-right));
+    bottom:calc(35px + env(safe-area-inset-bottom));align-items:end
+  }
+  .mobile-controls button{min-width:clamp(48px,14vw,58px);height:clamp(48px,14vw,58px);font-size:11px}
+  .pedal-controls button:last-child{min-width:clamp(58px,17vw,70px)}
+  .race-bottom{height:27px;padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right));font-size:6px}
+  .race-message{top:calc(31% + env(safe-area-inset-top));max-width:calc(100vw - 24px)}
+  .start-screen{padding:calc(62px + env(safe-area-inset-top)) 10px calc(38px + env(safe-area-inset-bottom));overflow-y:auto}
+  .start-card{margin:0 auto;max-height:100%;width:min(390px,100%);padding:clamp(16px,4vw,22px)}
+  .start-card h1{font-size:clamp(46px,13vw,62px)}
+}
+@media(max-width:430px) and (orientation:portrait){
+  .time-block{display:none}
+  .timing-panel{display:none}
+  .pit-telemetry{bottom:calc(108px + env(safe-area-inset-bottom))}
+  .pit-button{bottom:calc(164px + env(safe-area-inset-bottom))}
+  .mobile-controls{bottom:calc(34px + env(safe-area-inset-bottom))}
+  .race-message{top:30%}
+}
+@media(max-height:520px) and (orientation:landscape){
+  .race-topbar{height:40px}
+  .hud,.standings{top:calc(46px + env(safe-area-inset-top))}
+  .hud{padding:6px 8px;gap:6px}
+  .hud-block{min-width:27px}
+  .hud-block strong{font-size:17px}
+  .standings{width:112px;padding:5px}
+  .standings li{height:18px;font-size:7px}
+  .pit-telemetry{left:10px;right:10px;bottom:calc(88px + env(safe-area-inset-bottom));padding:5px 8px;gap:8px}
+  .pit-button{right:12px;bottom:calc(132px + env(safe-area-inset-bottom));padding:7px 10px;min-height:34px}
+  .timing-panel{left:10px;bottom:calc(132px + env(safe-area-inset-bottom));padding:5px 7px}
+  .mobile-controls{bottom:calc(26px + env(safe-area-inset-bottom))}
+  .mobile-controls button{height:44px;min-width:48px}
+  .race-bottom{height:22px}
+  .race-message{top:44px}
+  .start-screen{padding:46px 10px 28px}
+  .start-card{width:min(390px,calc(100vw - 24px));padding:12px}
+  .start-card h1{font-size:42px;margin-bottom:8px}
+  .start-card>p:not(.eyebrow){font-size:10px;margin-bottom:8px}
+  .start-meta{padding:7px 0 9px}
+  .start-button{padding:11px 14px}
+  .championship-button{padding:9px 12px}
+  .keyboard-help{margin-top:8px}
+}
+@media(max-width:360px) and (orientation:portrait){
+  .brand{font-size:8px}
+  .top-actions{gap:3px}
+  .icon-button{width:29px;height:29px}
+  .standings{width:101px}
+  .hud{max-width:calc(100vw - 116px)}
+  .pit-telemetry{gap:4px;padding:6px}
+  .pit-telemetry small{font-size:5px}
+  .pit-telemetry strong{font-size:7px}
+  .mobile-controls button{min-width:46px;height:46px}
+}
