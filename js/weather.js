@@ -25,7 +25,7 @@ export function createWeather(random = Math.random) {
     if(transition>0){transition=Math.max(0,transition-dt);if(!transition)current=target;}
     if(yellowFlag>0)yellowFlag=Math.max(0,yellowFlag-dt);
     if(safetyCar>0)safetyCar=Math.max(0,safetyCar-dt);
-    if(eventCooldown===0 && yellowFlag===0 && elapsed>35 && random()<dt*.0008){
+    if(eventCooldown===0 && yellowFlag===0 && elapsed>35 && random()<dt*.0035){
       yellowFlag=12+random()*5;
       if(random()<.28)safetyCar=18+random()*8;
       eventCooldown=65;
