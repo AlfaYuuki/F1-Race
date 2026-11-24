@@ -14,15 +14,31 @@ Open http://localhost:8000.
 
 ## Controls
 
-| Action | Keyboard | Mobile |
-| --- | --- | --- |
-| Accelerate | W / ↑ | GO |
-| Brake | S / ↓ | BRAKE |
-| Steer left | A / ← | ◀ |
-| Steer right | D / → | ▶ |
-| Pause / resume | ESC | Pause button |
-| Fullscreen | Fullscreen button | Fullscreen button |
-| Toggle engine audio | M | Audio button |
+On first launch the game asks what you are racing on — **Android** or **Windows** — and switches the controls and on-screen layout to match. The choice is remembered on the device; change it any time with the 🎮 button (top bar) or the **CONTROLS** link on the start card.
+
+### Android (phone / tablet)
+
+| Action | Control |
+| --- | --- |
+| Accelerate | **GO** button (hold) |
+| Brake | **BRAKE** button (hold) |
+| Steer | **◀ ▶** buttons, or optional **tilt steering** (turn the phone like a wheel; calibrates to your hold angle when a race starts, with an *invert* option) |
+| Pause / resume | Pause button |
+| Fullscreen / audio | Top-bar buttons |
+
+A Bluetooth gamepad also works. Tilt uses the motion sensor, so it needs HTTPS (GitHub Pages is fine) and falls back to the buttons if no sensor is found.
+
+### Windows (PC)
+
+| Action | Control |
+| --- | --- |
+| Accelerate | W / ↑ |
+| Brake | S / ↓ / Space |
+| Steer | A D / ← → |
+| Pause / resume | P / Esc |
+| Fullscreen | F |
+| Toggle engine audio | M |
+| Gamepad | RT gas · LT brake · left stick / D-pad steer · Start pause |
 
 ## Milestones
 
@@ -80,3 +96,8 @@ This is an original arcade simulation using a Fuji-inspired layout and simplifie
 - Camera height responds subtly to speed and acceleration changes
 - Added suspension movement and tyre rubber marks during high lateral-load moments
 - Preserved the full-screen Fuji scene, existing touch/keyboard controls, AI and championship
+
+### Milestone 10 — Platform control picker
+- First-run chooser for Android (touch + optional tilt) or Windows (keyboard + gamepad), saved per device and switchable at any time
+- Touch buttons are shown only in the Android profile; keyboard hints only in the Windows profile
+- Analog steering axis in the physics step (used by tilt and gamepad sticks); keyboard/button steering is unchanged

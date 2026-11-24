@@ -14,7 +14,7 @@ const queried = [...main.matchAll(/querySelector\(['"]#([^'"]+)['"]\)/g)].map(ma
 const missing = [...new Set(queried)].filter(id => !declared.has(id));
 if (missing.length) throw new Error(`main.js references missing HTML IDs: ${missing.join(', ')}`);
 
-const modules = ['main.js','game.js','renderer.js','renderer2d.js','physics.js','track.js','opponents.js','controls.js','audio.js','championship.js'];
+const modules = ['main.js','game.js','renderer.js','renderer2d.js','physics.js','track.js','opponents.js','controls.js','platform.js','audio.js','championship.js'];
 for (const file of modules) {
   const path = resolve(root, 'js', file);
   await access(path);

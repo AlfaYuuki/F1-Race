@@ -8,7 +8,9 @@ export function createGame(canvas,callbacks={}) {
   let state='ready',last=0,elapsed=0,raceDistance=0,lap=1,countdownTimer=null,raf=0,collisionCooldown=0,impactPulse=0;
   let lapElapsed=0,lastLap=null,bestLap=null,sector=1,sectorElapsed=0;
   const notify=message=>callbacks.onMessage?.(message);
+  let steerAxis=0;
   function setInput(action,active){active?input.add(action):input.delete(action);}
+  function setSteerAxis(value){steerAxis=Number.isFinite(value)?Math.max(-1,Math.min(1,value)):0;}
   function updateHud(){
     const standings=opponents.getStandings(raceDistance),position=standings.findIndex(d=>d.isPlayer)+1;
     callbacks.onUpdate?.({speed:physics.speed,rpm:physics.rpm,gear:physics.gear,lap,time:formatTime(elapsed),state,position,standings,offRoad:physics.offRoad,lastLap:formatTime(lastLap),bestLap:formatTime(bestLap),sector:sector===1?'S1':sector===2?'S2':'S3',sectorTime:formatTime(sectorElapsed)});
@@ -24,7 +26,7 @@ export function createGame(canvas,callbacks={}) {
       else{clearInterval(countdownTimer);countdown.dataset.lit='0';countdown.textContent='';countdown.removeAttribute('aria-label');state='running';notify('RACE ON — FIND YOUR LINE!');last=performance.now();raf=requestAnimationFrame(frame);}},650);
   }
   function togglePause(){
-    if(state==='running'){state='paused';cancelAnimationFrame(raf);input.clear();notify('PAUSED — PRESS ESC OR ▶ TO RESUME');updateHud();callbacks.onPause?.(true);}
+    if(state==='running'){state='paused';cancelAnimationFrame(raf);input.clear();steerAxis=0;notify('PAUSED — PRESS ESC OR ▶ TO RESUME');updateHud();callbacks.onPause?.(true);}
     else if(state==='paused'){state='running';last=performance.now();notify('RACE RESUMED');raf=requestAnimationFrame(frame);callbacks.onPause?.(false);}
   }
   function frame(now){
@@ -33,7 +35,7 @@ export function createGame(canvas,callbacks={}) {
     const previousLapIndex=Math.floor(raceDistance/LAP_DISTANCE);
     const previousSpeed=physics.speed;
     const progress=(raceDistance%LAP_DISTANCE)/LAP_DISTANCE,curve=curveAt(progress);
-    physics.update(dt,input,curve);
+    physics.update(dt,input,curve,steerAxis);
     raceDistance+=physics.speed/3.6*dt;
     opponents.update(dt,raceDistance,curveAt);
     collisionCooldown=Math.max(0,collisionCooldown-dt);impactPulse=Math.max(0,impactPulse-dt*3.8);
@@ -59,5 +61,5 @@ export function createGame(canvas,callbacks={}) {
     raf=requestAnimationFrame(idleFrame);
   }
   function init(){renderer.resize();renderer.render({position:0,playerX:0,speed:0,offRoad:false,running:false,opponents:[]});raf=requestAnimationFrame(idleFrame);}
-  return {init,start,setInput,togglePause,getState:()=>state};
+  return {init,start,setInput,setSteerAxis,togglePause,getState:()=>state};
 }
