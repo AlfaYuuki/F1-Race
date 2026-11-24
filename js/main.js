@@ -2,6 +2,7 @@ import { createGame } from './game.js';
 import { bindControls } from './controls.js';
 import { createEngineAudio } from './audio.js';
 import { createChampionship } from './championship.js';
+import { LAP_DISTANCE, TOTAL_LAPS } from './track.js';
 import { PLATFORMS, detectPlatform, loadSettings, saveSetting, controlHint } from './platform.js';
 
 const canvas = document.querySelector('#race-canvas');
@@ -101,7 +102,7 @@ const game = createGame(canvas, {
     document.querySelector('#best-lap-label').textContent = bestLap || '--:--.---';
     document.querySelector('#sector-label').textContent = `${sector || 'S1'} ${sectorTime || '--:--.---'}`;
     document.querySelector('#time-label').textContent = time;
-    document.querySelector('#lap-label').innerHTML = `${String(lap).padStart(2, '0')}<span> / 03</span>`;
+    document.querySelector('#lap-label').innerHTML = `${String(lap).padStart(2, '0')}<span> / ${String(TOTAL_LAPS).padStart(2, '0')}</span>`;
     document.querySelector('#position-label').innerHTML = `P${position}<span> / 06</span>`;
     document.querySelector('#status-label').textContent = pitPhase ? 'PIT LANE' : offRoad ? 'OFF TRACK' :
       state === 'running' ? 'ENGINE ACTIVE' :
@@ -134,7 +135,7 @@ const game = createGame(canvas, {
     }
     if (standings) {
       leaderboard.innerHTML = standings.map((driver, index) =>
-        `<li class="${driver.isPlayer ? 'player-row' : ''}"><span class="rank">${String(index + 1).padStart(2, '0')}</span><i style="--driver-color:${driver.color}"></i><span>${escapeHtml(driver.name)}</span><b>${state === 'ready' ? 'GRID' : `L${Math.min(3, Math.floor(driver.distance / 4563) + 1)}`}</b></li>`
+        `<li class="${driver.isPlayer ? 'player-row' : ''}"><span class="rank">${String(index + 1).padStart(2, '0')}</span><i style="--driver-color:${driver.color}"></i><span>${escapeHtml(driver.name)}</span><b>${state === 'ready' ? 'GRID' : `L${Math.min(TOTAL_LAPS, Math.floor(driver.distance / LAP_DISTANCE) + 1)}`}</b></li>`
       ).join('');
     }
   },
