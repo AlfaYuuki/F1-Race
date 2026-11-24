@@ -74,6 +74,7 @@
       <button id="start-button" class="start-button" type="button">QUICK RACE <span>↗</span></button>
       <button id="championship-button" class="championship-button" type="button">START CHAMPIONSHIP <span>🏆</span></button>
       <button id="garage-open" class="championship-button garage-open" type="button">CAR GARAGE <span>⚙</span></button>
+      <button id="data-open" class="championship-button data-open" type="button">SAVE &amp; DATA <span>▤</span></button>
       <p id="championship-summary" class="championship-summary">5 ROUNDS · POINTS SERIES · YOUR RESULTS SAVE ON THIS DEVICE</p>
       <div class="keyboard-help" id="controls-help">WASD / ARROWS TO DRIVE <span>·</span> ESC TO PAUSE</div>
       <button id="platform-change" class="platform-change" type="button">CONTROLS: <b id="platform-current">WINDOWS</b> <span>· CHANGE</span></button>
@@ -94,6 +95,22 @@
         </div><label class="livery-label">TEAM LIVERY <input id="garage-livery" type="color" value="#ed3548"></label></section>
       </div>
       <div class="garage-footer"><p id="garage-feedback" aria-live="polite">Select a car and build your setup.</p><button id="garage-close" type="button">BACK TO GRID</button></div>
+    </div>
+  </section>
+
+  <section id="data-screen" class="data-screen" role="dialog" aria-modal="true" aria-labelledby="data-title" hidden>
+    <div class="data-panel">
+      <div class="data-heading"><div><p class="eyebrow">THE F1 RACE · TEAM RECORDS</p><h2 id="data-title">SAVE MANAGER</h2></div><button id="data-close" type="button" aria-label="Close save manager">✕</button></div>
+      <div class="data-status"><span class="data-status-dot"></span><div><strong id="data-autosave">AUTO-SAVE ACTIVE</strong><small id="data-summary">Your progress is stored on this device.</small></div></div>
+      <p class="data-description">Garage purchases, upgrades, car setup, championship results and control preferences save automatically on this device.</p>
+      <div class="data-actions">
+        <button id="data-export" class="data-primary" type="button">DOWNLOAD BACKUP <span>↓</span></button>
+        <button id="data-import" type="button">RESTORE FROM BACKUP <span>↑</span></button>
+        <input id="data-file" type="file" accept="application/json,.json" hidden>
+      </div>
+      <div class="data-warning"><strong>DELETE ALL GAME DATA</strong><p>Erases local garage progress, credits, upgrades, championship results and control preferences. This does not uninstall the game or delete its offline files.</p><button id="data-delete" type="button">DELETE ALL DATA</button></div>
+      <p id="data-feedback" class="data-feedback" role="status" aria-live="polite">Backups are JSON files. Keep a copy somewhere safe.</p>
+      <button id="data-back" class="data-back" type="button">BACK TO GRID</button>
     </div>
   </section>
 
