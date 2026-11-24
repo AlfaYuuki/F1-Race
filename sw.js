@@ -1,5 +1,5 @@
 const CACHE_NAME = 'the-f1-race-shell-v1';
-const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './assets/favicon.svg', './assets/icon.svg', './css/main.css', './js/main.js', './js/pwa.js', './js/game.js', './js/controls.js', './js/audio.js', './js/championship.js', './js/physics.js', './js/opponents.js', './js/renderer.js', './js/renderer2d.js', './js/track.js'];
+const APP_SHELL = ['./', './index.html', './manifest.webmanifest', './assets/favicon.png', './assets/icon.png', './css/main.css', './js/main.js', './js/pwa.js', './js/game.js', './js/controls.js', './js/audio.js', './js/championship.js', './js/physics.js', './js/opponents.js', './js/renderer.js', './js/renderer2d.js', './js/track.js'];
 
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
