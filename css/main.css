@@ -670,3 +670,25 @@ button,select,input{touch-action:manipulation}
     );
   }
 }
+
+
+/* Fine-tune after device review: make the telemetry drop visibly lower. */
+@media (orientation: landscape) and (pointer: coarse) {
+  .pit-telemetry {
+    bottom: calc(
+      25px + 76px + 14px
+      - clamp(32px, 5vh, 42px)
+      + env(safe-area-inset-bottom)
+    );
+  }
+}
+
+@media (orientation: landscape) and (pointer: coarse) and (max-height: 520px) {
+  .pit-telemetry {
+    bottom: calc(
+      20px + 48px + 10px
+      - clamp(18px, 3.5vh, 26px)
+      + env(safe-area-inset-bottom)
+    );
+  }
+}
