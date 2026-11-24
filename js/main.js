@@ -34,7 +34,7 @@ function renderChampionshipSummary() {
 }
 
 const game = createGame(canvas, {
-  onUpdate: ({ speed, lap, time, state, position, standings, offRoad, lastLap, bestLap, sector, sectorTime }) => {
+  onUpdate: ({ speed, lap, time, state, position, standings, offRoad, lastLap, bestLap, sector, sectorTime, fuel, tireWear, compound, damage, pitStops }) => {
     const gear = speed < 8 ? 0 : Math.min(8, Math.floor(speed / 42) + 1);
     const rpm = Math.round(Math.min(12000, 900 + (speed % 42) / 42 * 9300 + (state === 'running' ? 500 : 0)));
 
@@ -54,6 +54,13 @@ const game = createGame(canvas, {
       state === 'finished' ? 'SESSION COMPLETE' :
       state === 'paused' ? 'PAUSED' : 'ENGINE STANDBY';
 
+    document.querySelector('#fuel-value').textContent=Math.round(fuel)+'%';
+    document.querySelector('#fuel-bar').style.width=fuel+'%';
+    document.querySelector('#tyre-value').textContent=compound+' · '+Math.round(tireWear)+'%';
+    document.querySelector('#tyre-bar').style.width=tireWear+'%';
+    document.querySelector('#damage-value').textContent=Math.round(damage)+'%';
+    document.querySelector('#pit-status').textContent='PIT STOPS '+pitStops;
+    document.querySelector('#pit-button').disabled=state!=='running';
     audio.update(rpm, 0, gear, state === 'running');
     if (state === 'finished') {
       if (championshipActive && !roundRecorded) {
@@ -85,12 +92,22 @@ const game = createGame(canvas, {
     roundRecorded = false;
     startButton.textContent = 'QUICK RACE ↗';
   },
+  onPitService: active => { document.querySelector('#pit-overlay').hidden=!active; },
   onPause: paused => {
     document.querySelector('#pause-button').textContent = paused ? '▶' : 'Ⅱ';
   }
 });
 
 bindControls(game);
+const pitDialog=document.querySelector('#pit-dialog');
+document.querySelector('#pit-button').addEventListener('click',()=>{if(game.getState()==='running')pitDialog.hidden=false;});
+document.querySelector('#pit-cancel').addEventListener('click',()=>pitDialog.hidden=true);
+document.querySelector('#pit-confirm').addEventListener('click',()=>{
+ const compound=document.querySelector('#pit-compound').value;
+ const fuel=Number(document.querySelector('#pit-fuel').value);
+ if(game.requestPit(compound,fuel))pitDialog.hidden=true;
+});
+document.querySelector('#pit-fuel').addEventListener('input',e=>document.querySelector('#fuel-choice').textContent=e.target.value+'%');
 
 startButton.addEventListener('click', () => {
   championshipActive = false;

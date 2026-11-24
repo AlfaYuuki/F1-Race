@@ -337,3 +337,19 @@ button{font:inherit}
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
 }
+
+/* Milestone 11 — pit strategy and vehicle condition */
+.pit-telemetry{position:absolute;z-index:4;right:28px;bottom:53px;display:flex;gap:14px;padding:10px 13px;border:1px solid #dcebf426;border-radius:8px;background:#050e17df;backdrop-filter:blur(12px)}
+.pit-telemetry>div{display:flex;flex-direction:column;gap:4px;min-width:62px}.pit-telemetry small{font:8px var(--mono);color:#9bb0bf}.pit-telemetry strong{font:600 10px var(--mono)}
+.meter{height:3px;background:#ffffff24;border-radius:5px;overflow:hidden}.meter b{display:block;height:100%;width:0;background:#6bd6a0}#tyre-bar{background:#f1bd4b}
+.pit-button{position:absolute;z-index:5;right:28px;bottom:112px;padding:11px 19px;border:1px solid #ff6474;background:linear-gradient(110deg,#ed3449,#a9162b);border-radius:6px;color:#fff;font:800 10px var(--mono);letter-spacing:.16em}
+.pit-button:disabled{opacity:.35;filter:grayscale(1)}
+.pit-dialog,.pit-overlay{position:absolute;z-index:12;inset:0;display:grid;place-items:center;background:#020910bd;backdrop-filter:blur(8px)}.pit-dialog[hidden],.pit-overlay[hidden]{display:none}
+.pit-card,.pit-service-card{width:min(420px,calc(100vw - 32px));padding:25px;border:1px solid #dcebf44a;border-radius:12px;background:linear-gradient(145deg,#102536,#07131e);box-shadow:0 24px 80px #0009}
+.pit-card h2{margin:0 0 22px;font:800 38px var(--display)}.pit-card label{display:flex;justify-content:space-between;margin:15px 0 7px;color:#a9bdca;font:9px var(--mono)}
+.pit-card select,.pit-card input{width:100%;padding:12px;background:#06111b;color:#fff;border:1px solid #ffffff35;border-radius:5px;font:10px var(--mono)}
+.pit-note{font-size:10px;line-height:1.6;color:#9fb2bf}.pit-actions{display:flex;gap:9px;margin-top:18px}.pit-actions button{flex:1;padding:13px;border:1px solid #ffffff45;border-radius:5px;background:#142d3e;color:#fff;font:700 10px var(--mono)}.pit-actions button:last-child{background:#e33349}
+.pit-service-card{text-align:center}.pit-service-card p{font:9px var(--mono);color:#ff6474}.pit-service-card strong{display:block;font:800 34px var(--display)}.pit-service-card small{display:block;margin-top:8px;color:#a9bdca;font:9px var(--mono)}
+.pit-spinner{display:block;width:42px;height:42px;margin:0 auto 18px;border:3px solid #ffffff28;border-top-color:#ff4358;border-radius:50%;animation:pit-spin .8s linear infinite}@keyframes pit-spin{to{transform:rotate(360deg)}}
+@media(max-width:760px){.pit-telemetry{left:9px;right:auto;bottom:48px;gap:8px;padding:7px 8px}.pit-telemetry>div{min-width:48px}.pit-telemetry small{font-size:6px}.pit-telemetry strong{font-size:8px}.pit-button{right:10px;bottom:112px;padding:10px 13px}.timing-panel{bottom:115px!important}}
+@media(max-width:430px){.pit-telemetry{bottom:109px}.pit-button{bottom:165px}.timing-panel{display:none}}
