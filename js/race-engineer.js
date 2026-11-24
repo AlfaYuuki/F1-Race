@@ -9,9 +9,9 @@ function parseLapTime(value) {
 
 export function createRaceEngineer(options={}) {
   const cooldownMs=Math.max(5000,Number(options.cooldownMs)||18000);
-  let lastIssued=new Map(),lastAlert=null,lastPosition=null,lastLap=null;
+  let lastIssued=new Map(),lastAlert=null,lastPosition=null,lastLap=null,lastAnyIssued=-Infinity;
   function reset() {
-    lastIssued=new Map();lastAlert=null;lastPosition=null;lastLap=null;
+    lastIssued=new Map();lastAlert=null;lastPosition=null;lastLap=null;lastAnyIssued=-Infinity;
     return getStatus();
   }
   function getStatus() {
@@ -71,9 +71,10 @@ export function createRaceEngineer(options={}) {
     lastLap=lap;
 
     candidates.sort((a,b)=>b.priority-a.priority);
+    if(now-lastAnyIssued<cooldownMs)return null;
     const next=candidates.find(candidate=>now-(lastIssued.get(candidate.key)??-Infinity)>=cooldownMs);
     if(!next)return null;
-    lastIssued.set(next.key,now);
+    lastIssued.set(next.key,now);lastAnyIssued=now;
     lastAlert={...next,at:now};
     return getStatus();
   }
