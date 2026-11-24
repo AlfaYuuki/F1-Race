@@ -21,7 +21,7 @@ export function createPhysics() {
       const stats = this.carConfig.stats;
       const weatherGrip = clamp(Number(options.weatherGrip) || 1, .5, 1.05);
       const weatherWear = clamp(Number(options.weatherWear) || 1, .8, 1.5);
-      const maxSpeed = options.pitLimiter ? 80 : options.yellowFlag ? 170 : (this.fuel <= 0 ? 95 : 330 * stats.power);
+      const maxSpeed = options.pitLimiter ? 80 : options.safetyCar ? 125 : options.yellowFlag ? 170 : (this.fuel <= 0 ? 95 : 330 * stats.power);
       const speedFactor = 1 - this.speed / (maxSpeed + 30);
       const throttle = accelerating ? (this.fuel > 0 ? 118 * stats.power : 24) * Math.max(.18, speedFactor) : 0;
       const drag = 7 + this.speed * .105;
