@@ -72,14 +72,14 @@
       <p>Fifty laps. Five rivals. One mountain in your mirrors.</p>
       <div class="start-meta"><span>228.15 KM <small>RACE DISTANCE</small></span><span>16 <small>CORNERS</small></span><span>06 <small>DRIVERS</small></span></div>
       <button id="start-button" class="start-button" type="button">QUICK RACE <span>↗</span></button>
-      <button id="championship-button" class="championship-button" type="button">START CHAMPIONSHIP <span>🏆</span></button>
+      <button id="championship-button" class="championship-button" type="button">START CHAMPIONSHIP <span>🏆</span></button>\n      <button id="garage-open" class="championship-button garage-open" type="button">CAR GARAGE <span>⚙</span></button>
       <p id="championship-summary" class="championship-summary">5 ROUNDS · POINTS SERIES · YOUR RESULTS SAVE ON THIS DEVICE</p>
       <div class="keyboard-help" id="controls-help">WASD / ARROWS TO DRIVE <span>·</span> ESC TO PAUSE</div>
       <button id="platform-change" class="platform-change" type="button">CONTROLS: <b id="platform-current">WINDOWS</b> <span>· CHANGE</span></button>
     </div>
   </section>
 
-  <section id="platform-screen" class="platform-screen" role="dialog" aria-modal="true" aria-labelledby="platform-title" hidden>
+  <section id="garage-screen" class="garage-screen" role="dialog" aria-modal="true" aria-labelledby="garage-title" hidden>\n    <div class="garage-panel">\n      <div class="garage-heading"><div><p class="eyebrow">THE F1 RACE · TEAM HQ</p><h2 id="garage-title">CAR GARAGE</h2></div><strong id="garage-credits">CR 2,500</strong></div>\n      <div id="garage-cars" class="garage-cars"></div>\n      <div class="garage-workshop">\n        <section><h3>PERFORMANCE UPGRADES</h3><div id="garage-upgrades" class="garage-upgrades"></div></section>\n        <section><h3>CAR SETUP</h3><div class="setup-controls">\n          <label>AERO <input data-setup="aero" type="range" min="0" max="100" value="50"></label>\n          <label>SUSPENSION <input data-setup="suspension" type="range" min="0" max="100" value="50"></label>\n          <label>BRAKE BIAS <input data-setup="brakeBias" type="range" min="0" max="100" value="56"></label>\n          <label>DIFFERENTIAL <input data-setup="differential" type="range" min="0" max="100" value="50"></label>\n        </div><label class="livery-label">TEAM LIVERY <input id="garage-livery" type="color" value="#ed3548"></label></section>\n      </div>\n      <div class="garage-footer"><p id="garage-feedback" aria-live="polite">Select a car and build your setup.</p><button id="garage-close" type="button">BACK TO GRID</button></div>\n    </div>\n  </section>\n\n  <section id="platform-screen" class="platform-screen" role="dialog" aria-modal="true" aria-labelledby="platform-title" hidden>
     <div class="platform-panel">
       <p class="eyebrow">CONTROL SETUP</p>
       <h2 id="platform-title">WHAT ARE YOU RACING ON?</h2>
