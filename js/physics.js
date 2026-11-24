@@ -1,5 +1,5 @@
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-const COMPOUNDS = {
+// Calibrated against the sampled Fuji layout: a full tank supports one 12.5-lap stint.\nconst FUEL_BURN_BASE = 0.06;\nconst FUEL_BURN_SPEED = 0.06;\nconst COMPOUNDS = {
   SOFT: { grip: 1.08, wear: 0.18 },
   MEDIUM: { grip: 1, wear: 0.115 },
   HARD: { grip: 0.94, wear: 0.07 },
@@ -18,7 +18,7 @@ export function createPhysics() {
       const brakeForce = braking ? 245 : 0;
       this.speed = clamp(this.speed + (throttle - drag - brakeForce) * dt, 0, maxSpeed);
       if (this.fuel > 0 && this.speed > 2) {
-        this.fuel = Math.max(0, this.fuel - (0.12 + this.speed / 330 * 0.12) * dt);
+        this.fuel = Math.max(0, this.fuel - (FUEL_BURN_BASE + this.speed / 330 * FUEL_BURN_SPEED) * dt);
       }
       if (this.speed > 35) this.tireWear = Math.min(100, this.tireWear + COMPOUNDS[this.compound].wear * dt * (this.offRoad ? 1.8 : 1));
       const digital = (input.has('right') ? 1 : 0) - (input.has('left') ? 1 : 0);
