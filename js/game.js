@@ -23,13 +23,13 @@ export function createGame(canvas,callbacks={}) {
   }
   function updateHud(){
     const standings=opponents.getStandings(raceDistance),position=standings.findIndex(d=>d.isPlayer)+1;
-    callbacks.onUpdate?.({speed:physics.speed,rpm:physics.rpm,gear:physics.gear,lap,time:formatTime(elapsed),state,position,standings,offRoad:physics.offRoad,lastLap:formatTime(lastLap),bestLap:formatTime(bestLap),sector:sector===1?'S1':sector===2?'S2':'S3',sectorTime:formatTime(sectorElapsed),fuel:physics.fuel,tireWear:physics.tireWear,compound:physics.compound,damage:physics.damage,pitStops:physics.pitStops,pitPhase,weather:currentWeather});
+    callbacks.onUpdate?.({speed:physics.speed,rpm:physics.rpm,gear:physics.gear,lap,time:formatTime(elapsed),state,position,standings,offRoad:physics.offRoad,lastLap:formatTime(lastLap),bestLap:formatTime(bestLap),sector:sector===1?'S1':sector===2?'S2':'S3',sectorTime:formatTime(sectorElapsed),fuel:physics.fuel,tireWear:physics.tireWear,compound:physics.compound,damage:physics.damage,pitStops:physics.pitStops,pitPhase,weather:currentWeather,throttle:input.has('accelerate')?1:0,skid:Math.min(1,Math.abs(physics.lateralVelocity))});
   }
   function start(){
     if(state==='running'||state==='countdown')return;
     cancelAnimationFrame(raf);clearInterval(countdownTimer);physics.reset();weatherSystem.reset();currentWeather=weatherSystem.getState();lastYellow=false;callbacks.onWeather?.(currentWeather);elapsed=0;raceDistance=0;lap=1;collisionCooldown=0;impactPulse=0;opponents.reset();lapElapsed=0;lastLap=null;bestLap=null;sector=1;sectorElapsed=0;pitPhase=null;pitPlan=null;
     callbacks.onPitService?.(false);notify('GET READY');let count=5;const countdown=document.querySelector('#countdown');countdown.dataset.lit='0';countdown.textContent='';
-    callbacks.onStart?.();updateHud();
+    callbacks.onStart?.();callbacks.onWeather?.(currentWeather);updateHud();
     countdownTimer=setInterval(()=>{count--;if(count>0){countdown.dataset.lit=String(5-count);countdown.setAttribute('aria-label',String(6-count)+' of 5 start lights');}
       else if(count===0){countdown.dataset.lit='5';countdown.textContent='GO!';countdown.setAttribute('aria-label','Go');}
       else{clearInterval(countdownTimer);countdown.dataset.lit='0';countdown.textContent='';countdown.removeAttribute('aria-label');state='running';notify('RACE ON — FIND YOUR LINE!');last=performance.now();raf=requestAnimationFrame(frame);}},650);
