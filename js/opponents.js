@@ -81,7 +81,8 @@ export function createOpponents(lapDistance = 4563) {
       const consistencyLoss = Math.abs(Math.sin(driver.distance * .00063 + driver.skill * 4)) * (1 - driver.skill) * 5;
       const weatherPenalty = (weather.rain || 0) * (driver.compound === 'INTER' ? 5 : 32);
       const wearPenalty = driver.tireWear * .13;
-      const targetSpeed = clamp(driver.pace + rhythm + draftBonus - cornerPenalty - consistencyLoss - weatherPenalty - wearPenalty, 125, 285);
+      const safePace = weather.safetyCar ? 145 : weather.yellowFlag ? 170 : 285;
+      const targetSpeed = clamp(driver.pace + rhythm + draftBonus - cornerPenalty - consistencyLoss - weatherPenalty - wearPenalty, 125, safePace);
       driver.speed += (targetSpeed - driver.speed) * Math.min(1, dt * (1.1 + driver.skill * 1.5));
       driver.distance += driver.speed / 3.6 * dt;
     }
