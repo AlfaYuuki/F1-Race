@@ -5,7 +5,7 @@ export function createRenderer(canvas) {
   let width = 0, height = 0, dpr = 1, particles = [], impactFlash = 0, skidClock = 0;
   function resize() {
     const rect = canvas.getBoundingClientRect();
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     width = Math.max(1, rect.width); height = Math.max(1, rect.height);
     canvas.width = Math.round(width*dpr); canvas.height = Math.round(height*dpr);
     ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -100,7 +100,7 @@ export function createRenderer(canvas) {
     if(!running){ctx.fillStyle='rgba(5,15,25,.06)';ctx.fillRect(0,0,width,height);}
   }
   const LAP_SCROLL=180;
-  window.addEventListener('resize',resize);resize();
+  window.addEventListener('resize',resize,{passive:true});\n  if(typeof ResizeObserver!=='undefined'){const observer=new ResizeObserver(resize);observer.observe(canvas);}\n  resize();
   function triggerImpact(){impactFlash=1;spawnParticles(width*.5,height*.86,18,true);}
   return {render,resize,triggerImpact};
 }
