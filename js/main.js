@@ -4,6 +4,7 @@ import { createEngineAudio } from './audio.js';
 import { createChampionship } from './championship.js';
 import { createGarage, CARS } from './garage.js';
 import { createDataManager } from './data-manager.js';
+import { createRaceEngineer } from './race-engineer.js';
 import { LAP_DISTANCE, TOTAL_LAPS } from './track.js';
 import { PLATFORMS, detectPlatform, loadSettings, saveSetting, controlHint } from './platform.js';
 
@@ -18,6 +19,7 @@ const audio = createEngineAudio();
 const championship = createChampionship();
 const garage = createGarage();
 const dataManager = createDataManager();
+const raceEngineer = createRaceEngineer();
 let raceRewardRecorded = false;
 let lastLeaderboardRefresh = 0;
 let championshipActive = false;
@@ -135,11 +137,25 @@ function choosePlatform(id) {
 }
 
 const game = createGame(canvas, {
-  onUpdate: ({ speed, rpm, gear, lap, time, state, position, standings, offRoad, lastLap, bestLap, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, throttle, skid, telemetry = {} }) => {
+  onUpdate: ({ speed, rpm, gear, lap, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, throttle, skid, telemetry = {} }) => {
     const raceOrder = standings ? [...standings].sort((a, b) => b.distance - a.distance) : [];
     const playerPosition = raceOrder.length ? raceOrder.findIndex(driver => driver.isPlayer || driver.id === 'player') + 1 : position;
     const displayGear = speed < 8 ? 'N' : gear;
     const live = telemetry || {};
+    const engineerAlert = raceEngineer.update({
+      state, position:playerPosition, standings, lap, totalLaps:TOTAL_LAPS,
+      fuel, tireWear, compound, damage, offRoad, weather,
+      lastLapMs, bestLapMs, fuelFlow:live.fuelFlow, now:performance.now()
+    });
+    if (engineerAlert) {
+      document.querySelector('#engineer-panel').hidden=false;
+      document.querySelector('#engineer-level').textContent=engineerAlert.level.toUpperCase();
+      document.querySelector('#engineer-title').textContent=engineerAlert.title;
+      document.querySelector('#engineer-message').textContent=engineerAlert.message;
+      document.querySelector('#engineer-action').textContent=engineerAlert.action;
+      document.querySelector('#engineer-panel').dataset.level=engineerAlert.level;
+      if(engineerAlert.level==='warning'||engineerAlert.level==='critical')audio.playRadio(engineerAlert.message);
+    }
 
     document.querySelector('#speed-label').textContent = String(Math.round(speed)).padStart(3, '0');
     document.querySelector('#speed-bar').style.width = `${Math.min(100, speed / 330 * 100)}%`;
@@ -210,6 +226,13 @@ const game = createGame(canvas, {
       : message;
   },
   onStart: () => {
+    raceEngineer.reset();
+    document.querySelector('#engineer-panel').hidden=false;
+    document.querySelector('#engineer-panel').dataset.level='info';
+    document.querySelector('#engineer-level').textContent='LIVE';
+    document.querySelector('#engineer-title').textContent='ENGINEER ONLINE';
+    document.querySelector('#engineer-message').textContent='Monitoring fuel, tyres, pace and track conditions.';
+    document.querySelector('#engineer-action').textContent='PUSH WHEN READY';
     raceRewardRecorded=false;
     audio.resume();
     controls?.calibrate();
