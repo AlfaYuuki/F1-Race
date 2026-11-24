@@ -211,6 +211,7 @@ document.querySelector('#pit-fuel').addEventListener('input',event=>{document.qu
 
 startButton.addEventListener('click', () => {
   championshipActive = false;
+  startScreen.classList.add('hidden');
   game.setCarConfig(garage.getCar());
   game.start();
 });
@@ -218,6 +219,7 @@ championshipButton.addEventListener('click', () => {
   let season = championship.getState();
   if (!season.hasSeason || season.completed) season = championship.startNewSeason();
   championshipActive = true;
+  startScreen.classList.add('hidden');
   game.setCarConfig(garage.getCar());
   renderChampionshipSummary();
   document.querySelector('#race-message').textContent = `CHAMPIONSHIP ROUND ${season.round + 1} OF ${championship.rounds}`;
