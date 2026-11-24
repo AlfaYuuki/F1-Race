@@ -248,3 +248,92 @@ button{font:inherit}
 /* PWA install affordance */
 .install-button[hidden]{display:none}
 .install-button{color:#9cf0c0;border-color:#68dfa066}
+
+
+/* =========================================================
+   MILESTONE 10 — VISUAL UPDATE II
+   Broadcast polish, clearer hierarchy and responsive finish.
+   CSS-only: game logic, controls and canvas rendering untouched.
+   ========================================================= */
+:root{
+  --race-red:#ff3348;
+  --race-line:rgba(224,239,248,.16);
+  --race-panel:rgba(4,13,22,.84);
+}
+.race-game{background:#07131e}
+.race-topbar:after{
+  content:"";position:absolute;left:0;bottom:-1px;width:clamp(90px,15vw,220px);height:2px;
+  background:linear-gradient(90deg,var(--race-red),transparent);
+}
+.brand-mark{clip-path:polygon(0 0,100% 0,88% 100%,0 100%)}
+.brand b{color:#fff}
+.hud,.standings,.timing-panel{border-color:var(--race-line);background:linear-gradient(145deg,rgba(7,20,32,.91),var(--race-panel))}
+.hud{box-shadow:0 16px 42px #0005,inset 0 1px #ffffff12,0 0 0 1px #ffffff05}
+.hud-block>small{font-weight:500}
+.hud-block strong,.timing-panel strong{font-variant-numeric:tabular-nums}
+.speed-block>strong span{min-width:2ch;text-align:right}
+.speed-track,.rpm-track{box-shadow:inset 0 1px 2px #0009}
+.standings{overflow:hidden}
+.standings-head{align-items:center}
+.standings-head span:before{
+  content:"";display:inline-block;width:5px;height:5px;margin:0 7px 1px 0;
+  border-radius:50%;background:#ff4c5d;box-shadow:0 0 9px #ff4c5d;
+}
+.standings li{position:relative}
+.standings li.player-row{border-left:2px solid var(--race-red)}
+.standings li:not(.player-row):hover{background:#ffffff09}
+.timing-panel{box-shadow:0 12px 34px #0004,inset 0 1px #ffffff12}
+.timing-panel div+div{border-left:1px solid #dcebf41a;padding-left:18px}
+.race-message{box-shadow:0 8px 25px #0003;max-width:calc(100vw - 30px);overflow:hidden;text-overflow:ellipsis}
+.start-card{box-shadow:0 30px 100px #0009,inset 0 1px #ffffff19}
+.start-card h1{line-height:.86}
+.start-button,.championship-button,.icon-button,.mobile-controls button{ -webkit-tap-highlight-color:transparent}
+.start-button:focus-visible,.championship-button:focus-visible,.icon-button:focus-visible,.mobile-controls button:focus-visible{
+  outline:2px solid #fff;outline-offset:3px;
+}
+.start-button:active,.championship-button:active{transform:translateY(1px) scale(.99)}
+.championship-button{transition:background .18s,border-color .18s,transform .18s}
+.race-bottom{border-top:1px solid #dcebf41a}
+.race-bottom span:nth-child(2){color:#e8f0f5}
+.mobile-controls button{min-width:60px}
+.mobile-controls button:active{filter:brightness(1.18)}
+.pedal-controls button:first-child{background:linear-gradient(145deg,#263746eF,#101b26)}
+.countdown .start-light-panel{border-radius:14px}
+.countdown .start-light{transition:background .12s,box-shadow .12s}
+.install-button{font-weight:800}
+@media(min-width:1200px){
+  .hud{gap:30px;padding:16px 21px}
+  .standings{width:210px;padding:15px}
+  .standings li{height:32px}
+  .start-card{width:470px}
+}
+@media(max-width:760px){
+  .race-topbar{box-shadow:0 5px 20px #0003}
+  .brand{letter-spacing:.14em}
+  .hud,.standings{box-shadow:0 9px 26px #0005}
+  .hud{max-width:calc(100vw - 145px)}
+  .standings{width:120px}
+  .standings li{white-space:nowrap}
+  .timing-panel div+div{padding-left:9px}
+  .race-message{max-width:70vw;text-align:center}
+  .start-card{max-height:calc(100dvh - 90px);overflow-y:auto}
+}
+@media(max-width:390px){
+  .hud{max-width:calc(100vw - 128px);gap:5px}
+  .hud-block{min-width:27px}
+  .hud-block>small{letter-spacing:.08em}
+  .standings{width:108px}
+  .standings li{gap:3px}
+  .standings li i{width:3px}
+  .timing-panel{gap:7px}
+  .timing-panel div+div{padding-left:7px}
+  .start-meta{justify-content:space-between;gap:8px}
+}
+@media(orientation:portrait) and (max-width:760px){
+  .race-message{top:29%}
+  .timing-panel{bottom:calc(48px + env(safe-area-inset-bottom))}
+  .mobile-controls{bottom:calc(40px + env(safe-area-inset-bottom))}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important;animation-iteration-count:1!important}
+}
