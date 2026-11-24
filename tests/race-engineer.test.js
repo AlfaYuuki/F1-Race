@@ -76,3 +76,13 @@ test('engineer ignores telemetry outside an active race and resets cleanly', () 
   engineer.update({ ...base, tireWear: 75 });
   assert.equal(engineer.reset().title, 'ENGINEER ONLINE');
 });
+
+
+test('engineer compares completed sector times against the personal best', () => {
+  const engineer = createRaceEngineer({ cooldownMs: 5000 });
+  assert.equal(engineer.recordSector({ sector: 'S1', time: 28000, now: 1000 }), null);
+  const alert = engineer.recordSector({ sector: 'S1', time: 30000, now: 7000 });
+  assert.equal(alert.key, 'sector-loss-S1');
+  assert.match(alert.message, /7.1% slower/);
+  assert.equal(engineer.recordSector({ sector: 'S1', time: 27000, now: 13000 }), null);
+});
