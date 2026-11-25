@@ -41,6 +41,8 @@ export function createGarage(storage = (() => { try { return globalThis.localSto
         setup,
         livery: /^#[0-9a-f]{6}$/i.test(saved.livery || '') ? saved.livery : DEFAULT_STATE.livery
       };
+      // Store the normalized form so backups and future loads see the same valid state.
+      try { storage?.setItem?.(STORAGE_KEY, JSON.stringify(state)); } catch { /* Storage may be read-only. */ }
     }
   } catch { /* Start with a clean garage if storage is unavailable or corrupt. */ }
 
