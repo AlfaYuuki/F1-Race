@@ -1086,6 +1086,7 @@ button,select,input{touch-action:manipulation}
 .engineer-panel{pointer-events:none}
 @media (min-width:761px) and (max-width:1200px){
   .race-topbar{height:56px;padding:0 18px}
+  .race-message{top:8px}
   .hud{top:68px;left:18px;right:auto;max-width:calc(100vw - 210px);gap:12px;padding:10px 12px}
   .hud-block{min-width:42px}
   .hud-block strong{font-size:21px}
