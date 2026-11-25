@@ -23,21 +23,23 @@ export function createGarage(storage = (() => { try { return globalThis.localSto
     const validCars = Array.isArray(saved?.ownedCars) && saved.ownedCars.length > 0 &&
       saved.ownedCars.every(id => CARS.some(car => car.id === id)) &&
       CARS.some(car => car.id === saved.selectedCar) && saved.ownedCars.includes(saved.selectedCar);
-    const validUpgrades = Object.keys(DEFAULT_STATE.upgrades).every(key =>
-      Number.isInteger(saved?.upgrades?.[key]) && saved.upgrades[key] >= 0 && saved.upgrades[key] <= 5);
-    const validSetup = Object.keys(DEFAULT_STATE.setup).every(key =>
-      Number.isFinite(saved?.setup?.[key]) && saved.setup[key] >= 0 && saved.setup[key] <= 100);
-    const validSave = saved && validCars && validUpgrades && validSetup &&
-      Number.isFinite(saved.credits) && saved.credits >= 0 &&
-      /^#[0-9a-f]{6}$/i.test(saved.livery || '');
-    if (validSave) {
+    if (validCars) {
+      const upgrades = Object.fromEntries(Object.keys(DEFAULT_STATE.upgrades).map(key => {
+        const value = saved.upgrades?.[key];
+        return [key, Number.isInteger(value) && value >= 0 && value <= 5 ? value : DEFAULT_STATE.upgrades[key]];
+      }));
+      const setup = Object.fromEntries(Object.keys(DEFAULT_STATE.setup).map(key => {
+        const value = saved.setup?.[key];
+        return [key, Number.isFinite(value) && value >= 0 && value <= 100 ? value : DEFAULT_STATE.setup[key]];
+      }));
+      const credits = Number(saved.credits);
       state = {
-        credits: saved.credits,
+        credits: Number.isFinite(credits) ? Math.max(0, credits) : DEFAULT_STATE.credits,
         selectedCar: saved.selectedCar,
         ownedCars: [...new Set(['falcon', ...saved.ownedCars])],
-        upgrades: { ...saved.upgrades },
-        setup: { ...saved.setup },
-        livery: saved.livery
+        upgrades,
+        setup,
+        livery: /^#[0-9a-f]{6}$/i.test(saved.livery || '') ? saved.livery : DEFAULT_STATE.livery
       };
     }
   } catch { /* Start with a clean garage if storage is unavailable or corrupt. */ }
