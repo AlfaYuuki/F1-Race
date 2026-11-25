@@ -23,12 +23,14 @@ const DRIVER_DATA = [
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 export function createOpponents(lapDistance = 4563) {
-  const drivers = DRIVER_DATA.map((driver, index) => ({
+  const drivers = DRIVER_DATA.map(driver => ({
     ...driver,
-    distance: driver.start,
-    speed: driver.pace * (.94 + index * .008),
+    distance: 0,
+    speed: 0,
     currentLane: driver.lane,
     targetLane: driver.lane,
+    gridPosition: 0,
+    launchTimer: 0,
     overtakes: 0, fuel:100, tireWear:0, compound:'MEDIUM', pitTimer:0, pitStops:0
   }));
 
@@ -39,6 +41,12 @@ export function createOpponents(lapDistance = 4563) {
     ];
 
     for (const driver of drivers) {
+      if (driver.launchTimer > 0) {
+        driver.launchTimer = Math.max(0, driver.launchTimer - dt);
+        driver.speed = Math.min(driver.pace * .72, driver.speed + dt * 95);
+        driver.distance += driver.speed / 3.6 * dt;
+        continue;
+      }
       if (driver.pitTimer > 0) {
         driver.pitTimer = Math.max(0, driver.pitTimer - dt);
         driver.speed += (0 - driver.speed) * Math.min(1, dt * 2.8);
@@ -110,14 +118,28 @@ export function createOpponents(lapDistance = 4563) {
       .sort((a, b) => b.distance - a.distance);
   }
 
-  function reset() {
-    for (const driver of drivers) {
-      driver.distance = driver.start;
-      driver.speed = driver.pace * .96;
-      driver.currentLane = driver.lane;
-      driver.targetLane = driver.lane;
-      driver.overtakes = 0; driver.fuel = 100; driver.tireWear = 0; driver.compound = 'MEDIUM'; driver.pitTimer = 0; driver.pitStops = 0;
+  function reset(playerGridPosition = 10) {
+    const playerSlot = clamp(Math.round(Number(playerGridPosition) || 10), 1, 20);
+    // Simulated qualifying: pace and driver skill set the AI order, while the
+    // player can choose any of the twenty grid slots before a quick race.
+    const qualifyingOrder = [...drivers].sort((a, b) =>
+      (b.pace * .72 + b.skill * 42 + b.aggression * 3) -
+      (a.pace * .72 + a.skill * 42 + a.aggression * 3)
+    );
+    let aiIndex = 0;
+    for (let slot = 1; slot <= 20; slot++) {
+      if (slot === playerSlot) continue;
+      const driver = qualifyingOrder[aiIndex++];
+      driver.gridPosition = slot;
+      driver.distance = (playerSlot - slot) * 18;
+      driver.speed = 0;
+      driver.currentLane = slot % 2 ? -.42 : .42;
+      driver.targetLane = driver.currentLane;
+      driver.launchTimer = .16 + (1 - driver.skill) * .62;
+      driver.overtakes = 0; driver.fuel = 100; driver.tireWear = 0;
+      driver.compound = 'MEDIUM'; driver.pitTimer = 0; driver.pitStops = 0;
     }
+    return { playerGridPosition: playerSlot, grid: getStandings(0) };
   }
 
   return { drivers, update, getStandings, reset };
