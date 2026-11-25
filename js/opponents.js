@@ -121,14 +121,18 @@ export function createOpponents(lapDistance = 4563) {
       .sort((a, b) => b.distance - a.distance);
   }
 
-  function reset(playerGridPosition = 10) {
+  function reset(playerGridPosition = 10, savedOrder = null) {
     const playerSlot = clamp(Math.round(Number(playerGridPosition) || 10), 1, 20);
     // Simulated qualifying: pace and driver skill set the AI order, while the
     // player can choose any of the twenty grid slots before a quick race.
-    const qualifyingOrder = [...drivers].sort((a, b) =>
+    const fallbackOrder = [...drivers].sort((a, b) =>
       (b.pace * .72 + b.skill * 42 + b.aggression * 3) -
       (a.pace * .72 + a.skill * 42 + a.aggression * 3)
     );
+    const savedDrivers = Array.isArray(savedOrder)
+      ? savedOrder.filter(id => id !== 'player').map(id => drivers.find(driver => driver.id === id)).filter(Boolean)
+      : [];
+    const qualifyingOrder = savedDrivers.length === drivers.length ? savedDrivers : fallbackOrder;
     let aiIndex = 0;
     for (let slot = 1; slot <= 20; slot++) {
       if (slot === playerSlot) continue;
