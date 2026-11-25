@@ -44,3 +44,16 @@ test('weather transitions from dry to rain and reports a grip reduction', () => 
   assert.ok(state.grip<1);
   assert.ok(['LIGHT RAIN','HEAVY RAIN'].includes(state.label));
 });
+
+test('garage ignores malformed or out-of-range saved configuration', () => {
+  const storage=memoryStorage();
+  storage.setItem('the-f1-race-garage-v1',JSON.stringify({
+    credits:Infinity,selectedCar:'missing',ownedCars:['falcon'],
+    upgrades:{power:99,grip:0,braking:0,durability:0},
+    setup:{aero:50,suspension:50,brakeBias:56,differential:50},livery:'bad'
+  }));
+  const garage=createGarage(storage);
+  assert.equal(garage.getState().selectedCar,'falcon');
+  assert.equal(garage.getState().credits,2500);
+  assert.equal(garage.getState().upgrades.power,0);
+});
