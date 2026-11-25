@@ -50,7 +50,7 @@ export function shouldAttemptOvertake(profile, gap, laneBlocked=false) {
   if (laneBlocked || !Number.isFinite(gap) || gap<=0 || gap>=30) return false;
   const risk=clamp(Number(profile?.risk)||0,0,1);
   const skill=clamp(Number(profile?.overtaking)||0,0,1);
-  return gap < 12 + risk*12 && skill > .55;
+  return gap < 12 + risk*12 && skill > .7;
 }
 
 export function getDefensiveLaneOffset(profile) {
