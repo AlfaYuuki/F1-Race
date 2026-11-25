@@ -29,15 +29,20 @@ test('physics accelerates, brakes, remains bounded and resets', () => {
   assert.equal(physics.offRoad, false);
 });
 
-test('AI roster produces nineteen AI drivers plus the player and resets deterministically', () => {
+test('AI roster forms a selectable twenty-car grid and launches deterministically', () => {
   const ai = createOpponents(LAP_DISTANCE);
   assert.equal(ai.drivers.length, 19);
-  ai.update(1 / 60, 0, curveAt);
-  const standings = ai.getStandings(0);
-  assert.equal(standings.length, 20);
-  for (let i = 1; i < standings.length; i++) {
-    assert.ok(standings[i - 1].distance >= standings[i].distance);
+  for (const playerGridPosition of [1, 10, 20]) {
+    const grid = ai.reset(playerGridPosition).grid;
+    assert.equal(grid.length, 20);
+    assert.equal(grid.filter(driver => driver.isPlayer).length, 1);
+    assert.equal(grid.findIndex(driver => driver.isPlayer) + 1, playerGridPosition);
+    assert.equal(new Set(ai.drivers.map(driver => driver.gridPosition)).size, 19);
+    assert.ok(ai.drivers.every(driver => driver.distance !== 0));
+    const positions = grid.map(driver => driver.distance);
+    assert.equal(new Set(positions).size, 20);
+    ai.update(1 / 60, 0, curveAt);
   }
-  ai.reset();
-  assert.equal(ai.drivers[0].distance, 18);
+  ai.reset(10);
+  assert.equal(ai.getStandings(0).findIndex(driver => driver.isPlayer) + 1, 10);
 });
