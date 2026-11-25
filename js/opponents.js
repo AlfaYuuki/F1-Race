@@ -131,7 +131,7 @@ export function createOpponents(lapDistance = 4563) {
       if (slot === playerSlot) continue;
       const driver = qualifyingOrder[aiIndex++];
       driver.gridPosition = slot;
-      driver.distance = (playerSlot - slot) * 18;
+      driver.distance = (playerSlot - slot) * 8;
       driver.speed = 0;
       driver.currentLane = slot % 2 ? -.42 : .42;
       driver.targetLane = driver.currentLane;
