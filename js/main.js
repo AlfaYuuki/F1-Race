@@ -171,7 +171,7 @@ function choosePlatform(id) {
 }
 
 const game = createGame(canvas, {
-  onUpdate: ({ speed, rpm, gear, lap, totalLaps = TOTAL_LAPS, sessionType, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, throttle, skid, telemetry = {} }) => {
+  onUpdate: ({ speed, rpm, gear, lap, totalLaps = TOTAL_LAPS, sessionType, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, track, throttle, skid, telemetry = {} }) => {
     const raceOrder = standings || [];
     const playerPosition = raceOrder.length ? raceOrder.findIndex(driver => driver.isPlayer || driver.id === 'player') + 1 : position;
     const displayGear = speed < 8 ? 'N' : gear;
@@ -215,6 +215,9 @@ const game = createGame(canvas, {
     document.querySelector('#lateral-g-value').textContent=(Number(live.lateralG)||0).toFixed(2)+' G';
     document.querySelector('#longitudinal-g-value').textContent=(Number(live.longitudinalG)||0).toFixed(2)+' G';
     document.querySelector('#grip-value').textContent=Math.round(Number(live.grip)||0)+'%';
+    document.querySelector('#surface-value').textContent=track?.condition||'DRY';
+    document.querySelector('#track-temp-value').textContent=(track?.trackTemperature??weather?.temperature??29)+'°C';
+    document.querySelector('#surface-grip-value').textContent=Math.round((track?.grip??1)*100)+'%';
     document.querySelector('#fuel-flow-value').textContent=(Number(live.fuelFlow)||0).toFixed(2)+'%/MIN';
     document.querySelector('#pit-button').textContent=pitPhase ? (pitPhase==='service'?'IN BOX':'PIT '+pitPhase.toUpperCase()) : 'BOX ↗';
     document.querySelector('#pit-button').disabled=state!=='running';
@@ -309,7 +312,7 @@ const game = createGame(canvas, {
     const root=document.querySelector('.race-game');
     root.dataset.weather=weather.rain>.65?'heavyRain':weather.rain>.12?'lightRain':weather.label==='OVERCAST'?'cloudy':'dry';
     const label=document.querySelector('.race-bottom>span:first-child');
-    label.innerHTML='<i></i> '+(weather.safetyCar?'SAFETY CAR':weather.yellowFlag?'YELLOW FLAG':weather.label);
+    label.innerHTML='<i></i> '+(weather.safetyCar?'SAFETY CAR':weather.yellowFlag?'YELLOW FLAG':weather.label)+' · '+(weather.track?.condition||'TRACK')+' · NEXT '+String(weather.forecast||'DRY').toUpperCase();
   },
   onPause: paused => {
     document.querySelector('#pause-button').textContent = paused ? '▶' : 'Ⅱ';
