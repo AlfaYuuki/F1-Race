@@ -1,3 +1,4 @@
+import { evaluatePitStrategy } from './pit-strategy.js';
 const clamp=(value,min,max)=>Math.max(min,Math.min(max,value));
 
 function parseLapTime(value) {
@@ -69,6 +70,16 @@ export function createRaceEngineer(options={}) {
     const compound=String(snapshot.compound||'MEDIUM').toUpperCase();
     const telemetry=snapshot.telemetry||{};
     const candidates=[];
+    const pitPlan=evaluatePitStrategy({lap,totalLaps,fuel,tireWear:wear,compound,damage,weather,lastLapMs:lapMs,fuelFlow:averageFuelFlow});
+    if(pitPlan.requiredStop&&typeof document!=='undefined'){
+      const compoundInput=document.querySelector('#pit-compound');
+      const fuelInput=document.querySelector('#pit-fuel');
+      const fuelOutput=document.querySelector('#fuel-choice');
+      if(compoundInput)compoundInput.value=pitPlan.targetCompound;
+      if(fuelInput)fuelInput.value=String(pitPlan.fuelTarget);
+      if(fuelOutput)fuelOutput.textContent=pitPlan.fuelTarget+'%';
+    }
+    if(pitPlan.requiredStop&&(pitPlan.urgency==='BOX NOW'||wear>=70||rain>=.58||(rain<=.08&&compound==='INTER')||damage>=28||fuel<=8||(pitPlan.fuelRange!==null&&pitPlan.fuelRange<2.5)))candidates.push({key:'pit-strategy',level:pitPlan.urgency==='BOX NOW'?'critical':'warning',title:'PIT WALL STRATEGY',message:pitPlan.reason+'. Recommended compound: '+pitPlan.targetCompound+'. Fuel target: '+pitPlan.fuelTarget+'%.',action:'BOX · '+pitPlan.targetCompound+' · '+pitPlan.fuelTarget+'%',priority:pitPlan.urgency==='BOX NOW'?97:20});
 
     if(now-lastSampleAt>=sampleMs){
       if(previousSample){
