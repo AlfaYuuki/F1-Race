@@ -944,7 +944,7 @@ button,select,input{touch-action:manipulation}
   .standings li{height:14px!important;min-height:14px!important;font-size:6.5px!important;gap:3px!important;padding:0 2px!important}
   .standings li b{font-size:5px!important}.standings li i{width:3px!important}.standings .rank{width:11px!important;flex-basis:11px!important;font-size:6px!important}
 
-  /* car telemetry: all 11 readouts in the free space between the two control groups */
+  /* car telemetry: all 14 readouts in the free space between the two control groups */
   .pit-telemetry{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:3px 7px!important;left:calc(var(--sl) + 112px)!important;right:calc(var(--sr) + 134px)!important;top:auto!important;bottom:calc(var(--foot) + 6px)!important;transform:none!important;width:auto!important;max-width:470px!important;margin:0 auto!important;padding:4px 8px!important;border-radius:7px!important}
   .pit-telemetry>div{min-width:0!important;gap:1px!important}
   .pit-telemetry small{font-size:5px!important;letter-spacing:.04em!important;white-space:nowrap;overflow:hidden}
