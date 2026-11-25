@@ -1109,7 +1109,7 @@ button,select,input{touch-action:manipulation}
   html[data-platform="android"] .timing-panel{bottom:calc(52px + 88px + env(safe-area-inset-bottom))}
   html[data-platform="android"] .pit-button{bottom:calc(52px + 88px + env(safe-area-inset-bottom))}
   html[data-platform="android"] .pit-telemetry{
-    left:clamp(150px,18vw,210px);right:clamp(150px,18vw,210px);
+    left:clamp(220px,22vw,270px);right:clamp(220px,22vw,270px);
     width:auto;max-width:none;bottom:calc(52px + env(safe-area-inset-bottom));
   }
 }
@@ -1119,7 +1119,7 @@ button,select,input{touch-action:manipulation}
   .standings li{height:21px;min-height:21px}
   .engineer-panel{top:178px;left:30px;right:auto;transform:none;width:320px;min-width:0}
   .timing-panel{left:30px;bottom:52px}
-  .pit-button{right:30px;bottom:108px}
+  .pit-button{right:30px;bottom:70px}
   .pit-telemetry{
     left:auto;right:250px;transform:none;
     width:min(680px,calc(100vw - 600px));max-width:680px;
