@@ -41,5 +41,5 @@ jobs:
           exit 1
       - name: Run simulation tests
         run: npm test
-      - name: Validate structure and 11 responsive phone layouts
+      - name: Validate structure and 17 phone, tablet and desktop layouts
         run: npm run check
