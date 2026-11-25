@@ -15,14 +15,13 @@ export function createPhysics() {
     telemetry: { throttle:0, brake:0, steering:0, lateralG:0, longitudinalG:0, grip:100, fuelFlow:0 },
     carConfig: { stats: { power:1, grip:1, braking:1, durability:1 }, setup: { aero:50, suspension:50, brakeBias:56, differential:50 } },
     setCarConfig(config) { if (config?.stats) this.carConfig = config; },
-    carConfig: { stats: { power:1, grip:1, braking:1, durability:1 }, setup: { aero:50, suspension:50, brakeBias:56, differential:50 } },
-    setCarConfig(config) { if (config?.stats) this.carConfig = config; },
     update(dt, input, curve, steerAxis = 0, options = {}) {
       const previousSpeed = this.speed;
       const previousFuel = this.fuel;
       const accelerating = input.has('accelerate'), braking = input.has('brake');
       const stats = this.carConfig.stats;
       const weatherGrip = clamp(Number(options.weatherGrip) || 1, .5, 1.05);
+      const trackGrip = clamp(Number(options.trackGrip) || 1, .5, 1.08);
       const weatherWear = clamp(Number(options.weatherWear) || 1, .8, 1.5);
       const maxSpeed = options.pitLimiter ? 80 : options.safetyCar ? 125 : options.yellowFlag ? 170 : (this.fuel <= 0 ? 95 : 330 * stats.power);
       const speedFactor = 1 - this.speed / (maxSpeed + 30);
@@ -39,7 +38,7 @@ export function createPhysics() {
       const velocityRatio = this.speed / 330;
       const setupGrip = .92 + (this.carConfig.setup?.aero ?? 50) / 625;
       const suspensionGrip = .94 + (this.carConfig.setup?.suspension ?? 50) / 800;
-      const tyreGrip = COMPOUNDS[this.compound].grip * (1 - this.tireWear / 100 * .62) * stats.grip * setupGrip * suspensionGrip * weatherGrip;
+      const tyreGrip = COMPOUNDS[this.compound].grip * (1 - this.tireWear / 100 * .62) * stats.grip * setupGrip * suspensionGrip * weatherGrip * trackGrip;
       const damageGrip = 1 - this.damage / 100 * .42;
       const grip = (this.offRoad ? .42 : 1) * tyreGrip * damageGrip;
       const steeringResponse = (1.15 + velocityRatio * 1.5) * grip;

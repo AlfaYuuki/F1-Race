@@ -19,7 +19,11 @@ export function bindControls(game, options = {}) {
   const isBlocked = options.isBlocked ?? (() => false);
   const held = new Set();
 
-  const press = (action, active) => { if (active) held.add(action); else held.delete(action); game.setInput(action, active); };
+  const press = (action, active) => {
+    if (active && isBlocked()) return;
+    if (active) held.add(action); else held.delete(action);
+    game.setInput(action, active);
+  };
   const releaseAll = () => {
     held.forEach(action => game.setInput(action, false));
     held.clear();
@@ -148,6 +152,12 @@ export function bindControls(game, options = {}) {
     padState.accelerate = padState.brake = false; padState.steer = 0;
     press('accelerate', false); press('brake', false); game.setSteerAxis(0);
   });
+  // Browsers may fire gamepadconnected before this module is initialised.
+  try {
+    if (navigator.getGamepads?.().some(pad => pad?.connected)) {
+      padRaf = requestAnimationFrame(pollGamepads);
+    }
+  } catch { /* Gamepad access may be restricted by the browser. */ }
 
   return { releaseAll, syncTilt, requestTiltAccess, calibrate };
 }

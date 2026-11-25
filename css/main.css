@@ -813,7 +813,7 @@ button,select,input{touch-action:manipulation}
 #brake-bar{background:#ed4658}
 #steering-value,#lateral-g-value,#longitudinal-g-value,#fuel-flow-value{font-variant-numeric:tabular-nums}
 @media(max-width:680px){
-  .pit-telemetry{left:12px;right:12px;transform:none;width:auto;max-width:none;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 8px;padding:7px 8px}
+  .pit-telemetry{left:12px;right:12px;transform:none;width:auto;max-width:none;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px 8px;padding:7px 8px}
   .pit-telemetry small{font-size:6px}
   .pit-telemetry strong{font-size:8px}
 }
@@ -944,8 +944,8 @@ button,select,input{touch-action:manipulation}
   .standings li{height:14px!important;min-height:14px!important;font-size:6.5px!important;gap:3px!important;padding:0 2px!important}
   .standings li b{font-size:5px!important}.standings li i{width:3px!important}.standings .rank{width:11px!important;flex-basis:11px!important;font-size:6px!important}
 
-  /* car telemetry: all 11 readouts in the free space between the two control groups */
-  .pit-telemetry{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:3px 7px!important;left:calc(var(--sl) + 112px)!important;right:calc(var(--sr) + 134px)!important;top:auto!important;bottom:calc(var(--foot) + 6px)!important;transform:none!important;width:auto!important;max-width:470px!important;margin:0 auto!important;padding:4px 8px!important;border-radius:7px!important}
+  /* car telemetry: all 14 readouts in the free space between the two control groups */
+   .pit-telemetry{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:3px 7px!important;left:calc(var(--sl) + 112px)!important;right:calc(var(--sr) + 134px)!important;top:auto!important;bottom:calc(var(--foot) + 6px)!important;transform:none!important;width:auto!important;max-width:470px!important;margin:0 auto!important;padding:4px 8px!important;border-radius:7px!important}
   .pit-telemetry>div{min-width:0!important;gap:1px!important}
   .pit-telemetry small{font-size:5px!important;letter-spacing:.04em!important;white-space:nowrap;overflow:hidden}
   .pit-telemetry strong{font-size:7.5px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -967,7 +967,7 @@ button,select,input{touch-action:manipulation}
   .standings{width:98px!important}.standings li{font-size:6px!important}
   .timing-panel{top:92px!important}
   .engineer-panel{top:38px!important;left:calc(var(--sl) + 239px)!important;right:calc(var(--sr) + 106px)!important}
-  .pit-telemetry{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+   .pit-telemetry{grid-template-columns:repeat(3,minmax(0,1fr))!important}
   .pit-telemetry strong{font-size:6.5px!important}
   .race-bottom span:nth-child(2){display:none}
   .race-message{max-width:calc(100vw - 250px)!important}
@@ -1011,7 +1011,7 @@ button,select,input{touch-action:manipulation}
   .standings li{height:16px!important;min-height:16px!important;font-size:6.5px!important;padding:0 2px!important}
   .standings li b{font-size:5px!important}.standings .rank{width:12px!important;flex-basis:12px!important;font-size:6px!important}
 
-  .pit-telemetry{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px 8px!important;left:var(--sl)!important;right:var(--sr)!important;top:auto!important;bottom:calc(var(--foot) + var(--ctl) + 14px)!important;transform:none!important;width:auto!important;max-width:none!important;padding:6px 10px!important}
+  .pit-telemetry{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px 8px!important;left:var(--sl)!important;right:var(--sr)!important;top:auto!important;bottom:calc(var(--foot) + var(--ctl) + 14px)!important;transform:none!important;width:auto!important;max-width:none!important;padding:6px 10px!important}
   .pit-telemetry>div{min-width:0!important;gap:2px!important}
   .pit-telemetry small{font-size:5.5px!important;white-space:nowrap;overflow:hidden}
   .pit-telemetry strong{font-size:8px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1122,8 +1122,8 @@ button,select,input{touch-action:manipulation}
   .timing-panel{left:30px;bottom:52px}
   .pit-button{right:30px;bottom:70px}
   .pit-telemetry{
-    left:auto;right:210px;transform:none;
-    width:min(680px,calc(100vw - 600px));max-width:680px;
+    left:auto;right:234px;transform:none;
+    width:min(680px,calc(100vw - 624px));max-width:680px;
     bottom:52px;
   }
 }
@@ -1209,3 +1209,10 @@ button,select,input{touch-action:manipulation}
   .weekend-session{padding:5px}
   .weekend-new{padding:6px}
 }
+
+
+/* MILESTONE 21 — live surface readouts */
+.telemetry-dynamics{grid-template-columns:repeat(2,minmax(0,1fr))}
+.telemetry-dynamics h3{grid-column:1/-1}
+#surface-value,#track-temp-value,#surface-grip-value{font-variant-numeric:tabular-nums}
+@media(max-width:760px){.telemetry-dynamics{grid-template-columns:repeat(2,minmax(0,1fr))}}

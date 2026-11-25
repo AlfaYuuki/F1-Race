@@ -85,6 +85,9 @@
       <div><small>LONG G</small><strong id="longitudinal-g-value">0.00 G</strong></div>
       <div><small>GRIP</small><strong id="grip-value">100%</strong></div>
       <div><small>FUEL FLOW</small><strong id="fuel-flow-value">0.00%/MIN</strong></div>
+      <div><small>TRACK SURFACE</small><strong id="surface-value">DRY</strong></div>
+      <div><small>TRACK TEMP</small><strong id="track-temp-value">29°C</strong></div>
+      <div><small>TRACK GRIP</small><strong id="surface-grip-value">100%</strong></div>
     </div>
   </section>
   <button id="pit-button" class="pit-button" type="button" disabled>BOX ↗</button>
@@ -155,13 +158,13 @@
     <div class="data-panel">
       <div class="data-heading"><div><p class="eyebrow">THE F1 RACE · TEAM RECORDS</p><h2 id="data-title">SAVE MANAGER</h2></div><button id="data-close" type="button" aria-label="Close save manager">✕</button></div>
       <div class="data-status"><span class="data-status-dot"></span><div><strong id="data-autosave">AUTO-SAVE ACTIVE</strong><small id="data-summary">Your progress is stored on this device.</small></div></div>
-      <p class="data-description">Garage purchases, upgrades, car setup, championship results and control preferences save automatically on this device.</p>
+      <p class="data-description">Garage purchases, upgrades, car setup, championship results, race-weekend progress and control preferences save automatically on this device.</p>
       <div class="data-actions">
         <button id="data-export" class="data-primary" type="button">DOWNLOAD BACKUP <span>↓</span></button>
         <button id="data-import" type="button">RESTORE FROM BACKUP <span>↑</span></button>
         <input id="data-file" type="file" accept="application/json,.json" hidden>
       </div>
-      <div class="data-warning"><strong>DELETE ALL GAME DATA</strong><p>Erases local garage progress, credits, upgrades, championship results and control preferences. This does not uninstall the game or delete its offline files.</p><button id="data-delete" type="button">DELETE ALL DATA</button></div>
+      <div class="data-warning"><strong>DELETE ALL GAME DATA</strong><p>Erases local garage progress, credits, upgrades, championship and race-weekend results, and control preferences. This does not uninstall the game or delete its offline files.</p><button id="data-delete" type="button">DELETE ALL DATA</button></div>
       <p id="data-feedback" class="data-feedback" role="status" aria-live="polite">Backups are JSON files. Keep a copy somewhere safe.</p>
       <button id="data-back" class="data-back" type="button">BACK TO GRID</button>
     </div>

@@ -58,3 +58,13 @@ test('a completed weekend can be restarted without losing round numbering', () =
   assert.equal(weekend.startNewWeekend().round, 2);
   assert.equal(weekend.getState().nextSession, 'practice');
 });
+
+test('race weekend ignores corrupt persisted session order and grid data', () => {
+  const storage = memoryStorage();
+  storage.setItem('the-f1-race-weekend-v1', JSON.stringify({
+    round: 2, completed: ['qualifying'], results: [], qualifyingOrder: ['player']
+  }));
+  const weekend = createRaceWeekend(storage);
+  assert.equal(weekend.getState().round, 1);
+  assert.equal(weekend.getState().nextSession, 'practice');
+});

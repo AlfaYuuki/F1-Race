@@ -20,14 +20,29 @@ export function createGarage(storage = (() => { try { return globalThis.localSto
   let state = copy(DEFAULT_STATE);
   try {
     const saved = JSON.parse(storage?.getItem(STORAGE_KEY) || 'null');
-    if (saved && Array.isArray(saved.ownedCars) && saved.upgrades && saved.setup) {
-      state = { ...state, ...saved,
-        upgrades: { ...state.upgrades, ...saved.upgrades },
-        setup: { ...state.setup, ...saved.setup }
+    const validCars = Array.isArray(saved?.ownedCars) && saved.ownedCars.length > 0 &&
+      saved.ownedCars.every(id => CARS.some(car => car.id === id)) &&
+      CARS.some(car => car.id === saved.selectedCar) && saved.ownedCars.includes(saved.selectedCar);
+    if (validCars) {
+      const upgrades = Object.fromEntries(Object.keys(DEFAULT_STATE.upgrades).map(key => {
+        const value = saved.upgrades?.[key];
+        return [key, Number.isInteger(value) && value >= 0 && value <= 5 ? value : DEFAULT_STATE.upgrades[key]];
+      }));
+      const setup = Object.fromEntries(Object.keys(DEFAULT_STATE.setup).map(key => {
+        const value = saved.setup?.[key];
+        return [key, Number.isFinite(value) && value >= 0 && value <= 100 ? value : DEFAULT_STATE.setup[key]];
+      }));
+      const credits = Number(saved.credits);
+      state = {
+        credits: Number.isFinite(credits) ? Math.max(0, credits) : DEFAULT_STATE.credits,
+        selectedCar: saved.selectedCar,
+        ownedCars: [...new Set(['falcon', ...saved.ownedCars])],
+        upgrades,
+        setup,
+        livery: /^#[0-9a-f]{6}$/i.test(saved.livery || '') ? saved.livery : DEFAULT_STATE.livery
       };
-      state.ownedCars = [...new Set(['falcon', ...state.ownedCars.filter(id => CARS.some(car => car.id === id))])];
-      if (!CARS.some(car => car.id === state.selectedCar) || !state.ownedCars.includes(state.selectedCar)) state.selectedCar = 'falcon';
-      state.credits = Math.max(0, Number(state.credits) || 0);
+      // Store the normalized form so backups and future loads see the same valid state.
+      try { storage?.setItem?.(STORAGE_KEY, JSON.stringify(state)); } catch { /* Storage may be read-only. */ }
     }
   } catch { /* Start with a clean garage if storage is unavailable or corrupt. */ }
 

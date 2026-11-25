@@ -19,6 +19,7 @@ const championshipSummary = document.querySelector('#championship-summary');
 const audioButton = document.querySelector('#audio-button');
 const gridPositionSelect = document.querySelector('#grid-position');
 document.querySelector('#race-distance-meta').innerHTML = `${(LAP_DISTANCE * TOTAL_LAPS / 1000).toFixed(2)} KM <small>RACE DISTANCE</small>`;
+const FORECAST_LABELS = { dry:'DRY', cloudy:'CLOUDY', lightRain:'LIGHT RAIN', heavyRain:'HEAVY RAIN' };
 const audio = createEngineAudio();
 const championship = createChampionship();
 const garage = createGarage();
@@ -86,7 +87,7 @@ function openDataManager() {
   document.querySelector('#data-summary').textContent=summary.available
     ? `${summary.keys.length} SAVE RECORDS · ${(summary.bytes/1024).toFixed(1)} KB STORED ON THIS DEVICE`
     : 'Your browser is blocking local storage. Backups and progress saving may not work.';
-  document.querySelector('#data-feedback').textContent='Backups include garage progress, championship results and control preferences.';
+  document.querySelector('#data-feedback').textContent='Backups include garage progress, championship and race-weekend results, and control preferences.';
   document.querySelector('#data-screen').hidden=false;
 }
 function closeDataManager() { document.querySelector('#data-screen').hidden=true; }
@@ -171,7 +172,7 @@ function choosePlatform(id) {
 }
 
 const game = createGame(canvas, {
-  onUpdate: ({ speed, rpm, gear, lap, totalLaps = TOTAL_LAPS, sessionType, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, throttle, skid, telemetry = {} }) => {
+  onUpdate: ({ speed, rpm, gear, lap, totalLaps = TOTAL_LAPS, sessionType, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, track, throttle, skid, telemetry = {} }) => {
     const raceOrder = standings || [];
     const playerPosition = raceOrder.length ? raceOrder.findIndex(driver => driver.isPlayer || driver.id === 'player') + 1 : position;
     const displayGear = speed < 8 ? 'N' : gear;
@@ -215,6 +216,9 @@ const game = createGame(canvas, {
     document.querySelector('#lateral-g-value').textContent=(Number(live.lateralG)||0).toFixed(2)+' G';
     document.querySelector('#longitudinal-g-value').textContent=(Number(live.longitudinalG)||0).toFixed(2)+' G';
     document.querySelector('#grip-value').textContent=Math.round(Number(live.grip)||0)+'%';
+    document.querySelector('#surface-value').textContent=track?.condition||'DRY';
+    document.querySelector('#track-temp-value').textContent=(track?.trackTemperature??weather?.temperature??29)+'°C';
+    document.querySelector('#surface-grip-value').textContent=Math.round((track?.grip??1)*100)+'%';
     document.querySelector('#fuel-flow-value').textContent=(Number(live.fuelFlow)||0).toFixed(2)+'%/MIN';
     document.querySelector('#pit-button').textContent=pitPhase ? (pitPhase==='service'?'IN BOX':'PIT '+pitPhase.toUpperCase()) : 'BOX ↗';
     document.querySelector('#pit-button').disabled=state!=='running';
@@ -304,12 +308,12 @@ const game = createGame(canvas, {
     roundRecorded = false;
     startButton.textContent = 'QUICK RACE ↗';
   },
-  onPitService: active => { document.querySelector('#pit-overlay').hidden=!active; },
+  onPitService: active => { document.querySelector('#pit-overlay').hidden=!active; if(active)controls?.releaseAll(); },
   onWeather: weather => {
     const root=document.querySelector('.race-game');
     root.dataset.weather=weather.rain>.65?'heavyRain':weather.rain>.12?'lightRain':weather.label==='OVERCAST'?'cloudy':'dry';
     const label=document.querySelector('.race-bottom>span:first-child');
-    label.innerHTML='<i></i> '+(weather.safetyCar?'SAFETY CAR':weather.yellowFlag?'YELLOW FLAG':weather.label);
+    label.innerHTML='<i></i> '+(weather.safetyCar?'SAFETY CAR':weather.yellowFlag?'YELLOW FLAG':weather.label)+' · '+(weather.track?.condition||'TRACK')+' · NEXT '+(FORECAST_LABELS[weather.forecast]||'DRY');
   },
   onPause: paused => {
     document.querySelector('#pause-button').textContent = paused ? '▶' : 'Ⅱ';
@@ -319,12 +323,12 @@ const game = createGame(canvas, {
 controls = bindControls(game, {
   getPlatform: () => platform,
   getTilt: () => ({ enabled: tiltEnabled, invert: tiltInvert }),
-  isBlocked: () => !platformScreen.hidden,
+  isBlocked: () => !platformScreen.hidden || !document.querySelector('#pit-dialog').hidden || !document.querySelector('#pit-overlay').hidden || !document.querySelector('#garage-screen').hidden || !document.querySelector('#data-screen').hidden,
   onTilt: axis => document.querySelector('#tilt-dot').style.setProperty('--tilt', axis.toFixed(2)),
   onTiltReady: ready => { tiltReady = ready; applyPlatform(); }
 });
 const pitDialog=document.querySelector('#pit-dialog');
-document.querySelector('#pit-button').addEventListener('click',()=>{if(game.getState()==='running')pitDialog.hidden=false;});
+document.querySelector('#pit-button').addEventListener('click',()=>{if(game.getState()==='running'){controls.releaseAll();pitDialog.hidden=false;}});
 document.querySelector('#pit-cancel').addEventListener('click',()=>{pitDialog.hidden=true;});
 document.querySelector('#pit-confirm').addEventListener('click',()=>{if(game.requestPit(document.querySelector('#pit-compound').value,Number(document.querySelector('#pit-fuel').value),document.querySelector('#pit-repair').checked))pitDialog.hidden=true;});
 document.querySelector('#pit-fuel').addEventListener('input',event=>{document.querySelector('#fuel-choice').textContent=event.target.value+'%';});
@@ -425,7 +429,7 @@ document.querySelector('#data-file').addEventListener('change',async event=>{
   } finally { event.target.value=''; }
 });
 document.querySelector('#data-delete').addEventListener('click',()=>{
-  const confirmed=window.confirm('DELETE ALL F1 RACE SAVE DATA? This permanently removes your garage, credits, upgrades, championship results and control preferences from this device. This cannot be undone unless you have a backup.');
+  const confirmed=window.confirm('DELETE ALL F1 RACE SAVE DATA? This permanently removes your garage, credits, upgrades, championship and race-weekend results, and control preferences from this device. This cannot be undone unless you have a backup.');
   if(!confirmed)return;
   const result=dataManager.deleteAll();
   if(!result.ok){document.querySelector('#data-feedback').textContent=result.error;return;}
