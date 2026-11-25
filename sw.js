@@ -1,4 +1,4 @@
-const CACHE_NAME = 'the-f1-race-shell-v19';
+const CACHE_NAME = 'the-f1-race-shell-v20';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest',
   './assets/favicon.png', './assets/icon.png',
@@ -6,7 +6,7 @@ const APP_SHELL = [
   './js/main.js', './js/pwa.js', './js/game.js', './js/controls.js',
   './js/platform.js', './js/audio.js', './js/championship.js',
   './js/physics.js', './js/opponents.js', './js/renderer.js',
-  './js/renderer2d.js', './js/timing.js', './js/track.js', './js/garage.js', './js/weather.js', './js/data-manager.js', './js/race-engineer.js'
+  './js/renderer2d.js', './js/ai-personalities.js', './js/timing.js', './js/track.js', './js/garage.js', './js/weather.js', './js/data-manager.js', './js/race-engineer.js'
 ];
 
 self.addEventListener('install', event => {
