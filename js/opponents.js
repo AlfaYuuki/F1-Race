@@ -1,3 +1,5 @@
+import { getDriverPersonality, calculatePersonalityPace, calculateTyreWearMultiplier, shouldAttemptOvertake, getDefensiveLaneOffset } from './ai-personalities.js';
+
 const DRIVER_DATA = [
   { id:'sato', name:'K. SATO', color:'#45a5e8', pace:246, skill:0.94, aggression:0.82, start:18, lane:-0.48 },
   { id:'tanaka', name:'M. TANAKA', color:'#f1bd4b', pace:238, skill:0.87, aggression:0.68, start:36, lane:0.48 },
@@ -25,6 +27,7 @@ const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 export function createOpponents(lapDistance = 4563) {
   const drivers = DRIVER_DATA.map(driver => ({
     ...driver,
+    personality: getDriverPersonality(driver.id),
     distance: 0,
     speed: 0,
     currentLane: driver.lane,
@@ -55,7 +58,7 @@ export function createOpponents(lapDistance = 4563) {
         continue;
       }
       driver.fuel = Math.max(0, driver.fuel - dt * (.055 + driver.speed / 330 * .045));
-      driver.tireWear = Math.min(100, driver.tireWear + dt * (driver.compound === 'SOFT' ? .16 : .1) * (weather.wear || 1));
+      driver.tireWear = Math.min(100, driver.tireWear + dt * (driver.compound === 'SOFT' ? .16 : .1) * (weather.wear || 1) * calculateTyreWearMultiplier(driver.personality));
       const wetMismatch = weather.rain > .55 && driver.compound !== 'INTER';
       const dryMismatch = weather.rain < .12 && driver.compound === 'INTER';
       if (driver.fuel < 18 || driver.tireWear > 82 || (wetMismatch && driver.pitStops < 2) || (dryMismatch && driver.pitStops < 2)) {
@@ -64,20 +67,20 @@ export function createOpponents(lapDistance = 4563) {
       }
       const progress = (driver.distance % lapDistance) / lapDistance;
       const cornerLoad = Math.abs(curveAt(progress));
-      const rhythm = Math.sin(driver.distance * .001 + driver.skill * 8) * (2.2 + (1 - driver.skill) * 5);
+      const rhythm = calculatePersonalityPace(driver.personality, { phase:driver.distance * .001 + driver.skill * 8, rain:weather.rain || 0, cornerLoad:Math.abs(curveAt((driver.distance % lapDistance) / lapDistance)) });
       const trafficAhead = traffic
         .filter(car => car.id !== driver.id)
         .map(car => ({ ...car, gap: car.distance - driver.distance }))
         .filter(car => car.gap > 0 && car.gap < 42)
         .sort((a, b) => a.gap - b.gap)[0];
 
-      const targetLaneBase = driver.lane + Math.sin(driver.distance * .0018 + driver.skill * 10) * .09;
+      const targetLaneBase = driver.lane + getDefensiveLaneOffset(driver.personality) + Math.sin(driver.distance * .0018 + driver.skill * 10) * .09;
       let targetLane = targetLaneBase;
       let draftBonus = 0;
 
       if (trafficAhead) {
         const laneGap = Math.abs((trafficAhead.currentLane ?? 0) - driver.currentLane);
-        if (laneGap < .46 && trafficAhead.gap < 30) {
+        if (laneGap < .46 && shouldAttemptOvertake(driver.personality, trafficAhead.gap)) {
           const leftFree = traffic.every(car => car.id === driver.id ||
             Math.abs(car.distance - driver.distance) > 18 ||
             Math.abs((car.currentLane ?? 0) - (driver.currentLane - .42)) > .38);
@@ -99,9 +102,9 @@ export function createOpponents(lapDistance = 4563) {
       driver.targetLane = clamp(targetLane, -.76, .76);
       driver.currentLane += (driver.targetLane - driver.currentLane) * Math.min(1, dt * (1.5 + driver.aggression * 2.2));
 
-      const cornerPenalty = cornerLoad * (15 + (1 - driver.skill) * 27);
+      const cornerPenalty = cornerLoad * (15 + (1 - driver.skill) * 27) * (1.08 - driver.personality.consistency * .12);
       const consistencyLoss = Math.abs(Math.sin(driver.distance * .00063 + driver.skill * 4)) * (1 - driver.skill) * 5;
-      const weatherPenalty = (weather.rain || 0) * (driver.compound === 'INTER' ? 5 : 32);
+      const weatherPenalty = (weather.rain || 0) * (driver.compound === 'INTER' ? 5 : 32 * (1 - driver.personality.wetSkill * .35));
       const wearPenalty = driver.tireWear * .13;
       const safePace = weather.safetyCar ? 145 : weather.yellowFlag ? 170 : 285;
       const targetSpeed = clamp(driver.pace + rhythm + draftBonus - cornerPenalty - consistencyLoss - weatherPenalty - wearPenalty, 125, safePace);
