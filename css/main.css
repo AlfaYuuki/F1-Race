@@ -1060,7 +1060,7 @@ button,select,input{touch-action:manipulation}
   width:min(680px,calc(100vw - 460px));
   max-width:680px;
 }
-.telemetry-group{
+.pit-telemetry>.telemetry-group{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   align-content:start;
