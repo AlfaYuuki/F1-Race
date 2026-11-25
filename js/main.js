@@ -218,7 +218,7 @@ const game = createGame(canvas, {
       const now = performance.now();
       if (state !== 'running' || now - lastLeaderboardRefresh >= 300) {
         leaderboard.innerHTML = raceOrder.map((driver, index) =>
-          `<li class="${driver.isPlayer || driver.id === 'player' ? 'player-row' : ''}"><span class="rank">${String(index + 1).padStart(2, '0')}</span><i style="--driver-color:${driver.color}"></i><span>${escapeHtml(driver.name)}</span><b>${state === 'ready' ? 'GRID' : `L${Math.min(TOTAL_LAPS, Math.floor(driver.distance / LAP_DISTANCE) + 1)}`}</b></li>`
+          `<li class="${driver.isPlayer || driver.id === 'player' ? 'player-row' : ''}"><span class="rank">${String(index + 1).padStart(2, '0')}</span><i style="--driver-color:${driver.color}"></i><span>${escapeHtml(driver.name)}</span><b>${state === 'ready' ? 'GRID' : `L${Math.max(1, Math.min(TOTAL_LAPS, Math.floor(driver.distance / LAP_DISTANCE) + 1))}`}</b></li>`
         ).join('');
         lastLeaderboardRefresh = now;
       }
