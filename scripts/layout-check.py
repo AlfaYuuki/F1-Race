@@ -38,6 +38,8 @@ JS='''(keys)=>{const out={};
  out.__playerRows=document.querySelectorAll('#leaderboard-list>.player-row').length;
  out.__telemetryGroups=document.querySelectorAll('.pit-telemetry>.telemetry-group').length;
  out.__telemetryValues=document.querySelectorAll('.pit-telemetry .telemetry-group strong[id]').length;
+ out.__gapHeading=document.querySelector('.standings-head b')?.textContent.trim();
+ out.__gapCells=[...document.querySelectorAll('#leaderboard-list>li b')].filter(el=>el.textContent.trim()).length;
  return out}'''
 async def run(only=None,shots=True):
     bad=0
@@ -85,6 +87,8 @@ async def run(only=None,shots=True):
             if rects['__playerRows']!=1: problems.append(f'leaderboard has {rects["__playerRows"]} player rows, expected 1')
             if rects['__telemetryGroups']!=3: problems.append(f'telemetry has {rects["__telemetryGroups"]} groups, expected 3')
             if rects['__telemetryValues']!=11: problems.append(f'telemetry has {rects["__telemetryValues"]} live values, expected 11')
+            if rects['__gapHeading']!='GAP': problems.append('timing tower gap column heading is missing')
+            if rects['__gapCells']!=20: problems.append(f'timing tower has {rects["__gapCells"]} populated gap cells, expected 20')
             scroll=await page.evaluate('document.documentElement.scrollWidth>innerWidth||document.documentElement.scrollHeight>innerHeight')
             if scroll: problems.append('page scrolls')
             if errors: problems.append('js errors '+str(errors))
