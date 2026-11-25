@@ -30,14 +30,21 @@ function validateGarage(raw) {
 function validateChampionship(raw) {
   let value;
   try { value = JSON.parse(raw); } catch { return false; }
-  return isObject(value) && Number.isInteger(value.round) && value.round >= 0 && value.round <= 5 &&
-    typeof value.completed === 'boolean' && Array.isArray(value.results) &&
-    Array.isArray(value.standings) && value.standings.length === 6 &&
-    value.results.length <= 5 && value.results.every(result => isObject(result) &&
-      Number.isInteger(result.round) && Array.isArray(result.order) &&
-      result.order.every(driver => isObject(driver) && typeof driver.id === 'string' && typeof driver.name === 'string')) &&
-    value.standings.every(driver => isObject(driver) && typeof driver.id === 'string' &&
-      typeof driver.name === 'string' && Number.isFinite(driver.points));
+  const standings = value?.standings;
+  const results = value?.results;
+  if (!isObject(value) || !Number.isInteger(value.round) || value.round < 0 || value.round > 5 ||
+      typeof value.completed !== 'boolean' || value.completed !== (value.round === 5) ||
+      !Array.isArray(results) || results.length !== value.round ||
+      !Array.isArray(standings) || standings.length !== 6) return false;
+  const validDriver = driver => isObject(driver) && typeof driver.id === 'string' &&
+    driver.id.length > 0 && typeof driver.name === 'string' &&
+    Number.isFinite(driver.points) && driver.points >= 0;
+  return standings.every(validDriver) &&
+    new Set(standings.map(driver => driver.id)).size === 6 &&
+    standings.some(driver => driver.id === 'player') &&
+    results.every((result, index) => isObject(result) && result.round === index + 1 &&
+      Array.isArray(result.order) && result.order.every(driver =>
+        isObject(driver) && typeof driver.id === 'string' && typeof driver.name === 'string'));
 }
 
 function validateWeekend(raw) {
