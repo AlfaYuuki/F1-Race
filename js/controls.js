@@ -19,7 +19,11 @@ export function bindControls(game, options = {}) {
   const isBlocked = options.isBlocked ?? (() => false);
   const held = new Set();
 
-  const press = (action, active) => { if (active) held.add(action); else held.delete(action); game.setInput(action, active); };
+  const press = (action, active) => {
+    if (active && isBlocked()) return;
+    if (active) held.add(action); else held.delete(action);
+    game.setInput(action, active);
+  };
   const releaseAll = () => {
     held.forEach(action => game.setInput(action, false));
     held.clear();
