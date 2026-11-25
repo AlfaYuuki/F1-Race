@@ -145,7 +145,7 @@ export function createRaceEngineer(options={}) {
     }
 
     const position=Number(snapshot.position);
-    if(lastPosition!==null&&Number.isFinite(position)&&position<lastPosition)candidates.push({key:'position-gained',level:'success',title:'POSITION GAINED',message:`Excellent move — up to P${position}. Keep the momentum and manage the tyres.`,action:'DEFEND YOUR POSITION',priority:46});
+    if(lastPosition!==null&&Number.isFinite(position)&&position<lastPosition)candidates.push({key:'overtake',level:'success',title:'POSITION GAINED',message:`Excellent move — up to P${position}. Keep the momentum and manage the tyres.`,action:'DEFEND YOUR POSITION',priority:46});
     else if(lastPosition!==null&&Number.isFinite(position)&&position>lastPosition)candidates.push({key:'position-lost',level:'warning',title:'POSITION LOST',message:`We have dropped to P${position}. Stay calm; focus on clean exits and the next opportunity.`,action:'RESET THE ATTACK',priority:42});
     if(Number.isFinite(position))lastPosition=position;
 
@@ -171,8 +171,7 @@ export function createRaceEngineer(options={}) {
       return publish(alert,now);
     }
 
-    if(lastAlert&&now<lastAlert.expiresAt&&now-lastRenderAt<sampleMs)return null;
-    if(lastAlert&&now<lastAlert.expiresAt)return publish(lastAlert,now);
+    if(lastAlert&&now<lastAlert.expiresAt)return null;
     lastAlert=null;
     if(now-lastRenderAt<1500)return null;
 
