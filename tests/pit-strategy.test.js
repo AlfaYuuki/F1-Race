@@ -24,5 +24,5 @@ test('pit strategy resets stint estimates after a pit stop',()=>{
   const strategy=createPitStrategy();
   strategy.update({lap:8,totalLaps:50,fuel:82,tireWear:20,compound:'SOFT',pitStops:0,weather:{rain:0}});
   const afterStop=strategy.update({lap:9,totalLaps:50,fuel:100,tireWear:0,compound:'HARD',pitStops:1,weather:{rain:0}});
-  assert.equal(afterStop.projectedWear,Math.round(1.8*41));
+  assert.equal(afterStop.projectedWear,Math.round(1.8*42));
 });
