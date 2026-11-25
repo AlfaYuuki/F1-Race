@@ -322,12 +322,12 @@ const game = createGame(canvas, {
 controls = bindControls(game, {
   getPlatform: () => platform,
   getTilt: () => ({ enabled: tiltEnabled, invert: tiltInvert }),
-  isBlocked: () => !platformScreen.hidden,
+  isBlocked: () => !platformScreen.hidden || !document.querySelector('#pit-dialog').hidden || !document.querySelector('#garage-screen').hidden || !document.querySelector('#data-screen').hidden,
   onTilt: axis => document.querySelector('#tilt-dot').style.setProperty('--tilt', axis.toFixed(2)),
   onTiltReady: ready => { tiltReady = ready; applyPlatform(); }
 });
 const pitDialog=document.querySelector('#pit-dialog');
-document.querySelector('#pit-button').addEventListener('click',()=>{if(game.getState()==='running')pitDialog.hidden=false;});
+document.querySelector('#pit-button').addEventListener('click',()=>{if(game.getState()==='running'){controls.releaseAll();pitDialog.hidden=false;}});
 document.querySelector('#pit-cancel').addEventListener('click',()=>{pitDialog.hidden=true;});
 document.querySelector('#pit-confirm').addEventListener('click',()=>{if(game.requestPit(document.querySelector('#pit-compound').value,Number(document.querySelector('#pit-fuel').value),document.querySelector('#pit-repair').checked))pitDialog.hidden=true;});
 document.querySelector('#pit-fuel').addEventListener('input',event=>{document.querySelector('#fuel-choice').textContent=event.target.value+'%';});
