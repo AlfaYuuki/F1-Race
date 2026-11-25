@@ -26,7 +26,7 @@ export function createWeather(random=Math.random) {
     nextChange=elapsed+55+random()*75;
   }
   function update(dt) {
-    const step=clamp(Number(dt)||0,0,5);
+    const step=clamp(Number(dt)||0,0,1);
     elapsed+=step;eventCooldown=Math.max(0,eventCooldown-step);
     if(elapsed>=nextChange) chooseNext();
     if(transition>0) {
