@@ -57,3 +57,21 @@ test('garage ignores malformed or out-of-range saved configuration', () => {
   assert.equal(garage.getState().credits,2500);
   assert.equal(garage.getState().upgrades.power,0);
 });
+
+test('garage repairs partial legacy saves without discarding owned cars or credits', () => {
+  const storage=memoryStorage();
+  storage.setItem('the-f1-race-garage-v1',JSON.stringify({
+    credits:900,selectedCar:'vortex',ownedCars:['falcon','vortex'],
+    upgrades:{power:2},setup:{aero:70}
+  }));
+  const garage=createGarage(storage);
+  const state=garage.getState();
+  assert.equal(state.credits,900);
+  assert.equal(state.selectedCar,'vortex');
+  assert.deepEqual(state.ownedCars,['falcon','vortex']);
+  assert.equal(state.upgrades.power,2);
+  assert.equal(state.upgrades.grip,0);
+  assert.equal(state.setup.aero,70);
+  assert.equal(state.setup.suspension,50);
+  assert.equal(state.livery,'#ed3548');
+});
