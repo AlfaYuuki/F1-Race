@@ -36,6 +36,8 @@ JS='''(keys)=>{const out={};
  out[k]={x:r.x,y:r.y,w:r.width,h:r.height,vis:cs.display!=='none'&&cs.visibility!=='hidden'&&!el.closest('[hidden]')&&r.width>0}}
  out.__drivers=document.querySelectorAll('#leaderboard-list>li').length;
  out.__playerRows=document.querySelectorAll('#leaderboard-list>.player-row').length;
+ out.__telemetryGroups=document.querySelectorAll('.pit-telemetry>.telemetry-group').length;
+ out.__telemetryValues=document.querySelectorAll('.pit-telemetry [id]').length;
  return out}'''
 async def run(only=None,shots=True):
     bad=0
@@ -81,6 +83,8 @@ async def run(only=None,shots=True):
                         problems.append(f'OVERLAP {keys_visible[i]} x {keys_visible[j]} ({round(overlap_x)}x{round(overlap_y)})')
             if rects['__drivers']!=20: problems.append(f'leaderboard has {rects["__drivers"]} drivers, expected 20')
             if rects['__playerRows']!=1: problems.append(f'leaderboard has {rects["__playerRows"]} player rows, expected 1')
+            if rects['__telemetryGroups']!=3: problems.append(f'telemetry has {rects["__telemetryGroups"]} groups, expected 3')
+            if rects['__telemetryValues']!=11: problems.append(f'telemetry has {rects["__telemetryValues"]} live values, expected 11')
             scroll=await page.evaluate('document.documentElement.scrollWidth>innerWidth||document.documentElement.scrollHeight>innerHeight')
             if scroll: problems.append('page scrolls')
             if errors: problems.append('js errors '+str(errors))
