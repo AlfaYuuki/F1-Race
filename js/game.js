@@ -51,13 +51,13 @@ export function createGame(canvas,callbacks={}) {
     currentWeather=weatherSystem.update(dt);
     if(currentWeather.yellowFlag!==lastYellow){lastYellow=currentWeather.yellowFlag;notify(lastYellow?'YELLOW FLAG — REDUCE SPEED, NO OVERTAKING':'GREEN FLAG — RACING RESUMES');}
     if(currentWeather.safetyCar!==lastSafetyCar){lastSafetyCar=currentWeather.safetyCar;notify(lastSafetyCar?'SAFETY CAR DEPLOYED — HOLD POSITION':'SAFETY CAR IN — RACE RESUMES');}
-    const trackState=trackEvolution.update(dt,currentWeather,20+opponents.drivers.length);
+    const trackState=trackEvolution.update(dt,currentWeather,1+opponents.drivers.length);
     currentWeather={...currentWeather,trackEvolution};
     callbacks.onWeather?.({...currentWeather,track:trackState});
     const previousLapIndex=Math.floor(raceDistance/LAP_DISTANCE),previousSpeed=physics.speed;
     const progress=(raceDistance%LAP_DISTANCE)/LAP_DISTANCE,curve=curveAt(progress);
     if(pitPhase==='service'){
-      physics.speed=0;physics.rpm=850;pitTimer-=dt;
+      physics.speed=0;physics.rpm=850;physics.update(0,new Set(),0,0);physics.speed=0;physics.rpm=850;pitTimer-=dt;
       if(pitTimer<=0){physics.applyPitService(pitPlan.compound,pitPlan.fuelTarget,pitPlan.repair);pitPhase='exit';pitTimer=1.25;callbacks.onPitService?.(false);notify('PIT SERVICE COMPLETE — RELEASED');}
     } else {
       physics.update(dt,pitPhase==='entry'?new Set():input,curve,pitPhase==='entry'?0:steerAxis,{pitLimiter:pitPhase==='entry'||pitPhase==='exit',yellowFlag:currentWeather.yellowFlag,safetyCar:currentWeather.safetyCar,weatherGrip:currentWeather.grip,weatherWear:currentWeather.wear,trackGrip:trackEvolution.sample(progress,physics.playerX).grip});
