@@ -32,8 +32,28 @@ export function createChampionship(storage = availableStorage()) {
       const raw = storage?.getItem(KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw);
-      if (parsed && Array.isArray(parsed.standings) && Array.isArray(parsed.results) &&
-          Number.isInteger(parsed.round) && parsed.round >= 0 && parsed.round <= ROUNDS) season = parsed;
+      const validStandings = Array.isArray(parsed?.standings) && parsed.standings.length === 6 &&
+        parsed.standings.every(driver => driver && typeof driver.id === 'string' &&
+          typeof driver.name === 'string' && Number.isFinite(driver.points) && driver.points >= 0) &&
+        new Set(parsed.standings.map(driver => driver.id)).size === 6 &&
+        parsed.standings.some(driver => driver.id === 'player');
+      const validResults = Array.isArray(parsed?.results) && parsed.results.length <= ROUNDS &&
+        parsed.results.every((result, index) => result && result.round === index + 1 &&
+          Array.isArray(result.order) && result.order.every(driver =>
+            driver && typeof driver.id === 'string' && typeof driver.name === 'string'));
+      if (Number.isInteger(parsed?.round) && parsed.round >= 0 && parsed.round <= ROUNDS &&
+          parsed.round === parsed.results?.length && parsed.completed === (parsed.round >= ROUNDS) &&
+          validStandings && validResults) {
+        season = {
+          round: parsed.round,
+          completed: parsed.completed,
+          results: parsed.results.map(result => ({
+            ...result,
+            order: result.order.map(driver => ({ id: driver.id, name: driver.name }))
+          })),
+          standings: parsed.standings.map(driver => ({ id: driver.id, name: driver.name, points: driver.points }))
+        };
+      }
     } catch { season = null; }
   }
 
