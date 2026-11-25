@@ -46,7 +46,7 @@ export function createRaceWeekend(storage = safeStorage()) {
   function startSession(id) {
     const session = SESSION_ORDER.find(item => item.id === id);
     if (!session || getState().nextSession !== id) return null;
-    return { ...session, gridPosition: id === 'race' ? getGridPosition('player') : 10 };
+    return { ...session, gridPosition: id === 'race' ? getGridPosition('player') : 10, gridOrder: id === 'race' ? [...state.qualifyingOrder] : null };
   }
 
   function recordResult(id, result = {}) {
