@@ -15,6 +15,8 @@ const startButton = document.querySelector('#start-button');
 const championshipButton = document.querySelector('#championship-button');
 const championshipSummary = document.querySelector('#championship-summary');
 const audioButton = document.querySelector('#audio-button');
+const gridPositionSelect = document.querySelector('#grid-position');
+document.querySelector('#race-distance-meta').innerHTML = `${(LAP_DISTANCE * TOTAL_LAPS / 1000).toFixed(2)} KM <small>RACE DISTANCE</small>`;
 const audio = createEngineAudio();
 const championship = createChampionship();
 const garage = createGarage();
@@ -273,7 +275,7 @@ startButton.addEventListener('click', () => {
   championshipActive = false;
   startScreen.classList.add('hidden');
   game.setCarConfig(garage.getCar());
-  game.start();
+  game.start(Number(gridPositionSelect.value));
 });
 championshipButton.addEventListener('click', () => {
   let season = championship.getState();
@@ -283,7 +285,7 @@ championshipButton.addEventListener('click', () => {
   game.setCarConfig(garage.getCar());
   renderChampionshipSummary();
   document.querySelector('#race-message').textContent = `CHAMPIONSHIP ROUND ${season.round + 1} OF ${championship.rounds}`;
-  game.start();
+  game.start(Number(gridPositionSelect.value));
 });
 audioButton.addEventListener('click', () => {
   const enabled = audio.toggle();
