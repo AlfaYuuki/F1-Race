@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createDataManager, DATA_KEYS } from '../js/data-manager.js';
 import { createChampionship } from '../js/championship.js';
+import { createRaceWeekend } from '../js/race-weekend.js';
 
 function memoryStorage(seed = {}) {
   const values = new Map(Object.entries(seed));
@@ -57,6 +58,7 @@ test('save manager rejects malformed or unsafe backups without changing data', (
 test('delete all removes game progress and controls but not unrelated browser data', () => {
   const storage = memoryStorage({
     'the-f1-race-garage-v1': garage,
+    'the-f1-race-weekend-v1': JSON.stringify({round:1,completed:[],results:[],qualifyingOrder:[]}),
     'f1race.platform': 'android',
     'f1race.tilt': '1',
     unrelated: 'keep'
@@ -89,4 +91,35 @@ test('save manager accepts a real championship save', () => {
   const target = memoryStorage();
   assert.deepEqual(createDataManager(target).restoreBackup(backup), { ok: true });
   assert.equal(createChampionship(target).getState().round, 1);
+});
+
+test('save manager backs up and restores race weekend progress and qualifying order', () => {
+  const storage = memoryStorage();
+  const weekend = createRaceWeekend(storage);
+  const order = Array.from({ length: 20 }, (_, index) => ({
+    id: index === 7 ? 'player' : 'driver-' + index,
+    name: index === 7 ? 'YOU' : 'DRIVER ' + index
+  }));
+  weekend.recordResult('practice', {});
+  weekend.recordResult('qualifying', { order });
+  const backup = createDataManager(storage).createBackup();
+  assert.ok(Object.hasOwn(backup.data, 'the-f1-race-weekend-v1'));
+  const target = memoryStorage();
+  assert.deepEqual(createDataManager(target).restoreBackup(backup), { ok: true });
+  const restored = createRaceWeekend(target);
+  assert.equal(restored.getState().nextSession, 'race');
+  assert.equal(restored.getGridPosition('player'), 8);
+});
+
+test('save manager rejects malformed race weekend progress', () => {
+  const storage = memoryStorage();
+  const manager = createDataManager(storage);
+  const invalid = {
+    format: 'the-f1-race-save', version: 1,
+    data: { 'the-f1-race-weekend-v1': JSON.stringify({
+      round: 1, completed: ['qualifying'], results: [], qualifyingOrder: []
+    }) }
+  };
+  assert.equal(manager.restoreBackup(invalid).ok, false);
+  assert.equal(storage.getItem('the-f1-race-weekend-v1'), null);
 });
