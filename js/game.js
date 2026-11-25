@@ -74,6 +74,6 @@ export function createGame(canvas,callbacks={}) {
     updateHud();if(state==='running')raf=requestAnimationFrame(frame);else updateHud();
   }
   function idleFrame(now){if(state==='running'||state==='countdown')return;renderer.render({position:now/1000*.012,playerX:0,speed:0,offRoad:false,running:false,opponents:[]});raf=requestAnimationFrame(idleFrame);}
-  function init(){renderer.resize();renderer.render({position:0,playerX:0,speed:0,offRoad:false,running:false,opponents:[]});raf=requestAnimationFrame(idleFrame);}
+  function init(){opponents.reset(10);renderer.resize();renderer.render({position:0,playerX:0,speed:0,offRoad:false,running:false,opponents:[]});updateHud();raf=requestAnimationFrame(idleFrame);}
   return {init,start,setInput,setSteerAxis,togglePause,requestPit,setCarConfig:config=>{physics.setCarConfig(config);playerColor=config?.color||'#df3039';},getState:()=>state,getPitPhase:()=>pitPhase};
 }
