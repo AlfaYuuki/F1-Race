@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "check": "node scripts/validate.mjs",
-    "test": "node --test"
+    "test": "node --test",
+    "check:layout": "python3 scripts/layout-check.py"
   },
   "engines": {
     "node": ">=20"
