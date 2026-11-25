@@ -924,7 +924,7 @@ button,select,input{touch-action:manipulation}
   .gear-block{min-width:38px;flex:.7}
 
   .engineer-panel{
-    top:calc(78px + env(safe-area-inset-top));
+    top:calc(112px + env(safe-area-inset-top));
     left:42vw;
     right:auto;
     transform:none;
@@ -996,7 +996,7 @@ button,select,input{touch-action:manipulation}
   .steer-controls,.pedal-controls{gap:10px}
 
   .race-bottom{z-index:11}
-  .race-message{z-index:13;top:8px;max-width:60vw}
+  .race-message{z-index:13;top:calc(66px + env(safe-area-inset-top));max-width:60vw}
 }
 
 /* Narrow landscape phones: compress columns, keep every zone separate. */
