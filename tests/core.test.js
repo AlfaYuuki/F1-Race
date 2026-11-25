@@ -39,6 +39,7 @@ test('AI roster forms a selectable twenty-car grid and launches deterministicall
     assert.equal(grid.findIndex(driver => driver.isPlayer) + 1, playerGridPosition);
     assert.equal(new Set(ai.drivers.map(driver => driver.gridPosition)).size, 19);
     assert.ok(ai.drivers.every(driver => driver.distance !== 0));
+    for (const driver of ai.drivers) assert.equal(Math.abs(driver.distance), Math.abs(driver.gridPosition - playerGridPosition) * 8);
     const positions = grid.map(driver => driver.distance);
     assert.equal(new Set(positions).size, 20);
     ai.update(1 / 60, 0, curveAt);
