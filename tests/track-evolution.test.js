@@ -55,7 +55,8 @@ test('initial weather forecast is the weather that actually transitions in',()=>
   const weather=createWeather(()=>.1);
   weather.reset();
   assert.equal(weather.getState().forecast,'cloudy');
-  let state=weather.update(49);
+  let state;
+  for(let i=0;i<49;i++)state=weather.update(1);
   assert.equal(state.target,'cloudy');
   assert.equal(state.forecast,'cloudy');
   assert.equal(state.transition,true);
