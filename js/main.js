@@ -19,6 +19,7 @@ const championshipSummary = document.querySelector('#championship-summary');
 const audioButton = document.querySelector('#audio-button');
 const gridPositionSelect = document.querySelector('#grid-position');
 document.querySelector('#race-distance-meta').innerHTML = `${(LAP_DISTANCE * TOTAL_LAPS / 1000).toFixed(2)} KM <small>RACE DISTANCE</small>`;
+const FORECAST_LABELS = { dry:'DRY', cloudy:'CLOUDY', lightRain:'LIGHT RAIN', heavyRain:'HEAVY RAIN' };
 const audio = createEngineAudio();
 const championship = createChampionship();
 const garage = createGarage();
@@ -86,7 +87,7 @@ function openDataManager() {
   document.querySelector('#data-summary').textContent=summary.available
     ? `${summary.keys.length} SAVE RECORDS · ${(summary.bytes/1024).toFixed(1)} KB STORED ON THIS DEVICE`
     : 'Your browser is blocking local storage. Backups and progress saving may not work.';
-  document.querySelector('#data-feedback').textContent='Backups include garage progress, championship results and control preferences.';
+  document.querySelector('#data-feedback').textContent='Backups include garage progress, championship and race-weekend results, and control preferences.';
   document.querySelector('#data-screen').hidden=false;
 }
 function closeDataManager() { document.querySelector('#data-screen').hidden=true; }
@@ -312,7 +313,7 @@ const game = createGame(canvas, {
     const root=document.querySelector('.race-game');
     root.dataset.weather=weather.rain>.65?'heavyRain':weather.rain>.12?'lightRain':weather.label==='OVERCAST'?'cloudy':'dry';
     const label=document.querySelector('.race-bottom>span:first-child');
-    label.innerHTML='<i></i> '+(weather.safetyCar?'SAFETY CAR':weather.yellowFlag?'YELLOW FLAG':weather.label)+' · '+(weather.track?.condition||'TRACK')+' · NEXT '+String(weather.forecast||'DRY').toUpperCase();
+    label.innerHTML='<i></i> '+(weather.safetyCar?'SAFETY CAR':weather.yellowFlag?'YELLOW FLAG':weather.label)+' · '+(weather.track?.condition||'TRACK')+' · NEXT '+(FORECAST_LABELS[weather.forecast]||'DRY');
   },
   onPause: paused => {
     document.querySelector('#pause-button').textContent = paused ? '▶' : 'Ⅱ';
