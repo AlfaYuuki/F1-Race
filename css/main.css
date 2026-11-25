@@ -1164,3 +1164,48 @@ button,select,input{touch-action:manipulation}
   text-align:right;
   font-variant-numeric:tabular-nums;
 }
+
+
+/* MILESTONE 19 — race weekend session selector */
+.weekend-panel{
+  width:100%;margin:10px 0 2px;padding:10px 11px;
+  border:1px solid #dcebf426;border-radius:7px;
+  background:linear-gradient(145deg,#071522c9,#07152280);
+}
+.weekend-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.weekend-heading b{font:700 9px var(--mono);letter-spacing:.16em;color:#f2f6f8}
+.weekend-heading span{font:7px var(--mono);letter-spacing:.06em;color:#91a8b8;text-align:right}
+.weekend-session-buttons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.weekend-session{
+  display:flex;min-width:0;align-items:center;justify-content:space-between;gap:4px;
+  padding:8px 7px;border:1px solid #dcebf42b;border-radius:5px;
+  background:#102638;color:#edf4f8;text-align:left;cursor:pointer;
+}
+.weekend-session span{display:flex;min-width:0;flex-direction:column;gap:3px}
+.weekend-session b{font:700 8px var(--mono);letter-spacing:.04em;white-space:nowrap}
+.weekend-session small{font:6px var(--mono);color:#9db1bf;letter-spacing:.1em}
+.weekend-session em{font:700 6px var(--mono);font-style:normal;color:#8da6b7;white-space:nowrap}
+.weekend-session.available{border-color:#ff53627a;background:linear-gradient(135deg,#6f1d2b,#182b3a)}
+.weekend-session.available em{color:#ff9aa4}
+.weekend-session.complete{border-color:#5bd39a55;background:#15372f;color:#a8e8c9}
+.weekend-session:disabled{cursor:default;opacity:.75}
+.weekend-new{
+  width:100%;margin-top:7px;padding:8px;border:1px solid #e8b84e66;border-radius:5px;
+  background:#322b1c;color:#f5d58c;font:700 8px var(--mono);letter-spacing:.12em;
+}
+.weekend-new[hidden]{display:none}
+.start-card{max-height:calc(100dvh - 28px);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+@media(max-width:760px){
+  .weekend-panel{margin:7px 0 1px;padding:8px}
+  .weekend-heading b{font-size:8px}.weekend-heading span{font-size:6px}
+  .weekend-session{padding:7px 5px}.weekend-session b{font-size:7px}
+}
+@media(orientation:landscape) and (max-height:520px){
+  .start-card{max-height:calc(100dvh - 16px);padding:12px 16px!important}
+  .start-card h1{font-size:42px!important;margin-bottom:8px}
+  .start-card>p:not(.eyebrow){margin-bottom:8px}
+  .start-meta{padding:7px 0 9px}
+  .weekend-panel{margin:5px 0;padding:6px 8px}
+  .weekend-session{padding:5px}
+  .weekend-new{padding:6px}
+}

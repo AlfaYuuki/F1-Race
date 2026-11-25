@@ -47,3 +47,14 @@ test('AI roster forms a selectable twenty-car grid and launches deterministicall
   ai.reset(10);
   assert.equal(ai.getStandings(0).findIndex(driver => driver.isPlayer) + 1, 10);
 });
+
+
+test('qualifying order is carried into the Grand Prix grid without reshuffling', () => {
+  const ai = createOpponents(LAP_DISTANCE);
+  const order = ['sato','player','tanaka','mori','kobayashi',
+    'nakamura','rossi','muller','silva','petrov','martin','kim',
+    'dubois','brown','garcia','smith','alvarez','andersson','fernandez','williams'];
+  const grid = ai.reset(2, order).grid;
+  assert.deepEqual(grid.map(driver => driver.id), order);
+  assert.equal(grid.findIndex(driver => driver.id === 'player') + 1, 2);
+});

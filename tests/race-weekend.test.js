@@ -1,0 +1,60 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { createRaceWeekend } from '../js/race-weekend.js';
+
+function memoryStorage() {
+  const values = new Map();
+  return {
+    getItem: key => values.get(key) ?? null,
+    setItem: (key, value) => values.set(key, value)
+  };
+}
+
+const order = Array.from({ length: 20 }, (_, index) => ({
+  id: index === 7 ? 'player' : 'driver-' + index,
+  name: index === 7 ? 'YOU' : 'DRIVER ' + index
+}));
+
+test('race weekend unlocks practice, qualifying and grand prix in sequence', () => {
+  const weekend = createRaceWeekend(memoryStorage());
+  assert.equal(weekend.getState().nextSession, 'practice');
+  assert.equal(weekend.startSession('qualifying'), null);
+  assert.equal(weekend.startSession('practice').laps, 3);
+  assert.equal(weekend.recordResult('practice', { bestLapMs: 95000 }).ok, true);
+  assert.equal(weekend.getState().nextSession, 'qualifying');
+  assert.equal(weekend.startSession('qualifying').laps, 1);
+  assert.equal(weekend.recordResult('qualifying', { order }).ok, true);
+  assert.equal(weekend.getState().nextSession, 'race');
+  assert.equal(weekend.startSession('race').laps, 50);
+  assert.equal(weekend.startSession('race').gridPosition, 8);
+  assert.deepEqual(weekend.startSession('race').gridOrder, order.map(driver => driver.id));
+});
+
+test('qualifying requires a complete twenty-driver classification', () => {
+  const weekend = createRaceWeekend(memoryStorage());
+  weekend.recordResult('practice', {});
+  assert.equal(weekend.recordResult('qualifying', { order: order.slice(0, 10) }).ok, false);
+  assert.equal(weekend.getState().nextSession, 'qualifying');
+});
+
+test('race weekend saves progress and restores qualifying grid', () => {
+  const storage = memoryStorage();
+  const weekend = createRaceWeekend(storage);
+  weekend.recordResult('practice', {});
+  weekend.recordResult('qualifying', { order });
+  const restored = createRaceWeekend(storage);
+  assert.equal(restored.getState().nextSession, 'race');
+  assert.equal(restored.getGridPosition('player'), 8);
+  assert.equal(restored.getState().results.length, 2);
+});
+
+test('a completed weekend can be restarted without losing round numbering', () => {
+  const weekend = createRaceWeekend(memoryStorage());
+  weekend.recordResult('practice', {});
+  weekend.recordResult('qualifying', { order });
+  weekend.recordResult('race', { order });
+  assert.equal(weekend.getState().weekendComplete, true);
+  assert.equal(weekend.startSession('race'), null);
+  assert.equal(weekend.startNewWeekend().round, 2);
+  assert.equal(weekend.getState().nextSession, 'practice');
+});

@@ -5,6 +5,7 @@ import { createChampionship } from './championship.js';
 import { createGarage, CARS } from './garage.js';
 import { createDataManager } from './data-manager.js';
 import { createRaceEngineer } from './race-engineer.js';
+import { createRaceWeekend } from './race-weekend.js';
 import { LAP_DISTANCE, TOTAL_LAPS } from './track.js';
 import { PLATFORMS, detectPlatform, loadSettings, saveSetting, controlHint } from './platform.js';
 import { formatGap } from './timing.js';
@@ -23,6 +24,9 @@ const championship = createChampionship();
 const garage = createGarage();
 const dataManager = createDataManager();
 const raceEngineer = createRaceEngineer();
+const weekend = createRaceWeekend();
+let activeWeekendSession = null;
+let finishedSessionType = null;
 let raceRewardRecorded = false;
 let lastLeaderboardRefresh = 0;
 let championshipActive = false;
@@ -55,6 +59,22 @@ function renderChampionshipSummary() {
   championshipSummary.textContent = `${status} · YOU: ${player?.points ?? 0} PTS · LEADER: ${leader.name} ${leader.points} PTS`;
   championshipButton.textContent = season.completed ? 'START NEW SEASON 🏆' :
     season.round > 0 ? 'NEXT CHAMPIONSHIP ROUND ↗' : 'START CHAMPIONSHIP 🏆';
+}
+
+
+function renderWeekendPanel() {
+  const state = weekend.getState();
+  document.querySelector('#weekend-status').textContent =
+    state.weekendComplete ? `ROUND ${state.round} · WEEKEND COMPLETE` :
+    `ROUND ${state.round} · ${state.completed.length}/3 SESSIONS COMPLETE`;
+  document.querySelector('#weekend-session-buttons').innerHTML = state.sessions.map(session => {
+    const detail = session.id === 'practice' ? '3 LAPS' : session.id === 'qualifying' ? '1 LAP' : '50 LAPS';
+    const action = session.status === 'complete' ? '✓ COMPLETE' : session.status === 'locked' ? 'LOCKED' : 'START';
+    return `<button type="button" data-weekend-session="${session.id}" class="weekend-session ${session.status}" ${session.status !== 'available' ? 'disabled' : ''}>
+      <span><b>${session.label}</b><small>${detail}</small></span><em>${action}</em>
+    </button>`;
+  }).join('');
+  document.querySelector('#weekend-new').hidden = !state.weekendComplete;
 }
 
 
@@ -151,13 +171,13 @@ function choosePlatform(id) {
 }
 
 const game = createGame(canvas, {
-  onUpdate: ({ speed, rpm, gear, lap, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, throttle, skid, telemetry = {} }) => {
+  onUpdate: ({ speed, rpm, gear, lap, totalLaps = TOTAL_LAPS, sessionType, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, throttle, skid, telemetry = {} }) => {
     const raceOrder = standings || [];
     const playerPosition = raceOrder.length ? raceOrder.findIndex(driver => driver.isPlayer || driver.id === 'player') + 1 : position;
     const displayGear = speed < 8 ? 'N' : gear;
     const live = telemetry || {};
     const engineerAlert = raceEngineer.update({
-      state, position:playerPosition, standings, lap, totalLaps:TOTAL_LAPS,
+      state, position:playerPosition, standings, lap, totalLaps,
       fuel, tireWear, compound, damage, offRoad, weather, sector, sectorTime, pitPhase,
       lastLapMs, bestLapMs, fuelFlow:live.fuelFlow, telemetry:live, speed, now:performance.now()
     });
@@ -172,7 +192,7 @@ const game = createGame(canvas, {
     document.querySelector('#best-lap-label').textContent = bestLap || '--:--.---';
     document.querySelector('#sector-label').textContent = `${sector || 'S1'} ${sectorTime || '--:--.---'}`;
     document.querySelector('#time-label').textContent = time;
-    document.querySelector('#lap-label').innerHTML = `${String(lap).padStart(2, '0')}<span> / ${String(TOTAL_LAPS).padStart(2, '0')}</span>`;
+    document.querySelector('#lap-label').innerHTML = `${String(lap).padStart(2, '0')}<span> / ${String(totalLaps).padStart(2, '0')}</span>`;
     document.querySelector('#position-label').innerHTML = `P${playerPosition || position}<span> / ${raceOrder.length || 20}</span>`;
     document.querySelector('#status-label').textContent = pitPhase ? 'PIT LANE' : offRoad ? 'OFF TRACK' :
       state === 'running' ? 'ENGINE ACTIVE' :
@@ -200,8 +220,8 @@ const game = createGame(canvas, {
     document.querySelector('#pit-button').disabled=state!=='running';
     audio.update(rpm, throttle ?? 0, gear, state === 'running', { skid: skid ?? 0, rain: weather?.rain ?? 0 });
     if (state === 'finished') {
-      if (!raceRewardRecorded) { const reward=garage.awardCredits(position); raceRewardRecorded=true; document.querySelector('#garage-feedback').textContent='RACE REWARD · CR '+reward.toLocaleString(); renderGarage(); }
-      if (championshipActive && !roundRecorded) {
+      if (!raceRewardRecorded && !['practice','qualifying'].includes(finishedSessionType)) { const reward=garage.awardCredits(position); raceRewardRecorded=true; document.querySelector('#garage-feedback').textContent='RACE REWARD · CR '+reward.toLocaleString(); renderGarage(); }
+      if (championshipActive && !roundRecorded && !['practice','qualifying'].includes(finishedSessionType)) {
         const season = championship.recordResult(standings);
         roundRecorded = true;
         const player = season.standings.find(driver => driver.id === 'player');
@@ -239,6 +259,27 @@ const game = createGame(canvas, {
           leaderboard.scrollTop += (row.top + row.height / 2) - (list.top + list.height / 2);
         }
       }
+    }
+  },
+  onFinish: result => {
+    finishedSessionType = result.sessionType;
+    if (activeWeekendSession) {
+      const recorded = weekend.recordResult(activeWeekendSession, {
+        order: result.standings,
+        bestLapMs: result.bestLapMs,
+        elapsedMs: result.elapsedMs
+      });
+      if (recorded.ok) {
+        const playerPosition = recorded.result.playerPosition;
+        const label = activeWeekendSession === 'practice' ? 'PRACTICE COMPLETE' :
+          activeWeekendSession === 'qualifying' ? 'QUALIFYING COMPLETE' : 'GRAND PRIX COMPLETE';
+        document.querySelector('#race-message').textContent =
+          playerPosition ? `${label} — YOU P${playerPosition}` : label;
+      } else {
+        document.querySelector('#race-message').textContent = recorded.error;
+      }
+      activeWeekendSession = null;
+      renderWeekendPanel();
     }
   },
   onSector: ({sector,time}) => { const alert=raceEngineer.recordSector({sector,time,now:performance.now()}); if(alert)showEngineerAlert(alert); },
@@ -288,21 +329,46 @@ document.querySelector('#pit-cancel').addEventListener('click',()=>{pitDialog.hi
 document.querySelector('#pit-confirm').addEventListener('click',()=>{if(game.requestPit(document.querySelector('#pit-compound').value,Number(document.querySelector('#pit-fuel').value),document.querySelector('#pit-repair').checked))pitDialog.hidden=true;});
 document.querySelector('#pit-fuel').addEventListener('input',event=>{document.querySelector('#fuel-choice').textContent=event.target.value+'%';});
 
+document.querySelector('#weekend-session-buttons').addEventListener('click', event => {
+  const button = event.target.closest('[data-weekend-session]');
+  if (!button) return;
+  const config = weekend.startSession(button.dataset.weekendSession);
+  if (!config) return;
+  activeWeekendSession = config.id;
+  finishedSessionType = null;
+  championshipActive = false;
+  roundRecorded = false;
+  raceRewardRecorded = false;
+  game.setCarConfig(garage.getCar());
+  gridPositionSelect.value = String(config.gridPosition);
+  startScreen.classList.add('hidden');
+  document.querySelector('#race-message').textContent = `ROUND ${weekend.getState().round} · ${config.label}`;
+  game.start(config.gridPosition, config);
+});
+document.querySelector('#weekend-new').addEventListener('click', () => {
+  weekend.startNewWeekend();
+  renderWeekendPanel();
+});
+
 startButton.addEventListener('click', () => {
   championshipActive = false;
+  activeWeekendSession = null;
+  finishedSessionType = null;
   startScreen.classList.add('hidden');
   game.setCarConfig(garage.getCar());
-  game.start(Number(gridPositionSelect.value));
+  game.start(Number(gridPositionSelect.value), { type:'race', laps:TOTAL_LAPS });
 });
 championshipButton.addEventListener('click', () => {
   let season = championship.getState();
   if (!season.hasSeason || season.completed) season = championship.startNewSeason();
   championshipActive = true;
+  activeWeekendSession = null;
+  finishedSessionType = null;
   startScreen.classList.add('hidden');
   game.setCarConfig(garage.getCar());
   renderChampionshipSummary();
   document.querySelector('#race-message').textContent = `CHAMPIONSHIP ROUND ${season.round + 1} OF ${championship.rounds}`;
-  game.start(Number(gridPositionSelect.value));
+  game.start(Number(gridPositionSelect.value), { type:'race', laps:TOTAL_LAPS });
 });
 audioButton.addEventListener('click', () => {
   const enabled = audio.toggle();
@@ -414,6 +480,7 @@ tiltInvertToggle.addEventListener('change', () => {
 });
 
 renderChampionshipSummary();
+renderWeekendPanel();
 renderGarage();
 game.init();
 applyPlatform();
