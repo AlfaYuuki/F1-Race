@@ -9,6 +9,7 @@ import { createRaceWeekend } from './race-weekend.js';
 import { LAP_DISTANCE, TOTAL_LAPS } from './track.js';
 import { PLATFORMS, detectPlatform, loadSettings, saveSetting, controlHint } from './platform.js';
 import { formatGap } from './timing.js';
+import { createPitStrategy } from './pit-strategy.js';
 
 const canvas = document.querySelector('#race-canvas');
 const leaderboard = document.querySelector('#leaderboard-list');
@@ -25,6 +26,8 @@ const garage = createGarage();
 const dataManager = createDataManager();
 const raceEngineer = createRaceEngineer();
 const weekend = createRaceWeekend();
+const pitStrategy = createPitStrategy();
+let latestPitAdvice = null;
 let activeWeekendSession = null;
 let finishedSessionType = null;
 let raceRewardRecorded = false;
@@ -176,6 +179,14 @@ const game = createGame(canvas, {
     const playerPosition = raceOrder.length ? raceOrder.findIndex(driver => driver.isPlayer || driver.id === 'player') + 1 : position;
     const displayGear = speed < 8 ? 'N' : gear;
     const live = telemetry || {};
+    latestPitAdvice = pitStrategy.update({lap,totalLaps,fuel,tireWear,compound,weather,pitStops,damage,state});
+    const strategyStatus = document.querySelector('#pit-strategy-status');
+    const strategyDetail = document.querySelector('#pit-strategy-detail');
+    if (strategyStatus && strategyDetail) {
+      strategyStatus.textContent = latestPitAdvice.status;
+      strategyStatus.dataset.priority = latestPitAdvice.priority;
+      strategyDetail.textContent = latestPitAdvice.message;
+    }
     const engineerAlert = raceEngineer.update({
       state, position:playerPosition, standings, lap, totalLaps,
       fuel, tireWear, compound, damage, offRoad, weather, sector, sectorTime, pitPhase,
@@ -324,7 +335,19 @@ controls = bindControls(game, {
   onTiltReady: ready => { tiltReady = ready; applyPlatform(); }
 });
 const pitDialog=document.querySelector('#pit-dialog');
-document.querySelector('#pit-button').addEventListener('click',()=>{if(game.getState()==='running')pitDialog.hidden=false;});
+document.querySelector('#pit-button').addEventListener('click',()=>{
+  if(game.getState()!=='running')return;
+  applyPitRecommendation(latestPitAdvice);
+  pitDialog.hidden=false;
+});
+function applyPitRecommendation(advice) {
+  if(!advice)return;
+  document.querySelector('#pit-compound').value=advice.compound;
+  document.querySelector('#pit-fuel').value=String(advice.fuelTarget);
+  document.querySelector('#fuel-choice').textContent=advice.fuelTarget+'%';
+  document.querySelector('#pit-repair').checked=advice.repair;
+}
+document.querySelector('#pit-use-recommendation').addEventListener('click',()=>applyPitRecommendation(latestPitAdvice));
 document.querySelector('#pit-cancel').addEventListener('click',()=>{pitDialog.hidden=true;});
 document.querySelector('#pit-confirm').addEventListener('click',()=>{if(game.requestPit(document.querySelector('#pit-compound').value,Number(document.querySelector('#pit-fuel').value),document.querySelector('#pit-repair').checked))pitDialog.hidden=true;});
 document.querySelector('#pit-fuel').addEventListener('input',event=>{document.querySelector('#fuel-choice').textContent=event.target.value+'%';});
