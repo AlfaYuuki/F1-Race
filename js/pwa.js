@@ -23,12 +23,16 @@ window.addEventListener('appinstalled', () => {
 
 if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
   // If an installed app receives a new controller, reload once to use the new app shell.
-  const hadController = Boolean(navigator.serviceWorker.controller);
+  let hadController = Boolean(navigator.serviceWorker.controller);
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (hadController && !refreshing) {
+    const hasController = Boolean(navigator.serviceWorker.controller);
+    if (hadController && hasController && !refreshing) {
       refreshing = true;
       location.reload();
+      return;
     }
+    // Remember the first controller so later updates reload an already-open app.
+    hadController = hasController;
   });
 
   async function registerAndCheckForUpdates() {
