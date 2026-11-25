@@ -939,7 +939,7 @@ button,select,input{touch-action:manipulation}
     right:max(22px,env(safe-area-inset-right));
     width:17vw;
     max-width:270px;
-    max-height:calc(100dvh - 245px - env(safe-area-inset-bottom));
+    max-height:max(150px,calc(100dvh - 310px - env(safe-area-inset-bottom)));
     z-index:5;
   }
   .standings ol{min-height:0;overflow-y:auto}
