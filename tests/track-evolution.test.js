@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createWeather } from '../js/weather.js';
 import { createTrackEvolution } from '../js/track-evolution.js';
+import { createPhysics } from '../js/physics.js';
 
 test('weather transitions smoothly and exposes a forecast',()=>{
   const weather=createWeather(()=>.5);weather.reset();
@@ -33,4 +34,19 @@ test('track samples give the racing line more grip than the dirty line',()=>{
   const track=createTrackEvolution();track.reset(25);
   for(let i=0;i<1000;i++)track.update(.1,{rain:0,temperature:25},35);
   assert.ok(track.sample(.4,0).grip>track.sample(.4,.9).grip);
+});
+
+test('weather clamps unusually large frame deltas to a safe simulation step',()=>{
+  const weather=createWeather(()=>.5);
+  weather.reset();
+  const state=weather.update(100);
+  assert.equal(state.nextChangeIn,62);
+});
+
+test('evolving track grip is applied to player physics',()=>{
+  const normal=createPhysics(),wetSurface=createPhysics();
+  normal.speed=wetSurface.speed=180;
+  normal.update(.1,new Set(),0,0,{trackGrip:1});
+  wetSurface.update(.1,new Set(),0,0,{trackGrip:.55});
+  assert.ok(wetSurface.getTelemetry().grip<normal.getTelemetry().grip);
 });
