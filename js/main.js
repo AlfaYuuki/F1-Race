@@ -429,7 +429,7 @@ document.querySelector('#data-file').addEventListener('change',async event=>{
   } finally { event.target.value=''; }
 });
 document.querySelector('#data-delete').addEventListener('click',()=>{
-  const confirmed=window.confirm('DELETE ALL F1 RACE SAVE DATA? This permanently removes your garage, credits, upgrades, championship results and control preferences from this device. This cannot be undone unless you have a backup.');
+  const confirmed=window.confirm('DELETE ALL F1 RACE SAVE DATA? This permanently removes your garage, credits, upgrades, championship and race-weekend results, and control preferences from this device. This cannot be undone unless you have a backup.');
   if(!confirmed)return;
   const result=dataManager.deleteAll();
   if(!result.ok){document.querySelector('#data-feedback').textContent=result.error;return;}
