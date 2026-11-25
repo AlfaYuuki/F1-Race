@@ -149,7 +149,7 @@ function choosePlatform(id) {
 
 const game = createGame(canvas, {
   onUpdate: ({ speed, rpm, gear, lap, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, throttle, skid, telemetry = {} }) => {
-    const raceOrder = standings ? [...standings].sort((a, b) => b.distance - a.distance) : [];
+    const raceOrder = standings || [];
     const playerPosition = raceOrder.length ? raceOrder.findIndex(driver => driver.isPlayer || driver.id === 'player') + 1 : position;
     const displayGear = speed < 8 ? 'N' : gear;
     const live = telemetry || {};
