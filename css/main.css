@@ -858,3 +858,39 @@ button,select,input{touch-action:manipulation}
   .engineer-panel>p{font-size:8px;margin:3px 0 5px}
   .engineer-action{padding-top:4px}
 }
+
+
+/* 20-driver timing tower: compact, independently scrollable standings. */
+.standings {
+  max-height: min(68vh, 620px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.standings ol {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #587184 #071522;
+}
+.standings li {
+  height: 23px;
+  min-height: 23px;
+  box-sizing: border-box;
+  gap: 6px;
+  font-size: 9px;
+}
+.standings .rank { width: 18px; flex: 0 0 18px; }
+.standings li span:not(.rank) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+@media (max-height: 520px) {
+  .standings { top: 52px; max-height: calc(100dvh - 64px); padding: 7px; }
+  .standings-head { padding-bottom: 5px; font-size: 8px; }
+  .standings li { height: 19px; min-height: 19px; font-size: 8px; }
+}
