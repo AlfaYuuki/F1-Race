@@ -20,14 +20,25 @@ export function createGarage(storage = (() => { try { return globalThis.localSto
   let state = copy(DEFAULT_STATE);
   try {
     const saved = JSON.parse(storage?.getItem(STORAGE_KEY) || 'null');
-    if (saved && Array.isArray(saved.ownedCars) && saved.upgrades && saved.setup) {
-      state = { ...state, ...saved,
-        upgrades: { ...state.upgrades, ...saved.upgrades },
-        setup: { ...state.setup, ...saved.setup }
+    const validCars = Array.isArray(saved?.ownedCars) && saved.ownedCars.length > 0 &&
+      saved.ownedCars.every(id => CARS.some(car => car.id === id)) &&
+      CARS.some(car => car.id === saved.selectedCar) && saved.ownedCars.includes(saved.selectedCar);
+    const validUpgrades = Object.keys(DEFAULT_STATE.upgrades).every(key =>
+      Number.isInteger(saved?.upgrades?.[key]) && saved.upgrades[key] >= 0 && saved.upgrades[key] <= 5);
+    const validSetup = Object.keys(DEFAULT_STATE.setup).every(key =>
+      Number.isFinite(saved?.setup?.[key]) && saved.setup[key] >= 0 && saved.setup[key] <= 100);
+    const validSave = saved && validCars && validUpgrades && validSetup &&
+      Number.isFinite(saved.credits) && saved.credits >= 0 &&
+      /^#[0-9a-f]{6}$/i.test(saved.livery || '');
+    if (validSave) {
+      state = {
+        credits: saved.credits,
+        selectedCar: saved.selectedCar,
+        ownedCars: [...new Set(['falcon', ...saved.ownedCars])],
+        upgrades: { ...saved.upgrades },
+        setup: { ...saved.setup },
+        livery: saved.livery
       };
-      state.ownedCars = [...new Set(['falcon', ...state.ownedCars.filter(id => CARS.some(car => car.id === id))])];
-      if (!CARS.some(car => car.id === state.selectedCar) || !state.ownedCars.includes(state.selectedCar)) state.selectedCar = 'falcon';
-      state.credits = Math.max(0, Number(state.credits) || 0);
     }
   } catch { /* Start with a clean garage if storage is unavailable or corrupt. */ }
 
