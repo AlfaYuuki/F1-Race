@@ -36,7 +36,7 @@ if (!serviceWorker.includes("'./js/track-evolution.js'")) { throw new Error('The
 if (!serviceWorker.includes("'./js/timing.js'")) {
   throw new Error('The live timing module is missing from the PWA app shell.');
 }
-for (const feature of ['registration.update()', 'SKIP_WAITING', 'controllerchange']) {
+for (const feature of ['registration.update()', 'SKIP_WAITING', 'controllerchange', 'hadController = hasController']) {
   if (!pwa.includes(feature)) throw new Error(`PWA update flow is missing: ${feature}`);
 }
 console.log(`Validated ${ids.length} unique HTML IDs, ${modules.length} JavaScript modules and all relative imports.`);
