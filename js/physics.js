@@ -15,8 +15,6 @@ export function createPhysics() {
     telemetry: { throttle:0, brake:0, steering:0, lateralG:0, longitudinalG:0, grip:100, fuelFlow:0 },
     carConfig: { stats: { power:1, grip:1, braking:1, durability:1 }, setup: { aero:50, suspension:50, brakeBias:56, differential:50 } },
     setCarConfig(config) { if (config?.stats) this.carConfig = config; },
-    carConfig: { stats: { power:1, grip:1, braking:1, durability:1 }, setup: { aero:50, suspension:50, brakeBias:56, differential:50 } },
-    setCarConfig(config) { if (config?.stats) this.carConfig = config; },
     update(dt, input, curve, steerAxis = 0, options = {}) {
       const previousSpeed = this.speed;
       const previousFuel = this.fuel;
