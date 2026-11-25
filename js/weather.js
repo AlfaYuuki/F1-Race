@@ -28,7 +28,14 @@ export function createWeather(random=Math.random) {
   function update(dt) {
     const step=clamp(Number(dt)||0,0,1);
     elapsed+=step;eventCooldown=Math.max(0,eventCooldown-step);
-    if(elapsed>=nextChange) chooseNext();
+    if(elapsed>=nextChange) {
+      if(target!==current) {
+        transition=18;
+        nextChange=elapsed+55+random()*75;
+      } else {
+        chooseNext();
+      }
+    }
     if(transition>0) {
       const from=WEATHER[current],to=WEATHER[target],blend=1-transition/18;
       intensity=from.rain+(to.rain-from.rain)*blend;
