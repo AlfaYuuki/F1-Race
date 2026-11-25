@@ -19,9 +19,30 @@ export function createRaceWeekend(storage = safeStorage()) {
   function load() {
     try {
       const parsed = JSON.parse(storage?.getItem(KEY) || 'null');
-      if (parsed && Array.isArray(parsed.completed) && Array.isArray(parsed.results) &&
-          Array.isArray(parsed.qualifyingOrder) && Number.isInteger(parsed.round) && parsed.round > 0) {
-        state = parsed;
+      const validSessions = Array.isArray(parsed?.completed) &&
+        parsed.completed.length <= SESSION_ORDER.length &&
+        parsed.completed.every((id, index) => id === SESSION_ORDER[index].id);
+      const validResults = Array.isArray(parsed?.results) &&
+        parsed.results.length === parsed.completed?.length &&
+        parsed.results.every((result, index) => result && result.session === parsed.completed[index] &&
+          Array.isArray(result.order) && result.order.every(driver =>
+            driver && typeof driver.id === 'string' && typeof driver.name === 'string'));
+      const order = parsed?.qualifyingOrder;
+      const validGrid = Array.isArray(order) &&
+        (order.length === 0 || (order.length === 20 && new Set(order).size === 20 &&
+          order.every(id => typeof id === 'string' && id.length > 0) && order.includes('player')));
+      if (Number.isInteger(parsed?.round) && parsed.round > 0 && validSessions &&
+          validResults && validGrid &&
+          (parsed.completed.includes('qualifying') === (order.length === 20))) {
+        state = {
+          round: parsed.round,
+          completed: [...parsed.completed],
+          results: parsed.results.map(result => ({
+            ...result,
+            order: result.order.map(driver => ({ id: driver.id, name: driver.name }))
+          })),
+          qualifyingOrder: [...order]
+        };
       }
     } catch { /* Start with a clean weekend if stored data is invalid. */ }
   }
