@@ -1122,8 +1122,8 @@ button,select,input{touch-action:manipulation}
   .timing-panel{left:30px;bottom:52px}
   .pit-button{right:30px;bottom:70px}
   .pit-telemetry{
-    left:auto;right:210px;transform:none;
-    width:min(680px,calc(100vw - 600px));max-width:680px;
+    left:auto;right:234px;transform:none;
+    width:min(680px,calc(100vw - 624px));max-width:680px;
     bottom:52px;
   }
 }
