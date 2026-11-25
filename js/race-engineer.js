@@ -69,6 +69,8 @@ export function createRaceEngineer(options={}) {
     const compound=String(snapshot.compound||'MEDIUM').toUpperCase();
     const telemetry=snapshot.telemetry||{};
     const candidates=[];
+    const pitPlan=evaluatePitStrategy({lap,totalLaps,fuel,tireWear:wear,compound,damage,weather,lastLapMs:lapMs,fuelFlow:averageFuelFlow});
+    if(pitPlan.requiredStop)candidates.push({key:'pit-strategy',level:pitPlan.urgency==='BOX NOW'?'critical':'warning',title:'PIT WALL STRATEGY',message:pitPlan.reason+'. Recommended compound: '+pitPlan.targetCompound+'. Fuel target: '+pitPlan.fuelTarget+'%.',action:'BOX · '+pitPlan.targetCompound+' · '+pitPlan.fuelTarget+'%',priority:pitPlan.urgency==='BOX NOW'?97:82});
 
     if(now-lastSampleAt>=sampleMs){
       if(previousSample){
