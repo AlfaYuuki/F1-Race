@@ -104,7 +104,9 @@ export function createOpponents(lapDistance = 4563) {
 
       const cornerPenalty = cornerLoad * (15 + (1 - driver.skill) * 27) * (1.08 - driver.personality.consistency * .12);
       const consistencyLoss = Math.abs(Math.sin(driver.distance * .00063 + driver.skill * 4)) * (1 - driver.skill) * 5;
-      const weatherPenalty = (weather.rain || 0) * (driver.compound === 'INTER' ? 5 : 32 * (1 - driver.personality.wetSkill * .35));
+      const surface = weather.trackEvolution?.sample?.(progress,driver.currentLane) || {grip:1};
+      const surfacePenalty = Math.max(0,1-surface.grip)*34;
+      const weatherPenalty = (weather.rain || 0) * (driver.compound === 'INTER' ? 5 : 32 * (1 - driver.personality.wetSkill * .35)) + surfacePenalty;
       const wearPenalty = driver.tireWear * .13;
       const safePace = weather.safetyCar ? 145 : weather.yellowFlag ? 170 : 285;
       const targetSpeed = clamp(driver.pace + rhythm + draftBonus - cornerPenalty - consistencyLoss - weatherPenalty - wearPenalty, 125, safePace);
