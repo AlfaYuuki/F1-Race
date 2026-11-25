@@ -23,4 +23,15 @@ for (const file of modules) {
     if (match[1].startsWith('.')) await access(resolve(dirname(path), match[1]));
   }
 }
+const serviceWorker = await readFile(resolve(root, 'sw.js'), 'utf8');
+const pwa = await readFile(resolve(root, 'js/pwa.js'), 'utf8');
+if (!/const CACHE_NAME = ['"]the-f1-race-shell-v\\d+['"]/.test(serviceWorker)) {
+  throw new Error('Service worker cache version is missing or invalid.');
+}
+if (!serviceWorker.includes("'./js/timing.js'")) {
+  throw new Error('The live timing module is missing from the PWA app shell.');
+}
+for (const feature of ['registration.update()', 'SKIP_WAITING', 'controllerchange']) {
+  if (!pwa.includes(feature)) throw new Error(`PWA update flow is missing: ${feature}`);
+}
 console.log(`Validated ${ids.length} unique HTML IDs, ${modules.length} JavaScript modules and all relative imports.`);
