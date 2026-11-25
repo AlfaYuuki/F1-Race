@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createDataManager, DATA_KEYS } from '../js/data-manager.js';
 import { createChampionship } from '../js/championship.js';
 import { createRaceWeekend } from '../js/race-weekend.js';
+import { createGarage } from '../js/garage.js';
 
 function memoryStorage(seed = {}) {
   const values = new Map(Object.entries(seed));
@@ -122,4 +123,23 @@ test('save manager rejects malformed race weekend progress', () => {
   };
   assert.equal(manager.restoreBackup(invalid).ok, false);
   assert.equal(storage.getItem('the-f1-race-weekend-v1'), null);
+});
+
+test('legacy partial garage saves are normalized before backup export', () => {
+  const storage = memoryStorage({
+    'the-f1-race-garage-v1': JSON.stringify({
+      credits: 900, selectedCar: 'falcon', ownedCars: ['falcon'],
+      upgrades: { power: 2 }, setup: { aero: 70 }
+    })
+  });
+  createGarage(storage);
+  const backup = createDataManager(storage).createBackup();
+  assert.equal(backup.data['the-f1-race-garage-v1'] !== undefined, true);
+  const target = memoryStorage();
+  assert.deepEqual(createDataManager(target).restoreBackup(backup), { ok: true });
+  const restored = createGarage(target).getState();
+  assert.equal(restored.credits, 900);
+  assert.equal(restored.upgrades.power, 2);
+  assert.equal(restored.setup.aero, 70);
+  assert.equal(restored.setup.suspension, 50);
 });
