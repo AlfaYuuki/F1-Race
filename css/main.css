@@ -898,3 +898,149 @@ button,select,input{touch-action:manipulation}
   .standings-head { padding-bottom: 5px; font-size: 8px; }
   .standings li { height: 19px; min-height: 19px; font-size: 8px; }
 }
+
+/* =====================================================================
+   PHONE FIT — one authoritative layout for phones (loaded last).
+   Every in-race panel owns a zone, so nothing can sit on top of another:
+
+   LANDSCAPE            top bar: brand · race message · buttons
+     left column  : HUD → lap timing → race-engineer card
+     right column : live-timing tower (height-capped, follows your car) · BOX
+     bottom row   : steering (left) · car telemetry (centre) · BRAKE/GO (right)
+   PORTRAIT             HUD across the top, timing + engineer left, tower right,
+                        telemetry above the controls, BOX between the pedals.
+   ===================================================================== */
+@media(orientation:landscape) and (max-height:520px){
+  .race-game{--sl:max(8px,env(safe-area-inset-left));--sr:max(8px,env(safe-area-inset-right));--ctl:46px;--foot:18px;min-height:0!important;padding-top:0!important;padding-bottom:0!important}
+  .race-topbar{height:34px!important;padding:0 var(--sr) 0 var(--sl)!important}
+  .brand{font-size:8px!important;gap:6px!important}.brand-mark{font-size:16px!important;padding:1px 6px!important}
+  .track-name{display:none!important}
+  .top-actions{gap:4px!important}
+  .icon-button{width:28px!important;height:26px!important;font-size:12px!important;border-radius:6px!important}
+  .race-message{top:12px!important;font-size:6.5px!important;letter-spacing:.1em!important;max-width:calc(100vw - 290px)!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important;text-align:center}
+
+  .hud{top:38px!important;left:var(--sl)!important;right:auto!important;bottom:auto!important;max-width:none!important;gap:9px!important;padding:5px 9px!important;border-radius:7px!important}
+  .hud-block{min-width:0!important}
+  .hud-block>small{font-size:5.5px!important;letter-spacing:.08em!important}
+  .hud-block strong{font-size:14px!important}.hud-block strong span{font-size:8px!important}
+  .time-block{display:flex!important}.time-block strong{font-size:11px!important;padding-top:0!important}
+  .speed-block{min-width:50px!important}.speed-block>strong{font-size:19px!important}.speed-block>strong small{font-size:6px!important}
+  .gear-block{min-width:28px!important}.gear-block strong{font-size:17px!important}.gear-block>small:last-child{display:none!important}
+  .rpm-track{width:28px!important}
+
+  .timing-panel{display:flex!important;left:var(--sl)!important;right:auto!important;top:98px!important;bottom:auto!important;gap:9px!important;padding:4px 8px!important;border-radius:6px!important}
+  .timing-panel small{font-size:5.5px!important}.timing-panel strong{font-size:8.5px!important}
+  .timing-panel div+div{padding-left:8px!important}
+
+  .engineer-panel{top:128px!important;left:var(--sl)!important;right:auto!important;bottom:auto!important;transform:none!important;width:min(236px,38vw)!important;min-width:0!important;padding:5px 8px!important;border-radius:6px!important}
+  .engineer-heading{font-size:5.5px!important;gap:5px!important}.engineer-heading b{font-size:5.5px!important}
+  .engineer-panel>strong{font-size:10px!important;margin-top:3px!important}
+  .engineer-panel>p{font-size:7px!important;line-height:1.3!important;margin:2px 0 4px!important}
+  .engineer-action{padding-top:3px!important}.engineer-action span{font-size:5.5px!important}.engineer-action b{font-size:6.5px!important}
+
+  /* tower: never taller than the space above the BOX button, and it scrolls to keep your car in view */
+  .standings{top:38px!important;right:var(--sr)!important;left:auto!important;bottom:auto!important;width:112px!important;padding:4px 5px!important;border-radius:7px!important;max-height:calc(100dvh - 38px - var(--foot) - var(--ctl) - 62px)!important}
+  .standings-head{font-size:5.5px!important;padding:0 2px 3px!important}
+  .standings li{height:14px!important;min-height:14px!important;font-size:6.5px!important;gap:3px!important;padding:0 2px!important}
+  .standings li b{font-size:5px!important}.standings li i{width:3px!important}.standings .rank{width:11px!important;flex-basis:11px!important;font-size:6px!important}
+
+  /* car telemetry: all 11 readouts in the free space between the two control groups */
+  .pit-telemetry{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:3px 7px!important;left:calc(var(--sl) + 112px)!important;right:calc(var(--sr) + 134px)!important;top:auto!important;bottom:calc(var(--foot) + 6px)!important;transform:none!important;width:auto!important;max-width:470px!important;margin:0 auto!important;padding:4px 8px!important;border-radius:7px!important}
+  .pit-telemetry>div{min-width:0!important;gap:1px!important}
+  .pit-telemetry small{font-size:5px!important;letter-spacing:.04em!important;white-space:nowrap;overflow:hidden}
+  .pit-telemetry strong{font-size:7.5px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pit-meter{height:2px!important}
+  .pit-button{right:var(--sr)!important;left:auto!important;top:auto!important;bottom:calc(var(--foot) + var(--ctl) + 12px)!important;min-height:0!important;min-width:0!important;padding:6px 10px!important;font-size:8px!important;border-radius:6px!important}
+
+  .mobile-controls{left:var(--sl)!important;right:var(--sr)!important;bottom:calc(var(--foot) + 4px)!important}
+  .mobile-controls button{min-width:50px!important;height:var(--ctl)!important;font-size:11px!important;border-radius:10px!important}
+  .pedal-controls button:last-child{min-width:68px!important}
+  .steer-controls,.pedal-controls{gap:6px!important}
+  .tilt-badge{height:var(--ctl)!important;min-width:112px!important;padding:0 10px!important;font-size:7px!important;gap:7px!important;border-radius:10px!important}
+
+  .race-bottom{height:var(--foot)!important;padding:0 var(--sr) 0 var(--sl)!important;font-size:6px!important}
+  .race-bottom span:last-child{display:none}
+}
+@media(orientation:landscape) and (max-height:520px) and (max-width:700px){
+  .time-block{display:none!important}
+  .rpm-track{display:none!important}
+  .standings{width:98px!important}.standings li{font-size:6px!important}
+  .timing-panel{top:92px!important}
+  .engineer-panel{top:122px!important}
+  .pit-telemetry{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  .pit-telemetry strong{font-size:6.5px!important}
+  .race-bottom span:nth-child(2){display:none}
+  .race-message{max-width:calc(100vw - 250px)!important}
+}
+@media(orientation:landscape) and (max-height:340px){
+  .standings li{height:12px!important;min-height:12px!important}
+  .mobile-controls button,.tilt-badge{height:40px!important}
+  .standings{max-height:calc(100dvh - 38px - var(--foot) - 40px - 62px)!important}
+  .pit-button{bottom:calc(var(--foot) + 52px)!important}
+}
+
+@media(orientation:portrait) and (max-width:620px){
+  .race-game{--sl:max(8px,env(safe-area-inset-left));--sr:max(8px,env(safe-area-inset-right));--ctl:56px;--foot:20px;padding-top:0!important;padding-bottom:0!important}
+  .race-topbar{height:44px!important;padding:0 var(--sr) 0 var(--sl)!important}
+  .track-name{display:none!important}
+  .icon-button{width:32px!important;height:30px!important;font-size:13px!important}
+  .brand>span:last-child{display:none!important}
+  .race-message{top:6px!important;left:calc(var(--sl) + 54px)!important;right:calc(var(--sr) + 152px)!important;transform:none!important;width:auto!important;max-width:none!important;height:32px;display:flex!important;align-items:center;justify-content:center;white-space:normal!important;text-align:center;font-size:6.5px!important;line-height:1.35!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important}
+
+  .hud{top:50px!important;left:var(--sl)!important;right:var(--sr)!important;max-width:none!important;width:auto!important;justify-content:space-between;gap:6px!important;padding:6px 10px!important}
+  .hud-block{min-width:0!important}
+  .hud-block>small{font-size:5.5px!important}.hud-block strong{font-size:15px!important}.hud-block strong span{font-size:8px!important}
+  .time-block{display:flex!important}.time-block strong{font-size:11px!important;padding-top:0!important}
+  .speed-block{min-width:48px!important}.speed-block>strong{font-size:20px!important}
+  .gear-block{min-width:26px!important}.gear-block strong{font-size:18px!important}.gear-block>small:last-child{display:none!important}
+  .rpm-track{width:26px!important}
+
+  .timing-panel{display:grid!important;left:var(--sl)!important;right:auto!important;top:112px!important;bottom:auto!important;width:min(52vw,190px)!important;gap:4px!important;padding:6px 9px!important}
+  .timing-panel div{flex-direction:row!important;justify-content:space-between;align-items:baseline}
+  .timing-panel div+div{padding-left:0!important;border-left:0!important}
+  .timing-panel small{font-size:5.5px!important}.timing-panel strong{font-size:8.5px!important}
+
+  .engineer-panel{top:178px!important;left:var(--sl)!important;right:auto!important;transform:none!important;width:min(52vw,190px)!important;min-width:0!important;padding:6px 8px!important}
+  .engineer-heading,.engineer-heading b{font-size:5.5px!important}
+  .engineer-panel>strong{font-size:11px!important}
+  .engineer-panel>p{font-size:7.5px!important;line-height:1.3!important;margin:3px 0 5px!important}
+  .engineer-action span{font-size:5.5px!important}.engineer-action b{font-size:6.5px!important}
+
+  .standings{top:112px!important;right:var(--sr)!important;left:auto!important;width:118px!important;padding:4px 6px!important;max-height:calc(100dvh - 112px - var(--foot) - var(--ctl) - 140px)!important}
+  .standings-head{font-size:5.5px!important;padding:0 2px 3px!important}
+  .standings li{height:16px!important;min-height:16px!important;font-size:6.5px!important;padding:0 2px!important}
+  .standings li b{font-size:5px!important}.standings .rank{width:12px!important;flex-basis:12px!important;font-size:6px!important}
+
+  .pit-telemetry{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px 8px!important;left:var(--sl)!important;right:var(--sr)!important;top:auto!important;bottom:calc(var(--foot) + var(--ctl) + 14px)!important;transform:none!important;width:auto!important;max-width:none!important;padding:6px 10px!important}
+  .pit-telemetry>div{min-width:0!important;gap:2px!important}
+  .pit-telemetry small{font-size:5.5px!important;white-space:nowrap;overflow:hidden}
+  .pit-telemetry strong{font-size:8px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pit-meter{height:2px!important}
+
+  .mobile-controls{left:var(--sl)!important;right:var(--sr)!important;bottom:calc(var(--foot) + 6px)!important}
+  .mobile-controls button{min-width:58px!important;height:var(--ctl)!important;font-size:12px!important}
+  .pedal-controls button:last-child{min-width:74px!important}
+  .tilt-badge{height:var(--ctl)!important;min-width:120px!important}
+  /* BOX sits in the gap between the steering and pedal groups */
+  .pit-button{left:50%!important;right:auto!important;top:auto!important;transform:translateX(-50%)!important;bottom:calc(var(--foot) + 6px + (var(--ctl) - 38px) / 2)!important;min-height:38px!important;min-width:0!important;padding:0 10px!important;font-size:9px!important}
+  .race-bottom{height:var(--foot)!important;padding:0 var(--sr) 0 var(--sl)!important;font-size:6px!important}
+  .race-bottom span:last-child{display:none}
+}
+
+/* Short landscape phones: the start card becomes two columns so every button is visible without scrolling */
+@media(orientation:landscape) and (max-height:520px){
+  .start-screen{padding:6px max(8px,env(safe-area-inset-right)) 6px max(8px,env(safe-area-inset-left))!important;align-items:center}
+  .start-card{display:block!important;column-count:2;column-gap:22px;width:min(700px,100%)!important;max-height:calc(100dvh - 12px)!important;margin:0 auto!important;padding:12px 16px!important;transform:none!important;overflow-y:auto}
+  .start-card>*{break-inside:avoid}
+  .start-card>.grid-choice{break-after:column}
+  .start-card h1{font-size:38px!important;margin:0 0 6px!important}
+  .start-card .eyebrow{margin:0 0 6px!important;font-size:7px!important}
+  .start-card>p:not(.eyebrow){font-size:9.5px!important;line-height:1.45!important;margin:0 0 6px!important}
+  .start-meta{padding:6px 0 8px!important;gap:16px!important}.start-meta span{font-size:14px!important}.start-meta small{font-size:6px!important}
+  .grid-choice{margin:0!important;padding:6px 10px!important;font-size:8px!important}.grid-choice select{padding:5px 8px!important;font-size:10px!important}
+  .start-button{padding:10px 14px!important;font-size:10px!important}
+  .championship-button{margin-top:5px!important;padding:8px 12px!important;font-size:8.5px!important}
+  .championship-summary{margin:6px 0 0!important;font-size:6.5px!important}
+  .keyboard-help{margin-top:6px!important;font-size:6.5px!important}
+  .platform-change{margin-top:6px!important;padding:6px 8px!important;font-size:6.5px!important}
+}

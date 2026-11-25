@@ -71,7 +71,7 @@ export function createGame(canvas,callbacks={}) {
     if(currentSector!==sector){notify('SECTOR '+sector+' COMPLETE — '+formatTime(sectorElapsed));callbacks.onSector?.({sector:'S'+sector,time:sectorElapsed});sector=currentSector;sectorElapsed=0;}
     if(currentLapIndex>previousLapIndex){lastLap=lapElapsed;bestLap=bestLap===null?lastLap:Math.min(bestLap,lastLap);lapElapsed=0;sector=1;sectorElapsed=0;notify('LAP '+(currentLapIndex+1)+' — '+formatTime(lastLap));}
     if(raceDistance>=TOTAL_DISTANCE){raceDistance=TOTAL_DISTANCE;state='finished';physics.speed=0;pitPhase=null;callbacks.onPitService?.(false);notify('CHEQUERED FLAG — RACE COMPLETE!');}
-    lap=Math.min(TOTAL_LAPS,Math.floor(raceDistance/LAP_DISTANCE)+1);
+    lap=Math.max(1,Math.min(TOTAL_LAPS,Math.floor(raceDistance/LAP_DISTANCE)+1));  // a car on the grid is still on lap 1
     const rivalCars=opponents.drivers.map(d=>({...d,relativeDistance:d.distance-raceDistance}));
     renderer.render({position:raceDistance/LAP_DISTANCE,playerX:physics.playerX,speed:physics.speed,speedDelta:(physics.speed-previousSpeed)/Math.max(dt,.001),lateralVelocity:physics.lateralVelocity,offRoad:physics.offRoad,running:state==='running',opponents:rivalCars,cameraShake:impactPulse>0?Math.sin(now*.05)*impactPulse*3:0,playerColor,skid:Math.abs(physics.lateralVelocity)>.42,dt});
     updateHud();if(state==='running')raf=requestAnimationFrame(frame);else updateHud();

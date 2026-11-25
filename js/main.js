@@ -221,6 +221,12 @@ const game = createGame(canvas, {
           `<li class="${driver.isPlayer || driver.id === 'player' ? 'player-row' : ''}"><span class="rank">${String(index + 1).padStart(2, '0')}</span><i style="--driver-color:${driver.color}"></i><span>${escapeHtml(driver.name)}</span><b>${state === 'ready' ? 'GRID' : `L${Math.max(1, Math.min(TOTAL_LAPS, Math.floor(driver.distance / LAP_DISTANCE) + 1))}`}</b></li>`
         ).join('');
         lastLeaderboardRefresh = now;
+        // On small screens the tower scrolls: keep the player's row centred.
+        const playerRow = leaderboard.querySelector('.player-row');
+        if (playerRow && leaderboard.scrollHeight > leaderboard.clientHeight) {
+          const row = playerRow.getBoundingClientRect(), list = leaderboard.getBoundingClientRect();
+          leaderboard.scrollTop += (row.top + row.height / 2) - (list.top + list.height / 2);
+        }
       }
     }
   },
