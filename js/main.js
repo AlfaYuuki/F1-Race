@@ -36,7 +36,7 @@ function showEngineerAlert(alert) {
   document.querySelector('#engineer-message').textContent=alert.message;
   document.querySelector('#engineer-action').textContent=alert.action;
   document.querySelector('#engineer-panel').dataset.level=alert.level;
-  if(alert.level==='warning'||alert.level==='critical')audio.playRadio(alert.message);
+  if(alert.isAlert&&(alert.level==='warning'||alert.level==='critical'))audio.playRadio(alert.message);
 }
 
 
@@ -155,8 +155,8 @@ const game = createGame(canvas, {
     const live = telemetry || {};
     const engineerAlert = raceEngineer.update({
       state, position:playerPosition, standings, lap, totalLaps:TOTAL_LAPS,
-      fuel, tireWear, compound, damage, offRoad, weather,
-      lastLapMs, bestLapMs, fuelFlow:live.fuelFlow, now:performance.now()
+      fuel, tireWear, compound, damage, offRoad, weather, sector, sectorTime, pitPhase,
+      lastLapMs, bestLapMs, fuelFlow:live.fuelFlow, telemetry:live, speed, now:performance.now()
     });
     if (engineerAlert) showEngineerAlert(engineerAlert);
 
