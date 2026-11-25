@@ -25,3 +25,13 @@ test('championship awards points, persists and completes five rounds', () => {
   assert.equal(final.standings.find(driver => driver.id === 'player').points, 125);
   assert.equal(createChampionship(storage).getState().round, 5);
 });
+
+test('championship ignores structurally corrupt saved seasons', () => {
+  const storage = memoryStorage();
+  storage.setItem('the-f1-race-championship-v1', JSON.stringify({
+    round: 4, completed: false, results: [], standings: [{ id: 'player', name: 'YOU', points: 999 }]
+  }));
+  const series = createChampionship(storage);
+  assert.equal(series.getState().hasSeason, false);
+  assert.equal(series.getState().round, 0);
+});
