@@ -37,6 +37,7 @@ JS='''(keys)=>{const out={};
  out.__drivers=document.querySelectorAll('#leaderboard-list>li').length;
  out.__playerRows=document.querySelectorAll('#leaderboard-list>.player-row').length;
  out.__telemetryGroups=document.querySelectorAll('.pit-telemetry>.telemetry-group').length;
+ out.__telemetryGroupWidths=[...document.querySelectorAll('.pit-telemetry>.telemetry-group')].map(el=>el.getBoundingClientRect().width);
  out.__telemetryValues=document.querySelectorAll('.pit-telemetry .telemetry-group strong[id]').length;
  out.__gapHeading=document.querySelector('.standings-head b')?.textContent.trim();
  out.__gapCells=[...document.querySelectorAll('#leaderboard-list>li b')].filter(el=>el.textContent.trim()).length;
@@ -86,6 +87,7 @@ async def run(only=None,shots=True):
             if rects['__drivers']!=20: problems.append(f'leaderboard has {rects["__drivers"]} drivers, expected 20')
             if rects['__playerRows']!=1: problems.append(f'leaderboard has {rects["__playerRows"]} player rows, expected 1')
             if rects['__telemetryGroups']!=3: problems.append(f'telemetry has {rects["__telemetryGroups"]} groups, expected 3')
+            if rects['__telemetryGroupWidths'] and min(rects['__telemetryGroupWidths'])<90: problems.append(f'telemetry group too narrow: {rects["__telemetryGroupWidths"]}')
             if rects['__telemetryValues']!=14: problems.append(f'telemetry has {rects["__telemetryValues"]} live values, expected 14')
             if rects['__gapHeading']!='GAP': problems.append('timing tower gap column heading is missing')
             if rects['__gapCells']!=20: problems.append(f'timing tower has {rects["__gapCells"]} populated gap cells, expected 20')
