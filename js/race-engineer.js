@@ -79,7 +79,7 @@ export function createRaceEngineer(options={}) {
       if(fuelInput)fuelInput.value=String(pitPlan.fuelTarget);
       if(fuelOutput)fuelOutput.textContent=pitPlan.fuelTarget+'%';
     }
-    if(pitPlan.requiredStop)candidates.push({key:'pit-strategy',level:pitPlan.urgency==='BOX NOW'?'critical':'warning',title:'PIT WALL STRATEGY',message:pitPlan.reason+'. Recommended compound: '+pitPlan.targetCompound+'. Fuel target: '+pitPlan.fuelTarget+'%.',action:'BOX · '+pitPlan.targetCompound+' · '+pitPlan.fuelTarget+'%',priority:pitPlan.urgency==='BOX NOW'?97:82});
+    if(pitPlan.requiredStop)candidates.push({key:'pit-strategy',level:pitPlan.urgency==='BOX NOW'?'critical':'warning',title:'PIT WALL STRATEGY',message:pitPlan.reason+'. Recommended compound: '+pitPlan.targetCompound+'. Fuel target: '+pitPlan.fuelTarget+'%.',action:'BOX · '+pitPlan.targetCompound+' · '+pitPlan.fuelTarget+'%',priority:pitPlan.urgency==='BOX NOW'?97:20});
 
     if(now-lastSampleAt>=sampleMs){
       if(previousSample){
