@@ -79,7 +79,7 @@ export function createRaceEngineer(options={}) {
       if(fuelInput)fuelInput.value=String(pitPlan.fuelTarget);
       if(fuelOutput)fuelOutput.textContent=pitPlan.fuelTarget+'%';
     }
-    if(pitPlan.requiredStop)candidates.push({key:'pit-strategy',level:pitPlan.urgency==='BOX NOW'?'critical':'warning',title:'PIT WALL STRATEGY',message:pitPlan.reason+'. Recommended compound: '+pitPlan.targetCompound+'. Fuel target: '+pitPlan.fuelTarget+'%.',action:'BOX · '+pitPlan.targetCompound+' · '+pitPlan.fuelTarget+'%',priority:pitPlan.urgency==='BOX NOW'?97:20});
+    if(pitPlan.requiredStop&&(pitPlan.urgency==='BOX NOW'||wear>=70||rain>=.58||(rain<=.08&&compound==='INTER')||damage>=28||fuel<=8||(pitPlan.fuelRange!==null&&pitPlan.fuelRange<2.5)))candidates.push({key:'pit-strategy',level:pitPlan.urgency==='BOX NOW'?'critical':'warning',title:'PIT WALL STRATEGY',message:pitPlan.reason+'. Recommended compound: '+pitPlan.targetCompound+'. Fuel target: '+pitPlan.fuelTarget+'%.',action:'BOX · '+pitPlan.targetCompound+' · '+pitPlan.fuelTarget+'%',priority:pitPlan.urgency==='BOX NOW'?97:20});
 
     if(now-lastSampleAt>=sampleMs){
       if(previousSample){
