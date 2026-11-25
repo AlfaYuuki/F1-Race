@@ -32,7 +32,7 @@
   </header>
 
   <section class="hud" aria-label="Race telemetry">
-    <div class="hud-block"><small>POSITION</small><strong id="position-label">P1<span> / 06</span></strong></div>
+    <div class="hud-block"><small>POSITION</small><strong id="position-label">P10<span> / 20</span></strong></div>
     <div class="hud-block"><small>LAP</small><strong id="lap-label">01<span> / 50</span></strong></div>
     <div class="hud-block time-block"><small>TIME</small><strong id="time-label">00:00.000</strong></div>
     <div class="hud-block speed-block"><strong><span id="speed-label">000</span><small>KM/H</small></strong><div class="speed-track"><i id="speed-bar"></i></div></div>
@@ -101,8 +101,11 @@
     <div class="start-card">
       <p class="eyebrow">JAPAN · SHIZUOKA PREFECTURE</p>
       <h1>CHASE THE<br><em>HORIZON.</em></h1>
-      <p>Fifty laps. Five rivals. One mountain in your mirrors.</p>
-      <div class="start-meta"><span>228.15 KM <small>RACE DISTANCE</small></span><span>16 <small>CORNERS</small></span><span>06 <small>DRIVERS</small></span></div>
+      <p>Fifty laps. Nineteen rivals. One mountain in your mirrors.</p>
+      <div class="start-meta"><span id="race-distance-meta">228.15 KM <small>RACE DISTANCE</small></span><span>16 <small>CORNERS</small></span><span>20 <small>DRIVERS</small></span></div>
+      <label class="grid-choice" for="grid-position">YOUR STARTING GRID
+        <select id="grid-position" aria-label="Choose starting grid position"><option value="1" >P01</option><option value="2" >P02</option><option value="3" >P03</option><option value="4" >P04</option><option value="5" >P05</option><option value="6" >P06</option><option value="7" >P07</option><option value="8" >P08</option><option value="9" >P09</option><option value="10" selected>P10</option><option value="11" >P11</option><option value="12" >P12</option><option value="13" >P13</option><option value="14" >P14</option><option value="15" >P15</option><option value="16" >P16</option><option value="17" >P17</option><option value="18" >P18</option><option value="19" >P19</option><option value="20" >P20</option></select>
+      </label>
       <button id="start-button" class="start-button" type="button">QUICK RACE <span>↗</span></button>
       <button id="championship-button" class="championship-button" type="button">START CHAMPIONSHIP <span>🏆</span></button>
       <button id="garage-open" class="championship-button garage-open" type="button">CAR GARAGE <span>⚙</span></button>
