@@ -1149,3 +1149,18 @@ button,select,input{touch-action:manipulation}
 @media(prefers-reduced-motion:reduce){
   .standings li,.mobile-controls button,.pit-meter b{transition:none!important}
 }
+
+
+/* Timing tower: preserve the rank and gap columns while long names truncate cleanly. */
+.standings li span:not(.rank){
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.standings li b{
+  flex:0 0 auto;
+  min-width:26px;
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}
