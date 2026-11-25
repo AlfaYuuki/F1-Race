@@ -308,7 +308,7 @@ const game = createGame(canvas, {
     roundRecorded = false;
     startButton.textContent = 'QUICK RACE ↗';
   },
-  onPitService: active => { document.querySelector('#pit-overlay').hidden=!active; },
+  onPitService: active => { document.querySelector('#pit-overlay').hidden=!active; if(active)controls?.releaseAll(); },
   onWeather: weather => {
     const root=document.querySelector('.race-game');
     root.dataset.weather=weather.rain>.65?'heavyRain':weather.rain>.12?'lightRain':weather.label==='OVERCAST'?'cloudy':'dry';
@@ -323,7 +323,7 @@ const game = createGame(canvas, {
 controls = bindControls(game, {
   getPlatform: () => platform,
   getTilt: () => ({ enabled: tiltEnabled, invert: tiltInvert }),
-  isBlocked: () => !platformScreen.hidden || !document.querySelector('#pit-dialog').hidden || !document.querySelector('#garage-screen').hidden || !document.querySelector('#data-screen').hidden,
+  isBlocked: () => !platformScreen.hidden || !document.querySelector('#pit-dialog').hidden || !document.querySelector('#pit-overlay').hidden || !document.querySelector('#garage-screen').hidden || !document.querySelector('#data-screen').hidden,
   onTilt: axis => document.querySelector('#tilt-dot').style.setProperty('--tilt', axis.toFixed(2)),
   onTiltReady: ready => { tiltReady = ready; applyPlatform(); }
 });
