@@ -6,6 +6,7 @@ import { createGarage, CARS } from './garage.js';
 import { createDataManager } from './data-manager.js';
 import { createRaceEngineer } from './race-engineer.js';
 import { createRaceWeekend } from './race-weekend.js';
+import { createPitStrategy } from './pit-strategy.js';
 import { LAP_DISTANCE, TOTAL_LAPS } from './track.js';
 import { PLATFORMS, detectPlatform, loadSettings, saveSetting, controlHint } from './platform.js';
 import { formatGap } from './timing.js';
@@ -25,6 +26,8 @@ const garage = createGarage();
 const dataManager = createDataManager();
 const raceEngineer = createRaceEngineer();
 const weekend = createRaceWeekend();
+const pitStrategy = createPitStrategy();
+let latestPitRecommendation = null;
 let activeWeekendSession = null;
 let finishedSessionType = null;
 let raceRewardRecorded = false;
@@ -182,6 +185,23 @@ const game = createGame(canvas, {
       lastLapMs, bestLapMs, fuelFlow:live.fuelFlow, telemetry:live, speed, now:performance.now()
     });
     if (engineerAlert) showEngineerAlert(engineerAlert);
+    const playerIndex = raceOrder.findIndex(driver => driver.isPlayer || driver.id === 'player');
+    const ahead = playerIndex > 0 ? raceOrder[playerIndex - 1] : null;
+    const behind = playerIndex >= 0 ? raceOrder[playerIndex + 1] : null;
+    const metresPerSecond = Math.max(8, (Number(speed) || 0) / 3.6);
+    latestPitRecommendation = pitStrategy.update({
+      lap, totalLaps, fuel, tireWear, compound, pitStops, weather,
+      position: playerPosition,
+      gapAhead: ahead ? Math.max(0, (ahead.distance - raceOrder[playerIndex].distance) / metresPerSecond) : Infinity,
+      gapBehind: behind ? Math.max(0, (raceOrder[playerIndex].distance - behind.distance) / metresPerSecond) : Infinity
+    });
+    const strategyAdvice = document.querySelector('#pit-strategy-advice');
+    if (strategyAdvice && latestPitRecommendation) {
+      const r = latestPitRecommendation;
+      strategyAdvice.textContent = r.shouldPit
+        ? `PIT WINDOW · ${r.reason} · ${r.urgency} · ${r.compound} TYRES`
+        : `STAY OUT · TYRES ${r.tyreLapsLeft.toFixed(1)} LAPS · FUEL ${r.fuelLapsLeft.toFixed(1)} LAPS`;
+    }
 
     document.querySelector('#speed-label').textContent = String(Math.round(speed)).padStart(3, '0');
     document.querySelector('#speed-bar').style.width = `${Math.min(100, speed / 330 * 100)}%`;
@@ -291,6 +311,8 @@ const game = createGame(canvas, {
   },
   onStart: () => {
     raceEngineer.reset();
+    pitStrategy.reset();
+    latestPitRecommendation = null;
     document.querySelector('#engineer-panel').hidden=false;
     document.querySelector('#engineer-panel').dataset.level='info';
     document.querySelector('#engineer-level').textContent='LIVE';
@@ -328,6 +350,11 @@ document.querySelector('#pit-button').addEventListener('click',()=>{if(game.getS
 document.querySelector('#pit-cancel').addEventListener('click',()=>{pitDialog.hidden=true;});
 document.querySelector('#pit-confirm').addEventListener('click',()=>{if(game.requestPit(document.querySelector('#pit-compound').value,Number(document.querySelector('#pit-fuel').value),document.querySelector('#pit-repair').checked))pitDialog.hidden=true;});
 document.querySelector('#pit-fuel').addEventListener('input',event=>{document.querySelector('#fuel-choice').textContent=event.target.value+'%';});
+document.querySelector('#pit-recommendation').addEventListener('click',()=>{
+  if(!latestPitRecommendation)return;
+  document.querySelector('#pit-compound').value=latestPitRecommendation.compound;
+  document.querySelector('#pit-strategy-advice').textContent='RECOMMENDED COMPOUND SELECTED · '+latestPitRecommendation.compound;
+});
 
 document.querySelector('#weekend-session-buttons').addEventListener('click', event => {
   const button = event.target.closest('[data-weekend-session]');
