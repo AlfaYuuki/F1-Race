@@ -9,7 +9,7 @@ export function createGame(canvas,callbacks={}) {
   const physics=createPhysics(),renderer=createRenderer(canvas),input=new Set(),opponents=createOpponents(LAP_DISTANCE);
   let playerColor='#df3039';
   let state='ready',last=0,elapsed=0,raceDistance=0,lap=1,countdownTimer=null,raf=0,collisionCooldown=0,impactPulse=0;
-  let lapElapsed=0,lastLap=null,bestLap=null,sector=1,sectorElapsed=0;
+  let lapElapsed=0,lastLap=null,bestLap=null,sector=1,sectorElapsed=0,playerHasLaunched=false;
   let steerAxis=0,pitPhase=null,pitTimer=0,pitPlan=null,currentWeather=weatherSystem.getState(),lastYellow=false,lastSafetyCar=false;
   const notify=message=>callbacks.onMessage?.(message);
   function setInput(action,active){active?input.add(action):input.delete(action);}
@@ -28,7 +28,7 @@ export function createGame(canvas,callbacks={}) {
   }
   function start(playerGridPosition=10){
     if(state==='running'||state==='countdown')return;
-    cancelAnimationFrame(raf);clearInterval(countdownTimer);state='countdown';physics.reset();weatherSystem.reset();currentWeather=weatherSystem.getState();lastYellow=false;lastSafetyCar=false;callbacks.onWeather?.(currentWeather);elapsed=0;raceDistance=0;lap=1;collisionCooldown=0;impactPulse=0;opponents.reset(playerGridPosition);lapElapsed=0;lastLap=null;bestLap=null;sector=1;sectorElapsed=0;pitPhase=null;pitPlan=null;
+    cancelAnimationFrame(raf);clearInterval(countdownTimer);state='countdown';physics.reset();weatherSystem.reset();currentWeather=weatherSystem.getState();lastYellow=false;lastSafetyCar=false;callbacks.onWeather?.(currentWeather);elapsed=0;raceDistance=0;lap=1;collisionCooldown=0;impactPulse=0;opponents.reset(playerGridPosition);playerHasLaunched=false;lapElapsed=0;lastLap=null;bestLap=null;sector=1;sectorElapsed=0;pitPhase=null;pitPlan=null;
     callbacks.onPitService?.(false);notify('GET READY');let count=5;const countdown=document.querySelector('#countdown');countdown.hidden=false;countdown.classList.add('active');countdown.dataset.lit='0';countdown.textContent='';
     callbacks.onStart?.();callbacks.onWeather?.(currentWeather);updateHud();
     countdownTimer=setInterval(()=>{count--;if(count>0){countdown.dataset.lit=String(5-count);countdown.setAttribute('aria-label',String(6-count)+' of 5 start lights');}
@@ -58,8 +58,11 @@ export function createGame(canvas,callbacks={}) {
       raceDistance+=physics.speed/3.6*dt;
     }
     opponents.update(dt,raceDistance,curveAt,currentWeather);
+    if(physics.speed>=25)playerHasLaunched=true;
     collisionCooldown=Math.max(0,collisionCooldown-dt);impactPulse=Math.max(0,impactPulse-dt*3.8);
-    if(!pitPhase&&collisionCooldown===0){
+    // Cars may safely pass a stationary player on the opening launch. Only
+    // enable contact damage after the player has actually joined the race.
+    if(playerHasLaunched&&!pitPhase&&collisionCooldown===0){
       const rival=opponents.drivers.find(d=>Math.abs(d.distance-raceDistance)<7.5&&Math.abs((d.currentLane??d.lane)-physics.playerX)<.27);
       if(rival){physics.impact(physics.playerX<=(rival.currentLane??rival.lane)?-1:1);collisionCooldown=1.1;impactPulse=1;renderer.triggerImpact?.();notify('CONTACT — MOMENTUM LOST');}
     }
