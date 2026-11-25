@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node scripts/validate.mjs",
+    "check": "node scripts/validate.mjs && npm run check:layout",
     "test": "node --test",
     "check:layout": "python3 scripts/layout-check.py"
   },

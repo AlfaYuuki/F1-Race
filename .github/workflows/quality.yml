@@ -19,7 +19,27 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install playwright
+          python -m playwright install --with-deps chromium
+      - name: Start local game server
+        run: |
+          python3 -m http.server 8770 --bind 127.0.0.1 > /tmp/f1-race-server.log 2>&1 &
+          for attempt in {1..30}; do
+            if curl --silent --fail http://127.0.0.1:8770/index.html > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/f1-race-server.log
+          exit 1
       - name: Run simulation tests
         run: npm test
-      - name: Validate project structure
+      - name: Validate structure and 11 responsive phone layouts
         run: npm run check

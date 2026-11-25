@@ -1,4 +1,5 @@
-# Layout gate: run 'python3 -m http.server 8770 --bind 127.0.0.1' then 'npm run check:layout' (needs Playwright + Chrome). Fails on any panel overlap, off-screen panel or page scroll at 11 phone sizes.
+# Layout gate: run 'python3 -m http.server 8770 --bind 127.0.0.1' then 'npm run check:layout' (requires Python Playwright + Chromium).
+# Fails on any measured cockpit-panel overlap, off-screen panel, page scroll or browser error at 11 phone sizes.
 import asyncio, sys, json
 from playwright.async_api import async_playwright
 import os
@@ -15,7 +16,7 @@ JS='''(keys)=>{const out={};{const e=document.querySelector('#engineer-panel');e
 async def run(only=None, shots=True):
     bad=0
     async with async_playwright() as p:
-        b=await p.chromium.launch(executable_path='/usr/bin/google-chrome',args=['--no-sandbox','--use-gl=swiftshader','--enable-unsafe-swiftshader'])
+        b=await p.chromium.launch(args=['--no-sandbox','--use-gl=swiftshader','--enable-unsafe-swiftshader'])
         for (w,h) in SIZES:
             if only and (w,h)!=only: continue
             ctx=await b.new_context(viewport={'width':w,'height':h},device_scale_factor=2,is_mobile=True,has_touch=True,user_agent=UA)
@@ -44,7 +45,7 @@ async def run(only=None, shots=True):
             if hs: problems.append('page scrolls')
             if errs: problems.append('js errors '+str(errs))
             if shots: await page.screenshot(path=f'{OUT}/{w}x{h}-race.png')
-            print(f'{w}x{h}:', 'OK' if not problems else 'PROBLEMS'); 
+            print(f'{w}x{h}:', 'OK' if not problems else 'PROBLEMS')
             for q in problems: print('   ',q)
             bad+=len(problems)
             await ctx.close()
