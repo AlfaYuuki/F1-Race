@@ -152,6 +152,12 @@ export function bindControls(game, options = {}) {
     padState.accelerate = padState.brake = false; padState.steer = 0;
     press('accelerate', false); press('brake', false); game.setSteerAxis(0);
   });
+  // Browsers may fire gamepadconnected before this module is initialised.
+  try {
+    if (navigator.getGamepads?.().some(pad => pad?.connected)) {
+      padRaf = requestAnimationFrame(pollGamepads);
+    }
+  } catch { /* Gamepad access may be restricted by the browser. */ }
 
   return { releaseAll, syncTilt, requestTiltAccess, calibrate };
 }
