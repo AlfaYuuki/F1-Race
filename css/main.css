@@ -1044,3 +1044,123 @@ button,select,input{touch-action:manipulation}
   .keyboard-help{margin-top:6px!important;font-size:6.5px!important}
   .platform-change{margin-top:6px!important;padding:6px 8px!important;font-size:6.5px!important}
 }
+
+
+/* =====================================================================
+   MILESTONE 17 — PROFESSIONAL COCKPIT ZONES
+   Tablet/desktop zones are separated deliberately. Phone-specific zones
+   above remain in force; these rules cover touch tablets and larger HUDs.
+   ===================================================================== */
+.pit-telemetry{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:stretch;
+  gap:8px;
+  padding:9px 10px;
+  width:min(680px,calc(100vw - 460px));
+  max-width:680px;
+}
+.pit-telemetry>.telemetry-group{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  align-content:start;
+  gap:5px 8px;
+  min-width:0;
+  padding:3px 8px;
+  border-right:1px solid #dcebf421;
+}
+.telemetry-group:last-child{border-right:0}
+.telemetry-group h3{
+  grid-column:1/-1;
+  margin:0 0 1px;
+  color:#91aabd;
+  font:700 7px var(--mono);
+  letter-spacing:.16em;
+}
+.telemetry-group>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.telemetry-group small{font:7px var(--mono);letter-spacing:.07em;color:#91aabd;white-space:nowrap}
+.telemetry-group strong{font:600 9px var(--mono);font-variant-numeric:tabular-nums;color:#f5f8fa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.telemetry-group .pit-meter{display:block;width:100%;height:3px;margin-top:1px}
+.standings{max-height:min(70vh,620px)}
+.standings li{height:21px;min-height:21px}
+.engineer-panel{pointer-events:none}
+@media (min-width:761px) and (max-width:1200px){
+  .race-topbar{height:56px;padding:0 18px}
+  .race-message{top:8px}
+  .hud{top:68px;left:18px;right:auto;max-width:calc(100vw - 210px);gap:12px;padding:10px 12px}
+  .hud-block{min-width:42px}
+  .hud-block strong{font-size:21px}
+  .speed-block{min-width:82px}
+  .speed-block>strong{font-size:30px}
+  .standings{top:68px;right:18px;width:150px;max-height:min(58vh,560px);padding:9px}
+  .standings li{height:20px;min-height:20px;font-size:9px}
+  .standings .rank{width:15px;flex-basis:15px}
+  .engineer-panel{top:180px;left:18px;right:auto;transform:none;width:min(320px,calc(100vw - 420px));min-width:220px;padding:9px 11px}
+  .timing-panel{left:18px;top:310px;bottom:auto;gap:12px;padding:9px 11px}
+  .pit-button{right:18px;bottom:calc(58px + 88px);padding:10px 14px}
+  .pit-telemetry{
+    left:auto;right:18px;transform:none;
+    width:min(520px,calc(100vw - 430px));max-width:520px;
+    bottom:58px;gap:5px;padding:7px 8px;
+  }
+  .telemetry-group{gap:4px 6px;padding:3px 5px}
+  .telemetry-group h3{font-size:6px}
+  .telemetry-group small{font-size:6px}
+  .telemetry-group strong{font-size:8px}
+  html[data-platform="android"] .timing-panel{top:310px;bottom:auto}
+  html[data-platform="android"] .pit-button{bottom:calc(52px + 88px + env(safe-area-inset-bottom))}
+  html[data-platform="android"] .pit-telemetry{
+    left:clamp(220px,22vw,270px);right:clamp(220px,22vw,270px);
+    width:auto;max-width:none;bottom:calc(52px + env(safe-area-inset-bottom));
+  }
+}
+@media (min-width:1201px){
+  .hud{top:78px;left:30px}
+  .standings{top:78px;right:30px;width:204px;max-height:min(70vh,620px)}
+  .standings li{height:21px;min-height:21px}
+  .engineer-panel{top:200px;left:30px;right:auto;transform:none;width:320px;min-width:0}
+  .timing-panel{left:30px;bottom:52px}
+  .pit-button{right:30px;bottom:70px}
+  .pit-telemetry{
+    left:auto;right:210px;transform:none;
+    width:min(680px,calc(100vw - 600px));max-width:680px;
+    bottom:52px;
+  }
+}
+@media (max-width:760px){
+  .pit-telemetry{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    width:auto;max-width:none;
+    gap:3px;padding:5px 6px;
+  }
+  .telemetry-group{gap:3px 5px;padding:2px 4px}
+  .telemetry-group h3{font-size:5px;letter-spacing:.1em}
+  .telemetry-group small{font-size:5px;letter-spacing:0}
+  .telemetry-group strong{font-size:7px}
+}
+@media (orientation:landscape) and (max-height:520px) and (max-width:760px){
+  .pit-telemetry{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .telemetry-group{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media (orientation:portrait) and (max-width:620px){
+  .pit-telemetry{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .telemetry-group{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(prefers-reduced-motion:reduce){
+  .standings li,.mobile-controls button,.pit-meter b{transition:none!important}
+}
+
+
+/* Timing tower: preserve the rank and gap columns while long names truncate cleanly. */
+.standings li span:not(.rank){
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.standings li b{
+  flex:0 0 auto;
+  min-width:26px;
+  text-align:right;
+  font-variant-numeric:tabular-nums;
+}

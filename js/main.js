@@ -7,6 +7,7 @@ import { createDataManager } from './data-manager.js';
 import { createRaceEngineer } from './race-engineer.js';
 import { LAP_DISTANCE, TOTAL_LAPS } from './track.js';
 import { PLATFORMS, detectPlatform, loadSettings, saveSetting, controlHint } from './platform.js';
+import { formatGap } from './timing.js';
 
 const canvas = document.querySelector('#race-canvas');
 const leaderboard = document.querySelector('#leaderboard-list');
@@ -217,9 +218,19 @@ const game = createGame(canvas, {
     if (raceOrder.length) {
       const now = performance.now();
       if (state !== 'running' || now - lastLeaderboardRefresh >= 300) {
-        leaderboard.innerHTML = raceOrder.map((driver, index) =>
-          `<li class="${driver.isPlayer || driver.id === 'player' ? 'player-row' : ''}"><span class="rank">${String(index + 1).padStart(2, '0')}</span><i style="--driver-color:${driver.color}"></i><span>${escapeHtml(driver.name)}</span><b>${state === 'ready' ? 'GRID' : `L${Math.max(1, Math.min(TOTAL_LAPS, Math.floor(driver.distance / LAP_DISTANCE) + 1))}`}</b></li>`
-        ).join('');
+        leaderboard.innerHTML = raceOrder.map((driver, index) => {
+          const ahead = raceOrder[index - 1];
+          const gapLabel = driver.pitTimer > 0 || (driver.isPlayer && pitPhase)
+            ? 'PIT'
+            : formatGap({
+              position:index + 1,
+              state,
+              distance:driver.distance,
+              aheadDistance:ahead?.distance,
+              lapDistance:LAP_DISTANCE
+            });
+          return `<li class="${driver.isPlayer || driver.id === 'player' ? 'player-row' : ''}"><span class="rank">${String(index + 1).padStart(2, '0')}</span><i style="--driver-color:${driver.color}"></i><span>${escapeHtml(driver.name)}</span><b>${gapLabel}</b></li>`;
+        }).join('');
         lastLeaderboardRefresh = now;
         // On small screens the tower scrolls: keep the player's row centred.
         const playerRow = leaderboard.querySelector('.player-row');

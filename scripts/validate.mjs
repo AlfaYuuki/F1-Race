@@ -14,7 +14,7 @@ const queried = [...main.matchAll(/querySelector\(['"]#([^'"]+)['"]\)/g)].map(ma
 const missing = [...new Set(queried)].filter(id => !declared.has(id));
 if (missing.length) throw new Error(`main.js references missing HTML IDs: ${missing.join(', ')}`);
 
-const modules = ['main.js','game.js','renderer.js','renderer2d.js','physics.js','track.js','opponents.js','controls.js','platform.js','audio.js','championship.js','garage.js','weather.js','data-manager.js','race-engineer.js'];
+const modules = ['main.js','game.js','renderer.js','renderer2d.js','physics.js','track.js','opponents.js','controls.js','platform.js','audio.js','championship.js','garage.js','weather.js','data-manager.js','race-engineer.js','timing.js'];
 for (const file of modules) {
   const path = resolve(root, 'js', file);
   await access(path);
@@ -22,5 +22,16 @@ for (const file of modules) {
   for (const match of source.matchAll(/from\s+['"](.+?)['"]/g)) {
     if (match[1].startsWith('.')) await access(resolve(dirname(path), match[1]));
   }
+}
+const serviceWorker = await readFile(resolve(root, 'sw.js'), 'utf8');
+const pwa = await readFile(resolve(root, 'js/pwa.js'), 'utf8');
+if (!serviceWorker.includes("const CACHE_NAME = 'the-f1-race-shell-v19'")) {
+  throw new Error('Service worker cache version is missing or invalid.');
+}
+if (!serviceWorker.includes("'./js/timing.js'")) {
+  throw new Error('The live timing module is missing from the PWA app shell.');
+}
+for (const feature of ['registration.update()', 'SKIP_WAITING', 'controllerchange']) {
+  if (!pwa.includes(feature)) throw new Error(`PWA update flow is missing: ${feature}`);
 }
 console.log(`Validated ${ids.length} unique HTML IDs, ${modules.length} JavaScript modules and all relative imports.`);
