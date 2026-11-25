@@ -63,7 +63,7 @@ async def run(only=None,shots=True):
             keys=BASE+(TOUCH if mobile else [])
             rects=await page.evaluate(JS,keys)
             problems=[]
-            visible={key:value for key,value in rects.items() if key.startswith('.') or key.startswith('#') if value and value['vis']}
+            visible={key:value for key,value in rects.items() if not key.startswith('__') and value and value['vis']}
             for key,value in rects.items():
                 if key.startswith('__'): continue
                 if value is None: problems.append(f'missing {key}')
