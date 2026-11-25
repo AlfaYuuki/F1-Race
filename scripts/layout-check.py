@@ -37,7 +37,7 @@ JS='''(keys)=>{const out={};
  out.__drivers=document.querySelectorAll('#leaderboard-list>li').length;
  out.__playerRows=document.querySelectorAll('#leaderboard-list>.player-row').length;
  out.__telemetryGroups=document.querySelectorAll('.pit-telemetry>.telemetry-group').length;
- out.__telemetryValues=document.querySelectorAll('.pit-telemetry [id]').length;
+ out.__telemetryValues=document.querySelectorAll('.pit-telemetry .telemetry-group strong[id]').length;
  return out}'''
 async def run(only=None,shots=True):
     bad=0
