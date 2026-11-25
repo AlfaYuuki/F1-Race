@@ -737,6 +737,10 @@ button,select,input{touch-action:manipulation}
 @media(orientation:landscape) and (max-height:520px){.garage-panel{padding:10px 14px}.garage-heading{margin-bottom:8px}.garage-heading h2{font-size:28px}.garage-car{padding:8px}.garage-car .car-swatch{height:34px;margin-bottom:5px}.garage-car p{min-height:0;margin:4px 0;font-size:9px}.garage-workshop{margin-top:8px;gap:8px}.garage-workshop section{padding:8px}.garage-upgrade{padding:6px}.garage-footer{margin-top:8px}.garage-footer button{min-height:34px}}
 
 
+.grid-choice{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:10px 12px;border:1px solid #ffffff26;border-radius:6px;background:#ffffff08;color:#a9bdc9;font:800 8px var(--mono);letter-spacing:.12em}
+.grid-choice select{min-width:86px;padding:7px 10px;border:1px solid #ffffff35;border-radius:5px;background:#102638;color:#fff;font:800 11px var(--mono);color-scheme:dark}
+.grid-choice select:focus-visible{outline:2px solid #ff5362;outline-offset:2px}
+
 /* START SCREEN / COUNTDOWN VISIBILITY FIX */
 .countdown[hidden]{display:none!important}
 .countdown.active{display:flex}
