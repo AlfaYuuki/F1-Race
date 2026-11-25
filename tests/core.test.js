@@ -29,12 +29,12 @@ test('physics accelerates, brakes, remains bounded and resets', () => {
   assert.equal(physics.offRoad, false);
 });
 
-test('AI roster produces six ordered competitors and resets deterministically', () => {
+test('AI roster produces nineteen AI drivers plus the player and resets deterministically', () => {
   const ai = createOpponents(LAP_DISTANCE);
-  assert.equal(ai.drivers.length, 5);
+  assert.equal(ai.drivers.length, 19);
   ai.update(1 / 60, 0, curveAt);
   const standings = ai.getStandings(0);
-  assert.equal(standings.length, 6);
+  assert.equal(standings.length, 20);
   for (let i = 1; i < standings.length; i++) {
     assert.ok(standings[i - 1].distance >= standings[i].distance);
   }
