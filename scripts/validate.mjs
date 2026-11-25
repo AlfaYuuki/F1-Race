@@ -28,7 +28,10 @@ const pwa = await readFile(resolve(root, 'js/pwa.js'), 'utf8');
 if (!serviceWorker.includes("const CACHE_NAME = 'the-f1-race-shell-v21'")) {
   throw new Error('Service worker cache version is missing or invalid.');
 }
-if (!serviceWorker.includes("'./js/race-weekend.js'")) {\n  throw new Error('The race weekend module is missing from the PWA app shell.');\n}\nif (!serviceWorker.includes("'./js/timing.js'")) {
+if (!serviceWorker.includes("'./js/race-weekend.js'")) {
+  throw new Error('The race weekend module is missing from the PWA app shell.');
+}
+if (!serviceWorker.includes("'./js/timing.js'")) {
   throw new Error('The live timing module is missing from the PWA app shell.');
 }
 for (const feature of ['registration.update()', 'SKIP_WAITING', 'controllerchange']) {
