@@ -25,7 +25,7 @@ for (const file of modules) {
 }
 const serviceWorker = await readFile(resolve(root, 'sw.js'), 'utf8');
 const pwa = await readFile(resolve(root, 'js/pwa.js'), 'utf8');
-if (!/const CACHE_NAME = ['"]the-f1-race-shell-v\\d+['"]/.test(serviceWorker)) {
+if (!/const CACHE_NAME = ['"]the-f1-race-shell-v\d+['"]/.test(serviceWorker)) {
   throw new Error('Service worker cache version is missing or invalid.');
 }
 if (!serviceWorker.includes("'./js/timing.js'")) {
