@@ -50,3 +50,16 @@ test('evolving track grip is applied to player physics',()=>{
   wetSurface.update(.1,new Set(),0,0,{trackGrip:.55});
   assert.ok(wetSurface.getTelemetry().grip<normal.getTelemetry().grip);
 });
+
+test('initial weather forecast is the weather that actually transitions in',()=>{
+  const weather=createWeather(()=>.1);
+  weather.reset();
+  assert.equal(weather.getState().forecast,'cloudy');
+  let state=weather.update(49);
+  assert.equal(state.target,'cloudy');
+  assert.equal(state.forecast,'cloudy');
+  assert.equal(state.transition,true);
+  for(let i=0;i<18;i++)state=weather.update(1);
+  assert.equal(state.current,'cloudy');
+  assert.equal(state.forecast,'cloudy');
+});
