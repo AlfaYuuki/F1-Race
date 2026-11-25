@@ -1011,7 +1011,7 @@ button,select,input{touch-action:manipulation}
   .standings li{height:16px!important;min-height:16px!important;font-size:6.5px!important;padding:0 2px!important}
   .standings li b{font-size:5px!important}.standings .rank{width:12px!important;flex-basis:12px!important;font-size:6px!important}
 
-  .pit-telemetry{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px 8px!important;left:var(--sl)!important;right:var(--sr)!important;top:auto!important;bottom:calc(var(--foot) + var(--ctl) + 14px)!important;transform:none!important;width:auto!important;max-width:none!important;padding:6px 10px!important}
+  .pit-telemetry{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px 8px!important;left:var(--sl)!important;right:var(--sr)!important;top:auto!important;bottom:calc(var(--foot) + var(--ctl) + 14px)!important;transform:none!important;width:auto!important;max-width:none!important;padding:6px 10px!important}
   .pit-telemetry>div{min-width:0!important;gap:2px!important}
   .pit-telemetry small{font-size:5.5px!important;white-space:nowrap;overflow:hidden}
   .pit-telemetry strong{font-size:8px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
