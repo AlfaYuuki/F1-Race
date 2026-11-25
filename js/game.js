@@ -61,7 +61,7 @@ export function createGame(canvas,callbacks={}) {
       else if(pitPhase==='exit'){pitTimer-=dt;if(pitTimer<=0){pitPhase=null;pitPlan=null;notify('PIT EXIT — BACK TO RACING');}}
       raceDistance+=physics.speed/3.6*dt;
     }
-    opponents.update(dt,raceDistance,curveAt,currentWeather);
+    opponents.update(dt,raceDistance,curveAt,currentWeather,{totalLaps:sessionLaps,sessionType});
     if(physics.speed>=25)playerHasLaunched=true;
     collisionCooldown=Math.max(0,collisionCooldown-dt);impactPulse=Math.max(0,impactPulse-dt*3.8);
     // Cars may safely pass a stationary player on the opening launch. Only
