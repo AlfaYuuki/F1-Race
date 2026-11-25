@@ -170,7 +170,7 @@ const game = createGame(canvas, {
     document.querySelector('#sector-label').textContent = `${sector || 'S1'} ${sectorTime || '--:--.---'}`;
     document.querySelector('#time-label').textContent = time;
     document.querySelector('#lap-label').innerHTML = `${String(lap).padStart(2, '0')}<span> / ${String(TOTAL_LAPS).padStart(2, '0')}</span>`;
-    document.querySelector('#position-label').innerHTML = `P${playerPosition || position}<span> / 06</span>`;
+    document.querySelector('#position-label').innerHTML = `P${playerPosition || position}<span> / ${raceOrder.length || 20}</span>`;
     document.querySelector('#status-label').textContent = pitPhase ? 'PIT LANE' : offRoad ? 'OFF TRACK' :
       state === 'running' ? 'ENGINE ACTIVE' :
       state === 'finished' ? 'SESSION COMPLETE' :
