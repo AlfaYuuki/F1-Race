@@ -86,7 +86,7 @@ async def run(only=None,shots=True):
             if rects['__drivers']!=20: problems.append(f'leaderboard has {rects["__drivers"]} drivers, expected 20')
             if rects['__playerRows']!=1: problems.append(f'leaderboard has {rects["__playerRows"]} player rows, expected 1')
             if rects['__telemetryGroups']!=3: problems.append(f'telemetry has {rects["__telemetryGroups"]} groups, expected 3')
-            if rects['__telemetryValues']!=11: problems.append(f'telemetry has {rects["__telemetryValues"]} live values, expected 11')
+            if rects['__telemetryValues']!=14: problems.append(f'telemetry has {rects["__telemetryValues"]} live values, expected 14')
             if rects['__gapHeading']!='GAP': problems.append('timing tower gap column heading is missing')
             if rects['__gapCells']!=20: problems.append(f'timing tower has {rects["__gapCells"]} populated gap cells, expected 20')
             scroll=await page.evaluate('document.documentElement.scrollWidth>innerWidth||document.documentElement.scrollHeight>innerHeight')
