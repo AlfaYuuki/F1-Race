@@ -1,9 +1,23 @@
 const DRIVER_DATA = [
-  { id:'sato', name:'K. SATO', color:'#45a5e8', pace:246, skill:.94, aggression:.82, start:18, lane:-.48 },
-  { id:'tanaka', name:'M. TANAKA', color:'#f1bd4b', pace:238, skill:.87, aggression:.68, start:34, lane:.48 },
-  { id:'mori', name:'L. MORI', color:'#9b79df', pace:252, skill:.97, aggression:.76, start:52, lane:-.12 },
-  { id:'kobayashi', name:'A. KOBAYASHI', color:'#55c49a', pace:232, skill:.81, aggression:.91, start:70, lane:.18 },
-  { id:'nakamura', name:'R. NAKAMURA', color:'#e58b55', pace:242, skill:.9, aggression:.72, start:88, lane:.62 }
+  { id:'sato', name:'K. SATO', color:'#45a5e8', pace:246, skill:0.94, aggression:0.82, start:18, lane:-0.48 },
+  { id:'tanaka', name:'M. TANAKA', color:'#f1bd4b', pace:238, skill:0.87, aggression:0.68, start:36, lane:0.48 },
+  { id:'mori', name:'L. MORI', color:'#9b79df', pace:252, skill:0.97, aggression:0.76, start:54, lane:-0.12 },
+  { id:'kobayashi', name:'A. KOBAYASHI', color:'#55c49a', pace:232, skill:0.81, aggression:0.91, start:72, lane:0.18 },
+  { id:'nakamura', name:'R. NAKAMURA', color:'#e58b55', pace:242, skill:0.9, aggression:0.72, start:90, lane:0.62 },
+  { id:'rossi', name:'G. ROSSI', color:'#e85d75', pace:249, skill:0.93, aggression:0.78, start:108, lane:-0.62 },
+  { id:'muller', name:'F. MULLER', color:'#77b7a4', pace:235, skill:0.85, aggression:0.65, start:126, lane:0.32 },
+  { id:'silva', name:'D. SILVA', color:'#d6a45b', pace:244, skill:0.91, aggression:0.88, start:144, lane:-0.3 },
+  { id:'petrov', name:'I. PETROV', color:'#8d9be8', pace:229, skill:0.79, aggression:0.93, start:162, lane:0.7 },
+  { id:'martin', name:'J. MARTIN', color:'#d879c7', pace:247, skill:0.92, aggression:0.71, start:180, lane:-0.7 },
+  { id:'kim', name:'H. KIM', color:'#65c6df', pace:239, skill:0.88, aggression:0.83, start:198, lane:0.08 },
+  { id:'dubois', name:'P. DUBOIS', color:'#c2a0ed', pace:251, skill:0.96, aggression:0.74, start:216, lane:0.55 },
+  { id:'brown', name:'T. BROWN', color:'#a5bd54', pace:234, skill:0.84, aggression:0.89, start:234, lane:-0.42 },
+  { id:'garcia', name:'E. GARCIA', color:'#e9a16e', pace:243, skill:0.9, aggression:0.77, start:252, lane:0.42 },
+  { id:'smith', name:'N. SMITH', color:'#7295c9', pace:237, skill:0.86, aggression:0.86, start:270, lane:-0.18 },
+  { id:'alvarez', name:'C. ALVAREZ', color:'#c77c65', pace:250, skill:0.95, aggression:0.8, start:288, lane:0.22 },
+  { id:'andersson', name:'O. ANDERSSON', color:'#8bb8a1', pace:231, skill:0.82, aggression:0.7, start:306, lane:-0.55 },
+  { id:'fernandez', name:'M. FERNANDEZ', color:'#d7bb65', pace:245, skill:0.91, aggression:0.92, start:324, lane:0.65 },
+  { id:'williams', name:'A. WILLIAMS', color:'#9b9da8', pace:240, skill:0.89, aggression:0.75, start:342, lane:-0.05 }
 ];
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
