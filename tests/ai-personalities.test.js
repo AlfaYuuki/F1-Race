@@ -62,3 +62,53 @@ test('personality-driven opponents complete updates with finite race state', () 
     assert.ok(driver.tireWear>=0 && driver.tireWear<=100);
   }
 });
+
+
+test('AI only counts a pass after its distance crosses the selected rival', () => {
+  const field = createOpponents(LAP_DISTANCE);
+  field.reset(20);
+  const attacker = field.drivers.find(driver => driver.id === 'sato');
+  const target = field.drivers.find(driver => driver.id === 'tanaka');
+  for (const driver of field.drivers) {
+    driver.distance = -1000;
+    driver.currentLane = 1;
+    driver.speed = 200;
+  }
+  attacker.distance = 0;
+  attacker.currentLane = 0;
+  attacker.launchTimer = 0;
+  attacker.speed = 300;
+  attacker.pace = 285;
+  target.pace = 125;
+  target.distance = 10;
+  target.currentLane = 0;
+  target.launchTimer = 0;
+  target.speed = 200;
+  field.update(.1, -1000, () => 0, {});
+  assert.equal(attacker.overtakes, 0);
+  assert.equal(attacker.overtakeTargetId, 'tanaka');
+  for (let i = 0; i < 12 && attacker.overtakes === 0; i++) field.update(.1, -1000, () => 0, {});
+  assert.equal(attacker.overtakes, 1);
+  assert.equal(attacker.overtakeTargetId, null);
+});
+
+test('AI does not initiate overtaking while yellow flag or safety car is active', () => {
+  for (const neutralisation of [{ yellowFlag: true }, { safetyCar: true }]) {
+    const field = createOpponents(LAP_DISTANCE);
+    field.reset(20);
+    const attacker = field.drivers.find(driver => driver.id === 'sato');
+    const target = field.drivers.find(driver => driver.id === 'tanaka');
+    for (const driver of field.drivers) {
+      driver.distance = -1000;
+      driver.currentLane = 1;
+      driver.speed = 200;
+    }
+    attacker.distance = 0;
+    attacker.currentLane = 0;
+    target.distance = 10;
+    target.currentLane = 0;
+    field.update(1 / 60, -1000, () => 0, neutralisation);
+    assert.equal(attacker.overtakeTargetId, null);
+    assert.equal(attacker.overtakes, 0);
+  }
+});

@@ -34,7 +34,7 @@ export function createOpponents(lapDistance = 4563) {
     targetLane: driver.lane,
     gridPosition: 0,
     launchTimer: 0,
-    overtakes: 0, fuel:100, tireWear:0, compound:'MEDIUM', pitTimer:0, pitStops:0
+    overtakes: 0, overtakeTargetId:null, fuel:100, tireWear:0, compound:'MEDIUM', pitTimer:0, pitStops:0
   }));
 
   function update(dt, playerDistance, curveAt, weather = {}) {
@@ -78,7 +78,7 @@ export function createOpponents(lapDistance = 4563) {
       let targetLane = targetLaneBase;
       let draftBonus = 0;
 
-      if (trafficAhead) {
+      if (trafficAhead && !weather.yellowFlag && !weather.safetyCar) {
         const laneGap = Math.abs((trafficAhead.currentLane ?? 0) - driver.currentLane);
         if (laneGap < .46 && shouldAttemptOvertake(driver.personality, trafficAhead.gap)) {
           const leftFree = traffic.every(car => car.id === driver.id ||
@@ -92,7 +92,7 @@ export function createOpponents(lapDistance = 4563) {
               ? (driver.lane <= trafficAhead.currentLane ? -1 : 1)
               : leftFree ? -1 : 1;
             targetLane = trafficAhead.currentLane + direction * (.38 + driver.aggression * .12);
-            driver.overtakes += dt * .025;
+            driver.overtakeTargetId = trafficAhead.id;
           } else {
             draftBonus = Math.max(0, 5 * (1 - trafficAhead.gap / 42));
           }
@@ -111,7 +111,17 @@ export function createOpponents(lapDistance = 4563) {
       const safePace = weather.safetyCar ? 145 : weather.yellowFlag ? 170 : 285;
       const targetSpeed = clamp(driver.pace + rhythm + draftBonus - cornerPenalty - consistencyLoss - weatherPenalty - wearPenalty, 125, safePace);
       driver.speed += (targetSpeed - driver.speed) * Math.min(1, dt * (1.1 + driver.skill * 1.5));
+      const previousDistance = driver.distance;
       driver.distance += driver.speed / 3.6 * dt;
+      if (driver.overtakeTargetId) {
+        const target = traffic.find(car => car.id === driver.overtakeTargetId);
+        if (target && previousDistance <= target.distance && driver.distance > target.distance) {
+          driver.overtakes += 1;
+          driver.overtakeTargetId = null;
+        } else if (!target || target.distance - driver.distance > 60) {
+          driver.overtakeTargetId = null;
+        }
+      }
     }
 
     return getStandings(playerDistance);
@@ -145,7 +155,7 @@ export function createOpponents(lapDistance = 4563) {
       driver.currentLane = slot % 2 ? -.42 : .42;
       driver.targetLane = driver.currentLane;
       driver.launchTimer = .16 + (1 - driver.skill) * .62;
-      driver.overtakes = 0; driver.fuel = 100; driver.tireWear = 0;
+      driver.overtakes = 0; driver.overtakeTargetId = null; driver.fuel = 100; driver.tireWear = 0;
       driver.compound = 'MEDIUM'; driver.pitTimer = 0; driver.pitStops = 0;
     }
     return { playerGridPosition: playerSlot, grid: getStandings(0) };
