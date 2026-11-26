@@ -323,18 +323,19 @@ export function createRenderer(canvas) {
 
     const playerRoad = pointAt(path, 9);
     const trackCenterX = playerRoad.x;
-    const playerWorldX = trackCenterX + (pitLane ? 8.2 : playerX * 4.2);
+    const playerWorldPos = pitLane ? lateral(playerRoad, 8.2) : [trackCenterX + playerX * 4.2, 9];
+    const playerWorldX = playerWorldPos[0], playerWorldZ = playerWorldPos[1];
     const suspensionBob = running ? Math.sin(position * 4563 * .72) * Math.min(.075, speed / 330 * .075) : 0;
     const carYaw = clamp(driftAngle, -.9, .9);
-    addCar(mesh, playerWorldX, playerRoad.y + suspensionBob, 9, 1, offRoad ? [.72,.25,.12] : hexColor(playerColor), carYaw);
+    addCar(mesh, playerWorldX, playerRoad.y + suspensionBob, playerWorldZ, 1, offRoad ? [.72,.25,.12] : hexColor(playerColor), carYaw);
 
     // Rubber trails appear behind the rear tyres when lateral grip is being used.
     if (running && (Math.abs(lateralVelocity) > .48 || Math.abs(driftAngle) > .1)) {
       const markStrength = clamp((Math.abs(lateralVelocity) - .42) * .24 + Math.abs(driftAngle) * .3, .035, .22);
       for (const side of [-1, 1]) {
         const markX = playerWorldX + side * .72;
-        mesh.quad([markX-.12,playerRoad.y+.045,4.2],[markX+.12,playerRoad.y+.045,4.2],
-          [markX+.12,playerRoad.y+.045,7.2],[markX-.12,playerRoad.y+.045,7.2],
+        mesh.quad([markX-.12,playerRoad.y+.045,playerWorldZ-4.8],[markX+.12,playerRoad.y+.045,playerWorldZ-4.8],
+          [markX+.12,playerRoad.y+.045,playerWorldZ-1.8],[markX-.12,playerRoad.y+.045,playerWorldZ-1.8],
           [.055,.06,.065].map(channel => channel * (1-markStrength)));
       }
     }
