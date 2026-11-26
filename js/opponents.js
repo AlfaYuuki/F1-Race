@@ -129,7 +129,7 @@ export function createOpponents(lapDistance=4563) {
       const relationship=ahead&&RELATIONSHIPS[driver.id]?.includes(ahead.id)?1:0;
       const sameRival=ahead&&ahead.id!=='player'&&RELATIONSHIPS[driver.id]?.includes(ahead.id);
       driver.pressure=clamp((ahead&&ahead.gap<22?(22-ahead.gap)/22:0)*.65+
-        (sameRival?.25:0)+(driver.fuel<20?.1:0),0,1);
+        (sameRival ? .25 : 0)+(driver.fuel<20?.1:0),0,1);
       let targetLane=driver.lane+getDefensiveLaneOffset(driver.personality);
       let draftBonus=0;
       driver.defending=false;
