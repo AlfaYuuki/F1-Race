@@ -16,7 +16,7 @@ if (missing.length) throw new Error(`main.js references missing HTML IDs: ${miss
 const requiredMenuControls = ['start-button','weekend-session-buttons','championship-button','garage-open','data-open','platform-change','grid-position','quick-race-laps'];
 const missingMenuControls = requiredMenuControls.filter(id => !declared.has(id));
 if (missingMenuControls.length) throw new Error(`Required menu controls are missing: ${missingMenuControls.join(', ')}`);
-const lapOptions = [...html.matchAll(/<option value="(\\d+)"/g)].map(match => Number(match[1]));
+const lapOptions = [...html.matchAll(/<option value="(\d+)"/g)].map(match => Number(match[1]));
 for (let lap = 1; lap <= 10; lap++) {
   if (!lapOptions.includes(lap)) throw new Error(`Quick Race lap selector is missing option ${lap}.`);
 }
