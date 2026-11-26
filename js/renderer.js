@@ -245,7 +245,12 @@ export function createRenderer(canvas) {
       mesh.quad(edge(a,-half), edge(a,half), edge(b,half), edge(b,-half), roadTint);
       // Dedicated right-side pit lane, separated from the racing surface by a solid line.
       mesh.quad(edge(a,half+.85),edge(a,half+4.55),edge(b,half+4.55),edge(b,half+.85),[.13,.16,.19]);
-      mesh.quad(edge(a,half+.72,.04),edge(a,half+.88,.04),edge(b,half+.88,.04),edge(b,half+.72,.04),[.94,.91,.82]);
+      const segmentProgress=((travelledThisLap+i*segmentLength)%lapDistance)/lapDistance;
+      if(segmentProgress<PIT_ENTRY_START || segmentProgress>PIT_ENTRY_END){
+        mesh.quad(edge(a,half+.72,.04),edge(a,half+.88,.04),edge(b,half+.88,.04),edge(b,half+.72,.04),[.94,.91,.82]);
+      } else if(worldSegment%5===0) {
+        mesh.quad(edge(a,half+.9,.07),edge(a,half+4.45,.07),edge(b,half+4.45,.07),edge(b,half+.9,.07),[.78,.58,.16]);
+      }
       mesh.quad(edge(a,half+4.5,.04),edge(a,half+4.66,.04),edge(b,half+4.66,.04),edge(b,half+4.5,.04),[.94,.91,.82]);
       if(worldSegment%30===0){
         const bay=half+2.7;
