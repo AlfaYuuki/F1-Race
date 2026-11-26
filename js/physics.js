@@ -37,11 +37,24 @@ export function brakeFade(temp) {
   if (temp > 700) return 1 - clamp((temp - 700) / 300, 0, 1) * .3; // fade
   return 1;
 }
+// Drift model: when the cornering demand exceeds what the tyres can hold the rear steps out
+// and the car slides at a slip angle (radians). Counter-steering recovers it; holding it earns points.
+export const DRIFT = { minSpeed: 90, enter: .11, spin: .5, spinTime: .7, bankDelay: .45, maxAngle: .55 };
+export function driftTarget({ steer, speed, grip, braking, accelerating, diffSetup = 50, offRoad = false }) {
+  if (offRoad || speed < DRIFT.minSpeed) return 0;
+  const vr = speed / 330;
+  const demand = Math.abs(steer) * vr * 1.4 * (1 + (braking ? .35 : 0) + (accelerating && vr < .75 ? .15 : 0));
+  // A looser differential (low setting) lets the rear break away earlier.
+  const limit = Math.max(.2, grip) * (.8 + diffSetup / 400);
+  const excess = demand - limit;
+  return excess > 0 ? Math.sign(steer) * clamp(excess * 1.9, 0, DRIFT.maxAngle) : 0;
+}
 export function createPhysics() {
   return {
     speed: 0, playerX: 0, distance: 0, offRoad: false, lateralVelocity: 0, rpm: 850, gear: 1,
     fuel: 100, tireWear: 0, compound: 'MEDIUM', damage: 0, pitStops: 0,
     tyreTemp: START_TYRE_TEMP, brakeTemp: START_BRAKE_TEMP, downforce: 0, draft: 0, wheelspin: 0,
+    driftAngle: 0, driftTime: 0, driftScore: 0, driftChain: 0, driftTotal: 0, driftBest: 0, driftIdle: 0, spinTimer: 0, driftBanked: 0, spinEvent: 0,
     telemetry: { throttle:0, brake:0, steering:0, lateralG:0, longitudinalG:0, grip:100, fuelFlow:0 },
     carConfig: { stats: { power:1, grip:1, braking:1, durability:1 }, setup: { aero:50, suspension:50, brakeBias:56, differential:50 } },
     setCarConfig(config) { if (config?.stats) this.carConfig = config; },
@@ -78,7 +91,7 @@ export function createPhysics() {
         this.fuel = Math.max(0, this.fuel - (FUEL_BURN_BASE + this.speed / 330 * FUEL_BURN_SPEED) * dt);
       }
       const thermal = tyreTempEffects(this.compound, this.tyreTemp);
-      if (this.speed > 35) this.tireWear = Math.min(100, this.tireWear + COMPOUNDS[this.compound].wear * dt * weatherWear * thermal.wear * (this.offRoad ? 1.8 : 1));
+      if (this.speed > 35) this.tireWear = Math.min(100, this.tireWear + COMPOUNDS[this.compound].wear * dt * weatherWear * thermal.wear * (1 + Math.abs(this.driftAngle) * 1.6) * (this.offRoad ? 1.8 : 1));
       const digital = (input.has('right') ? 1 : 0) - (input.has('left') ? 1 : 0);
       const steer = clamp(digital + (Number.isFinite(steerAxis) ? steerAxis : 0), -1, 1);
       const velocityRatio = this.speed / 330;
@@ -98,6 +111,7 @@ export function createPhysics() {
       const diffStability = .9 + (this.carConfig.setup?.differential ?? 50) / 500;
       this.lateralVelocity *= Math.max(0, 1 - dt * (3.2 + velocityRatio * 1.2) * diffStability);
       this.lateralVelocity -= curve * velocityRatio * .28 * dt;
+      this.updateDrift(dt, steer, grip, braking, accelerating, curve, velocityRatio);
       this.playerX += this.lateralVelocity * dt * (1.4 + velocityRatio * 1.2);
       this.offRoad = Math.abs(this.playerX) > .88;
       if (this.offRoad) {
@@ -107,7 +121,7 @@ export function createPhysics() {
       this.playerX = clamp(this.playerX, -1.35, 1.35);
       // Tyre temperature: heated by speed, cornering load, braking and sliding; cooled by airflow.
       const lateralLoad = Math.min(1, Math.abs(this.lateralVelocity) * 1.2 + Math.abs(steer) * velocityRatio * .6);
-      const tyreTarget = AMBIENT_TEMP + velocityRatio * 68 + lateralLoad * 46 + (braking ? 22 * velocityRatio : 0) + (this.offRoad ? 18 : 0) + (accelerating && this.wheelspin > 0 ? 14 : 0);
+      const tyreTarget = AMBIENT_TEMP + velocityRatio * 68 + lateralLoad * 46 + (braking ? 22 * velocityRatio : 0) + (this.offRoad ? 18 : 0) + (accelerating && this.wheelspin > 0 ? 14 : 0) + Math.abs(this.driftAngle) * 55;
       this.tyreTemp += (tyreTarget - this.tyreTemp) / 7 * Math.min(dt, .1) * (this.speed > 2 ? 1 : .15);
       const longitudinalG = dt > 0 ? ((this.speed - previousSpeed) / 3.6) / dt / 9.81 : 0;
       const lateralG = clamp((steer * .85 - curve * .7 + this.lateralVelocity * .45) * velocityRatio, -3.5, 3.5);
@@ -125,9 +139,52 @@ export function createPhysics() {
       const gearProgress = (this.speed - (this.gear - 1) * 42) / 42;
       this.rpm = Math.round(Math.max(850, Math.min(12000, 900 + gearProgress * 9300 + (accelerating ? 650 : 0))));
     },
+    updateDrift(dt, steer, grip, braking, accelerating, curve, velocityRatio) {
+      const diff = this.carConfig.setup?.differential ?? 50;
+      const target = driftTarget({ steer, speed: this.speed, grip, braking, accelerating, diffSetup: diff, offRoad: this.offRoad });
+      const counter = this.driftAngle !== 0 && Math.sign(steer) === -Math.sign(this.driftAngle) && Math.abs(steer) > .2;
+      const rate = target !== 0 ? 5 : counter ? 7 : 2.4;
+      this.driftAngle += (target - this.driftAngle) * (1 - Math.exp(-rate * dt));
+      if (Math.abs(this.driftAngle) < .004 && target === 0) this.driftAngle = 0;
+      const angle = Math.abs(this.driftAngle);
+      if (angle > DRIFT.enter && this.speed > DRIFT.minSpeed * .8) {
+        // Sliding scrubs speed and pushes the car wide of the line.
+        this.speed = Math.max(0, this.speed - this.speed * .4 * Math.sin(angle) * dt);
+        this.lateralVelocity -= this.driftAngle * velocityRatio * 1.1 * dt;
+        this.driftTime += dt;
+        const multiplier = 1 + Math.min(4, this.driftTime * .5);
+        this.driftChain = multiplier;
+        this.driftScore += angle * this.speed * dt * 4 * multiplier;
+        this.driftIdle = 0;
+        // Overcooking it (too much angle for too long) ends in a spin.
+        this.spinTimer = angle > DRIFT.spin ? this.spinTimer + dt : Math.max(0, this.spinTimer - dt);
+        if (this.spinTimer > DRIFT.spinTime) {
+          this.speed = Math.max(35, this.speed * .45);
+          this.driftAngle = 0; this.lateralVelocity = 0; this.spinTimer = 0;
+          this.driftScore = 0; this.driftTime = 0; this.driftChain = 0; this.spinEvent = 1;
+        }
+      } else if (this.driftScore > 0) {
+        this.driftIdle += dt;
+        if (this.driftIdle >= DRIFT.bankDelay) this.bankDrift();
+      }
+    },
+    bankDrift() {
+      const points = Math.round(this.driftScore);
+      if (points >= 100) {
+        this.driftTotal += points;
+        this.driftBest = Math.max(this.driftBest, points);
+        this.driftBanked = points;
+      }
+      this.driftScore = 0; this.driftTime = 0; this.driftChain = 0; this.driftIdle = 0;
+    },
+    consumeDriftEvents() {
+      const events = { banked: this.driftBanked, spin: this.spinEvent };
+      this.driftBanked = 0; this.spinEvent = 0;
+      return events;
+    },
     getTelemetry() { return { ...this.telemetry }; },
     getDynamics() {
-      return { tyreTemp: this.tyreTemp, brakeTemp: this.brakeTemp, downforce: this.downforce, draft: this.draft, wheelspin: this.wheelspin };
+      return { tyreTemp: this.tyreTemp, brakeTemp: this.brakeTemp, downforce: this.downforce, draft: this.draft, wheelspin: this.wheelspin, driftAngle: this.driftAngle, driftScore: Math.round(this.driftScore), driftChain: this.driftChain, driftTotal: this.driftTotal };
     },
     impact(direction = 1, severity = 1) {
       const force = clamp(Number.isFinite(severity) ? severity : 1, .15, 1);
@@ -152,6 +209,7 @@ export function createPhysics() {
       this.lateralVelocity = 0; this.rpm = 850; this.gear = 1;
       this.fuel = 100; this.tireWear = 0; this.compound = 'MEDIUM'; this.damage = 0; this.pitStops = 0;
       this.tyreTemp = START_TYRE_TEMP; this.brakeTemp = START_BRAKE_TEMP; this.downforce = 0; this.draft = 0; this.wheelspin = 0; this.lastGrip = 1;
+      this.driftAngle = 0; this.driftTime = 0; this.driftScore = 0; this.driftChain = 0; this.driftTotal = 0; this.driftBest = 0; this.driftIdle = 0; this.spinTimer = 0; this.driftBanked = 0; this.spinEvent = 0;
       this.telemetry = { throttle:0, brake:0, steering:0, lateralG:0, longitudinalG:0, grip:100, fuelFlow:0 };
     }
   };
