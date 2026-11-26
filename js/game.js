@@ -10,6 +10,7 @@ const weatherSystem=createWeather();
 const trackEvolution=createTrackEvolution();
 const collisionDetector=createCollisionDetector();
 const raceStartGate=createRaceStartGate();
+const PIT_ENTRY_START=.84,PIT_ENTRY_END=.92,PIT_LANE_X=1.12;
 const formatTime=ms=>{if(ms==null||!Number.isFinite(ms))return '--:--.---';const m=Math.floor(ms/60000),s=Math.floor(ms/1000)%60,mm=Math.floor(ms%1000);return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')+'.'+String(mm).padStart(3,'0');};
 export function createGame(canvas,callbacks={}) {
   const physics=createPhysics(),renderer=createRenderer(canvas),input=new Set(),opponents=createOpponents(LAP_DISTANCE);
@@ -21,14 +22,15 @@ export function createGame(canvas,callbacks={}) {
   const notify=message=>callbacks.onMessage?.(message);
   function setInput(action,active){if(!raceStartGate.acceptsInput()&&active)return;active?input.add(action):input.delete(action);}
   function setSteerAxis(value){if(!raceStartGate.acceptsInput()){steerAxis=0;return;}steerAxis=Number.isFinite(value)?Math.max(-1,Math.min(1,value)):0;}
-  function requestPit(compound='MEDIUM',fuelTarget=100,repair=true){
-    if(state!=='running'||pitPhase||physics.pitStops>=3)return false;
+  function setPitStrategy(compound='MEDIUM',fuelTarget=100,repair=true){
+    if(state!=='running'||physics.pitStops>=3)return false;
     const allowed=['SOFT','MEDIUM','HARD','INTER'];
     pitPlan={compound:allowed.includes(compound)?compound:'MEDIUM',fuelTarget:Math.max(20,Math.min(100,Number(fuelTarget)||100)),repair:repair!==false};
-    pitPhase='entry';pitTimer=1.6;input.clear();steerAxis=0;
-    notify('PIT ENTRY — SPEED LIMIT 80 KM/H');
+    notify('PIT STRATEGY SAVED — ENTER THE MARKED PIT LANE');
     return true;
   }
+  // Kept as a compatibility alias; selecting a plan no longer teleports the car into the pits.
+  const requestPit=setPitStrategy;
   // Slipstream: strongest when 8–35 m behind a car that is in (almost) the same lane.
   function slipstream(){
     let best=0;
@@ -75,14 +77,25 @@ export function createGame(canvas,callbacks={}) {
     if(weatherAccumulator>=.1){weatherAccumulator%=.1;callbacks.onWeather?.({...currentWeather,track:trackState});}
     const previousLapIndex=Math.floor(raceDistance/LAP_DISTANCE),previousSpeed=physics.speed;
     const progress=(raceDistance%LAP_DISTANCE)/LAP_DISTANCE,curve=curveAt(progress);
+    // The player must physically move to the marked right-hand lane at the pit-entry zone.
+    const pitEntryWindow=progress>=PIT_ENTRY_START&&progress<=PIT_ENTRY_END;
+    if(!pitPhase&&physics.pitStops<3&&pitEntryWindow&&physics.playerX>=.96){
+      pitPlan ||= {compound:'MEDIUM',fuelTarget:100,repair:true};
+      pitPhase='entry';pitTimer=1.45;input.clear();steerAxis=0;
+      physics.playerX=PIT_LANE_X;physics.lateralVelocity=0;
+      notify('PIT LANE — SPEED LIMIT 80 KM/H');
+    }
     if(pitPhase==='service'){
-      physics.speed=0;physics.rpm=850;physics.update(0,new Set(),0,0);physics.speed=0;physics.rpm=850;pitTimer-=dt;
+      physics.speed=0;physics.rpm=850;physics.playerX=PIT_LANE_X;physics.lateralVelocity=0;physics.update(0,new Set(),0,0,{pitLane:true});physics.speed=0;physics.rpm=850;pitTimer-=dt;
       if(pitTimer<=0){physics.applyPitService(pitPlan.compound,pitPlan.fuelTarget,pitPlan.repair);pitPhase='exit';pitTimer=1.25;callbacks.onPitService?.(false);notify('PIT SERVICE COMPLETE — RELEASED');}
     } else {
-      physics.update(dt,pitPhase==='entry'?new Set():input,curve,pitPhase==='entry'?0:steerAxis,{pitLimiter:pitPhase==='entry'||pitPhase==='exit',yellowFlag:currentWeather.yellowFlag,safetyCar:currentWeather.safetyCar,weatherGrip:currentWeather.grip,weatherWear:currentWeather.wear,trackGrip:trackEvolution.sample(progress,physics.playerX).grip,draft:slipstream()});
+      const inPitLane=pitPhase==='entry'||pitPhase==='exit';
+      physics.update(dt,inPitLane?new Set():input,curve,inPitLane?0:steerAxis,{pitLimiter:inPitLane,yellowFlag:currentWeather.yellowFlag,safetyCar:currentWeather.safetyCar,weatherGrip:currentWeather.grip,weatherWear:currentWeather.wear,trackGrip:trackEvolution.sample(progress,physics.playerX).grip,draft:slipstream(),pitLane:inPitLane});
+      if(pitPhase==='entry'){physics.playerX=PIT_LANE_X;physics.lateralVelocity=0;}
+      if(pitPhase==='exit'){physics.playerX=.42+(.7*Math.max(0,pitTimer/1.25));physics.lateralVelocity=0;}
       const driftEvents=physics.consumeDriftEvents();if(driftEvents.banked)notify('DRIFT +'+driftEvents.banked+' PTS');if(driftEvents.spin)notify('SPIN — LIFT OFF AND COUNTER-STEER EARLIER');
       if(pitPhase==='entry'){pitTimer-=dt;if(pitTimer<=0){pitPhase='service';pitTimer=4.2;physics.speed=0;callbacks.onPitService?.(true);notify('CAR IN PIT BOX — CREW AT WORK');}}
-      else if(pitPhase==='exit'){pitTimer-=dt;if(pitTimer<=0){pitPhase=null;pitPlan=null;notify('PIT EXIT — BACK TO RACING');}}
+      else if(pitPhase==='exit'){pitTimer-=dt;if(pitTimer<=0){pitPhase=null;pitPlan=null;physics.playerX=.42;physics.lateralVelocity=0;notify('PIT EXIT — BACK TO RACING');}}
       raceDistance+=physics.speed/3.6*dt;
     }
     opponents.update(dt,raceDistance,curveAt,currentWeather);
@@ -112,7 +125,7 @@ export function createGame(canvas,callbacks={}) {
       if(!finishNotified){finishNotified=true;callbacks.onFinish?.({sessionType,lap:sessionLaps,elapsedMs:elapsed,bestLapMs:bestLap,standings:opponents.getStandings(raceDistance)});}}
     lap=Math.max(1,Math.min(sessionLaps,Math.floor(raceDistance/LAP_DISTANCE)+1));  // a car on the grid is still on lap 1
     const rivalCars=opponents.drivers.map(d=>({...d,relativeDistance:d.distance-raceDistance}));
-    renderer.render({driftAngle:physics.driftAngle,position:raceDistance/LAP_DISTANCE,playerX:physics.playerX,speed:physics.speed,speedDelta:(physics.speed-previousSpeed)/Math.max(dt,.001),lateralVelocity:physics.lateralVelocity,offRoad:physics.offRoad,running:state==='running',opponents:rivalCars,cameraShake:impactPulse>0?Math.sin(now*.05)*impactPulse*3:0,playerColor,skid:Math.abs(physics.lateralVelocity)>.42,dt});
+    renderer.render({driftAngle:physics.driftAngle,position:raceDistance/LAP_DISTANCE,playerX:physics.playerX,speed:physics.speed,speedDelta:(physics.speed-previousSpeed)/Math.max(dt,.001),lateralVelocity:physics.lateralVelocity,offRoad:physics.offRoad,running:state==='running',opponents:rivalCars,pitLane:!!pitPhase,cameraShake:impactPulse>0?Math.sin(now*.05)*impactPulse*3:0,playerColor,skid:Math.abs(physics.lateralVelocity)>.42,dt});
     hudAccumulator+=dt;
     if(hudAccumulator>=.05||state!=='running'){hudAccumulator%=.05;updateHud();}
     if(state==='running')raf=requestAnimationFrame(frame);
