@@ -69,7 +69,7 @@ function renderWeekendPanel() {
     state.weekendComplete ? `ROUND ${state.round} · WEEKEND COMPLETE` :
     `ROUND ${state.round} · ${state.completed.length}/3 SESSIONS COMPLETE`;
   document.querySelector('#weekend-session-buttons').innerHTML = state.sessions.map(session => {
-    const detail = session.id === 'practice' ? '3 LAPS' : session.id === 'qualifying' ? '1 LAP' : '50 LAPS';
+    const detail = session.id === 'practice' ? '3 LAPS' : session.id === 'qualifying' ? '1 LAP' : '10 LAPS';
     const action = session.status === 'complete' ? '✓ COMPLETE' : session.status === 'locked' ? 'LOCKED' : 'START';
     return `<button type="button" data-weekend-session="${session.id}" class="weekend-session ${session.status}" ${session.status !== 'available' ? 'disabled' : ''}>
       <span><b>${session.label}</b><small>${detail}</small></span><em>${action}</em>
