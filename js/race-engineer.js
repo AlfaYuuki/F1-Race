@@ -71,7 +71,7 @@ export function createRaceEngineer(options={}) {
     const telemetry=snapshot.telemetry||{};
     const candidates=[];
     const pitPlan=evaluatePitStrategy({lap,totalLaps,fuel,tireWear:wear,compound,damage,weather,lastLapMs:lapMs,fuelFlow:averageFuelFlow});
-    if(pitPlan.requiredStop&&typeof document!=='undefined'){
+    if(pitPlan.requiredStop&&typeof document!=='undefined'&&document.querySelector('#pit-dialog')?.hidden!==false){
       const compoundInput=document.querySelector('#pit-compound');
       const fuelInput=document.querySelector('#pit-fuel');
       const fuelOutput=document.querySelector('#fuel-choice');
