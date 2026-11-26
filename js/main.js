@@ -369,7 +369,7 @@ startButton.addEventListener('click', () => {
   finishedSessionType = null;
   startScreen.classList.add('hidden');
   game.setCarConfig(garage.getCar());
-  const laps = Math.max(1, Math.min(10, Number(quickRaceLapsSelect.value) || 5));
+  const laps = normalizeRaceLaps(quickRaceLapsSelect.value, 10);
   document.querySelector('#race-message').textContent = `FUJI INTERNATIONAL SPEEDWAY · ${laps} LAP GRAND PRIX`;
   game.start(Number(gridPositionSelect.value), { type:'race', laps });
 });
