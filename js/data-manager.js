@@ -13,6 +13,11 @@ const CAR_IDS = new Set(['falcon', 'vortex', 'titan']);
 const UPGRADE_KEYS = ['power', 'grip', 'braking', 'durability'];
 const SETUP_KEYS = ['aero', 'suspension', 'brakeBias', 'differential'];
 const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const isValidClassification = order => Array.isArray(order) && order.length === 20 &&
+  order.every(driver => isObject(driver) && typeof driver.id === 'string' && driver.id.length > 0 &&
+    typeof driver.name === 'string' && driver.name.length > 0) &&
+  new Set(order.map(driver => driver.id)).size === 20 &&
+  order.some(driver => driver.id === 'player');
 
 function validateGarage(raw) {
   let value;
@@ -43,8 +48,7 @@ function validateChampionship(raw) {
     new Set(standings.map(driver => driver.id)).size === 6 &&
     standings.some(driver => driver.id === 'player') &&
     results.every((result, index) => isObject(result) && result.round === index + 1 &&
-      Array.isArray(result.order) && result.order.every(driver =>
-        isObject(driver) && typeof driver.id === 'string' && typeof driver.name === 'string'));
+      isValidClassification(result.order));
 }
 
 function validateWeekend(raw) {
@@ -64,15 +68,18 @@ function validateWeekend(raw) {
     typeof driver.name === 'string' && driver.name.length > 0);
   if (!results.every((result, index) => isObject(result) &&
       result.session === completed[index] && validOrder(result.order) &&
+      (result.session !== 'qualifying' || isValidClassification(result.order)) &&
       (result.playerPosition === null || (Number.isInteger(result.playerPosition) &&
         result.playerPosition >= 1 && result.playerPosition <= 20)) &&
       (result.bestLapMs === null || (Number.isFinite(result.bestLapMs) && result.bestLapMs >= 0)) &&
       (result.elapsedMs === null || (Number.isFinite(result.elapsedMs) && result.elapsedMs >= 0)))) return false;
   if (qualifyingOrder.length === 0) return !completed.includes('qualifying');
+  const qualifying = results.find(result => result.session === 'qualifying');
   return qualifyingOrder.length === 20 &&
     qualifyingOrder.every(id => typeof id === 'string' && id.length > 0) &&
     new Set(qualifyingOrder).size === 20 && qualifyingOrder.includes('player') &&
-    completed.includes('qualifying');
+    completed.includes('qualifying') && qualifying &&
+    qualifying.order.map(driver => driver.id).join('|') === qualifyingOrder.join('|');
 }
 
 function validateEntries(entries) {
