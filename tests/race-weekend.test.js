@@ -95,3 +95,18 @@ test('race weekend rejects a saved qualifying classification with duplicate iden
   assert.equal(weekend.getState().round, 1);
   assert.equal(weekend.getState().nextSession, 'practice');
 });
+
+
+test('race weekend rejects a saved grid that differs from qualifying classification', () => {
+  const storage = memoryStorage();
+  const differentGrid = order.map(driver => driver.id).reverse();
+  storage.setItem('the-f1-race-weekend-v1', JSON.stringify({
+    round: 1,
+    completed: ['practice', 'qualifying'],
+    results: [{ session: 'practice', order: [] }, { session: 'qualifying', order }],
+    qualifyingOrder: differentGrid
+  }));
+  const weekend = createRaceWeekend(storage);
+  assert.equal(weekend.getState().round, 1);
+  assert.equal(weekend.getState().nextSession, 'practice');
+});
