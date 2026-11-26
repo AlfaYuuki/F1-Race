@@ -36,6 +36,8 @@ export function createGame(canvas,callbacks={}) {
     sessionType=['practice','qualifying','race'].includes(options.type)?options.type:'race';
     sessionLaps=Math.max(1,Math.min(TOTAL_LAPS,Math.round(Number(options.laps)||TOTAL_LAPS)));
     finishNotified=false;
+    // A new session must never inherit a held key, touch button or steering axis.
+    input.clear();steerAxis=0;
     cancelAnimationFrame(raf);clearInterval(countdownTimer);state='countdown';physics.reset();weatherSystem.reset();currentWeather=weatherSystem.getState();lastYellow=false;lastSafetyCar=false;callbacks.onWeather?.(currentWeather);trackEvolution.reset(currentWeather.temperature);elapsed=0;raceDistance=0;lap=1;collisionDetector.reset();impactPulse=0;opponents.reset(playerGridPosition, options.gridOrder);playerHasLaunched=false;lapElapsed=0;lastLap=null;bestLap=null;sector=1;sectorElapsed=0;pitPhase=null;pitPlan=null;
     callbacks.onPitService?.(false);notify('GET READY');let count=5;const countdown=document.querySelector('#countdown');countdown.hidden=false;countdown.classList.add('active');countdown.dataset.lit='0';countdown.textContent='';
     callbacks.onStart?.();callbacks.onWeather?.(currentWeather);updateHud();
