@@ -85,8 +85,7 @@ test('save manager accepts a real championship save', () => {
   series.startNewSeason();
   series.recordResult([
     { id: 'player', name: 'YOU' },
-    { id: 'sato', name: 'K. SATO' },
-    { id: 'tanaka', name: 'M. TANAKA' }
+    ...Array.from({ length: 19 }, (_, index) => ({ id: 'driver-' + index, name: 'DRIVER ' + index }))
   ]);
   const backup = createDataManager(storage).createBackup();
   const target = memoryStorage();
@@ -142,4 +141,50 @@ test('legacy partial garage saves are normalized before backup export', () => {
   assert.equal(restored.upgrades.power, 2);
   assert.equal(restored.setup.aero, 70);
   assert.equal(restored.setup.suspension, 50);
+});
+
+
+test('save manager rejects championship saves with duplicate finishers', () => {
+  const storage = memoryStorage();
+  const manager = createDataManager(storage);
+  const order = [
+    { id: 'player', name: 'YOU' },
+    ...Array.from({ length: 19 }, (_, index) => ({ id: 'driver-' + index, name: 'DRIVER ' + index }))
+  ];
+  order[19].id = order[18].id;
+  const invalid = {
+    format: 'the-f1-race-save', version: 1,
+    data: { 'the-f1-race-championship-v1': JSON.stringify({
+      round: 1, completed: false,
+      results: [{ round: 1, order }],
+      standings: [
+        { id: 'player', name: 'YOU', points: 25 },
+        ...['sato', 'tanaka', 'mori', 'kobayashi', 'nakamura'].map(id => ({ id, name: id, points: 0 }))
+      ]
+    }) }
+  };
+  assert.equal(manager.restoreBackup(invalid).ok, false);
+  assert.equal(storage.getItem('the-f1-race-championship-v1'), null);
+});
+
+test('save manager rejects a weekend backup whose grid disagrees with qualifying', () => {
+  const storage = memoryStorage();
+  const manager = createDataManager(storage);
+  const order = Array.from({ length: 20 }, (_, index) => ({
+    id: index === 7 ? 'player' : 'driver-' + index,
+    name: index === 7 ? 'YOU' : 'DRIVER ' + index
+  }));
+  const invalid = {
+    format: 'the-f1-race-save', version: 1,
+    data: { 'the-f1-race-weekend-v1': JSON.stringify({
+      round: 1, completed: ['practice', 'qualifying'],
+      results: [
+        { session: 'practice', order: [], playerPosition: null, bestLapMs: null, elapsedMs: null },
+        { session: 'qualifying', order, playerPosition: 8, bestLapMs: null, elapsedMs: null }
+      ],
+      qualifyingOrder: order.map(driver => driver.id).reverse()
+    }) }
+  };
+  assert.equal(manager.restoreBackup(invalid).ok, false);
+  assert.equal(storage.getItem('the-f1-race-weekend-v1'), null);
 });
