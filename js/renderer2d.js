@@ -68,7 +68,12 @@ export function createRenderer(canvas) {
       const pitInnerA=a.center+a.roadW*.54,pitOuterA=a.center+a.roadW*.94;
       const pitInnerB=b.center+b.roadW*.54,pitOuterB=b.center+b.roadW*.94;
       polygon([[pitInnerA,a.y],[pitOuterA,a.y],[pitOuterB,b.y],[pitInnerB,b.y]],'#252d33');
-      polygon([[pitInnerA,a.y],[pitInnerA+Math.max(1,a.roadW*.012),a.y],[pitInnerB+Math.max(1,b.roadW*.012),b.y],[pitInnerB,b.y]],'#e7e4d8');
+      const pitEntryProgress=((position+(1-a.t)*.18)%1+1)%1;
+      if(pitEntryProgress<PIT_ENTRY_START || pitEntryProgress>PIT_ENTRY_END){
+        polygon([[pitInnerA,a.y],[pitInnerA+Math.max(1,a.roadW*.012),a.y],[pitInnerB+Math.max(1,b.roadW*.012),b.y],[pitInnerB,b.y]],'#e7e4d8');
+      } else if(i%7===0) {
+        polygon([[pitInnerA,a.y],[pitOuterA,a.y],[pitOuterB,b.y],[pitInnerB,b.y]],'#80602b');
+      }
       polygon([[pitOuterA,a.y],[pitOuterA+Math.max(1,a.roadW*.012),a.y],[pitOuterB+Math.max(1,b.roadW*.012),b.y],[pitOuterB,b.y]],'#e7e4d8');
       if(i%18===0&&b.depth>.12){const bay=lerp(pitInnerB,pitOuterB,.58),w=Math.max(1,b.roadW*.08);polygon([[bay-w,b.y],[bay+w,b.y],[bay+w*1.08,b.y-2],[bay-w*1.08,b.y-2]],'#d7d9d5');}
       const ca=a.roadW*.075,cb=b.roadW*.075;
