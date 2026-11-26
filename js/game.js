@@ -17,8 +17,8 @@ export function createGame(canvas,callbacks={}) {
   let lapElapsed=0,lastLap=null,bestLap=null,sector=1,sectorElapsed=0,playerHasLaunched=false;
   let steerAxis=0,pitPhase=null,pitTimer=0,pitPlan=null,currentWeather=weatherSystem.getState(),lastYellow=false,lastSafetyCar=false;
   const notify=message=>callbacks.onMessage?.(message);
-  function setInput(action,active){active?input.add(action):input.delete(action);}
-  function setSteerAxis(value){steerAxis=Number.isFinite(value)?Math.max(-1,Math.min(1,value)):0;}
+  function setInput(action,active){if(state==='countdown'&&active)return;active?input.add(action):input.delete(action);}
+  function setSteerAxis(value){if(state==='countdown'){steerAxis=0;return;}steerAxis=Number.isFinite(value)?Math.max(-1,Math.min(1,value)):0;}
   function requestPit(compound='MEDIUM',fuelTarget=100,repair=true){
     if(state!=='running'||pitPhase||physics.pitStops>=3)return false;
     const allowed=['SOFT','MEDIUM','HARD','INTER'];
@@ -43,7 +43,7 @@ export function createGame(canvas,callbacks={}) {
     callbacks.onStart?.();callbacks.onWeather?.(currentWeather);updateHud();
     countdownTimer=setInterval(()=>{count--;if(count>0){countdown.dataset.lit=String(5-count);countdown.setAttribute('aria-label',String(6-count)+' of 5 start lights');}
       else if(count===0){countdown.dataset.lit='5';countdown.textContent='GO!';countdown.setAttribute('aria-label','Go');}
-      else{clearInterval(countdownTimer);countdown.dataset.lit='0';countdown.textContent='';countdown.removeAttribute('aria-label');countdown.classList.remove('active');countdown.hidden=true;state='running';notify('RACE ON — FIND YOUR LINE!');last=performance.now();raf=requestAnimationFrame(frame);}},650);
+      else{clearInterval(countdownTimer);countdown.dataset.lit='0';countdown.textContent='';countdown.removeAttribute('aria-label');countdown.classList.remove('active');countdown.hidden=true;input.clear();steerAxis=0;state='running';notify('RACE ON — FIND YOUR LINE!');last=performance.now();raf=requestAnimationFrame(frame);}},650);
   }
   function togglePause(){
     if(state==='running'&&!pitPhase){state='paused';cancelAnimationFrame(raf);input.clear();steerAxis=0;notify('PAUSED — PRESS ESC OR ▶ TO RESUME');updateHud();callbacks.onPause?.(true);}
