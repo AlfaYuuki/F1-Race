@@ -1305,3 +1305,9 @@ button,select,input{touch-action:manipulation}
   .telemetry-group>div{overflow:visible!important;gap:3px!important}
   .telemetry-group small{display:block;min-height:7px;line-height:7px!important;overflow:visible!important}
 }
+
+/* Paired setup controls: keep grid and lap selectors together without displacing menu actions. */
+.race-setup-choices{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:0 0 12px;break-inside:avoid}
+.race-setup-choices .grid-choice{min-width:0;margin:0;padding:8px 9px;gap:6px;font-size:7px}
+.race-setup-choices .grid-choice select{min-width:0;width:auto;max-width:100%;padding:6px 7px;font-size:9px}
+@media(max-width:430px){.race-setup-choices{gap:6px}.race-setup-choices .grid-choice{padding:7px 6px;font-size:6px}.race-setup-choices .grid-choice select{padding:6px 5px;font-size:8px}}
