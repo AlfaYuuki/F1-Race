@@ -25,7 +25,7 @@ for (const file of modules) {
 }
 const serviceWorker = await readFile(resolve(root, 'sw.js'), 'utf8');
 const pwa = await readFile(resolve(root, 'js/pwa.js'), 'utf8');
-if (!serviceWorker.includes("const CACHE_NAME = 'the-f1-race-shell-v23'")) {
+if (!serviceWorker.includes("const CACHE_NAME = 'the-f1-race-shell-v24'")) {
   throw new Error('Service worker cache version is missing or invalid.');
 }
 if (!serviceWorker.includes("'./js/race-weekend.js'")) {
