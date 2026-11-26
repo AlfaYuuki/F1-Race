@@ -65,8 +65,8 @@ export function createRenderer(canvas) {
     for(let i=0;i<segments;i++){
       const a=road[i],b=road[i+1],stripe=(i+Math.floor(position*LAP_SCROLL))%2;
       polygon([[a.center-a.roadW,a.y],[a.center+a.roadW,a.y],[b.center+b.roadW,b.y],[b.center-b.roadW,b.y]],'#343a40');
-      const pitInnerA=a.center+a.roadW*1.08,pitOuterA=a.center+a.roadW*1.38;
-      const pitInnerB=b.center+b.roadW*1.08,pitOuterB=b.center+b.roadW*1.38;
+      const pitInnerA=a.center+a.roadW*.54,pitOuterA=a.center+a.roadW*.94;
+      const pitInnerB=b.center+b.roadW*.54,pitOuterB=b.center+b.roadW*.94;
       polygon([[pitInnerA,a.y],[pitOuterA,a.y],[pitOuterB,b.y],[pitInnerB,b.y]],'#30363b');
       polygon([[pitInnerA,a.y],[pitInnerA+Math.max(1,a.roadW*.012),a.y],[pitInnerB+Math.max(1,b.roadW*.012),b.y],[pitInnerB,b.y]],'#e7e4d8');
       polygon([[pitOuterA,a.y],[pitOuterA+Math.max(1,a.roadW*.012),a.y],[pitOuterB+Math.max(1,b.roadW*.012),b.y],[pitOuterB,b.y]],'#e7e4d8');
@@ -96,11 +96,11 @@ export function createRenderer(canvas) {
       const roadW=lerp(width*.025,width*.49,perspective);
       const center=width*.5+curveAt(position)*width*.12*(1-perspective);
       const lane=driver.currentLane??driver.lane??0;
-      const x=center+lane*roadW*.7+(driver.pitLane?roadW*.95:0);
+      const x=center+lane*roadW*.7+(driver.pitLane?roadW*.72:0);
       const scale=lerp(.12,.78,perspective)*Math.max(.75,Math.min(1.1,width/900));
       car(x,y-10*scale,scale,driver.color,false);
     }
-    const playerScreenX=width*.5+(pitLane?width*.31:playerX*.29*width),playerY=height*.875;
+    const playerScreenX=width*.5+(pitLane?width*.22:playerX*.29*width),playerY=height*.875;
     if(running&&offRoad&&Math.random()<.8)spawnParticles(playerScreenX,playerY,2,false);
     if(running&&(skid||Math.abs(driftAngle)>.12)){skidClock+=dt*speed*.02;if(skidClock>.9){spawnParticles(playerScreenX,playerY+8,1,false);skidClock=0;}}
     ctx.save();ctx.translate(cameraShake,0);car(playerScreenX,playerY,Math.max(.68,Math.min(1.2,width/900)),playerColor,true,Math.max(-.7,Math.min(.7,driftAngle)));ctx.restore();
