@@ -1,4 +1,5 @@
 import { curveAt, elevationAt } from './track.js';
+const PIT_ENTRY_START=.84,PIT_ENTRY_END=.92;
 const lerp = (a,b,t) => a + (b-a)*t;
 
 export function isForwardOpponent(relativeDistance) {
