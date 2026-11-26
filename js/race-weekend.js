@@ -40,8 +40,11 @@ export function createRaceWeekend(storage = safeStorage()) {
       const validGrid = Array.isArray(order) &&
         (order.length === 0 || (order.length === 20 && new Set(order).size === 20 &&
           order.every(id => typeof id === 'string' && id.length > 0) && order.includes('player')));
+      const savedQualifying = parsed?.results?.find(result => result?.session === 'qualifying');
+      const gridMatchesClassification = !parsed?.completed?.includes('qualifying') ||
+        (savedQualifying && savedQualifying.order.map(driver => driver.id).join('|') === order.join('|'));
       if (Number.isInteger(parsed?.round) && parsed.round > 0 && validSessions &&
-          validResults && validGrid &&
+          validResults && validGrid && gridMatchesClassification &&
           (parsed.completed.includes('qualifying') === (order.length === 20))) {
         state = {
           round: parsed.round,
