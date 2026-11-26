@@ -32,11 +32,14 @@ test('physics accelerates, brakes, remains bounded and resets', () => {
 test('AI roster forms a selectable twenty-car grid and launches deterministically', () => {
   const ai = createOpponents(LAP_DISTANCE);
   assert.equal(ai.drivers.length, 19);
-  for (const playerGridPosition of [1, 10, 20]) {
+  for (const playerGridPosition of [1, 2, 10, 19, 20]) {
     const grid = ai.reset(playerGridPosition).grid;
     assert.equal(grid.length, 20);
     assert.equal(grid.filter(driver => driver.isPlayer).length, 1);
     assert.equal(grid.findIndex(driver => driver.isPlayer) + 1, playerGridPosition);
+    const lockedGrid = ai.getStandings(0, true);
+    assert.equal(lockedGrid.findIndex(driver => driver.isPlayer) + 1, playerGridPosition);
+    assert.deepEqual(lockedGrid.map(driver => driver.gridPosition), Array.from({ length: 20 }, (_, index) => index + 1));
     assert.equal(new Set(ai.drivers.map(driver => driver.gridPosition)).size, 19);
     assert.ok(ai.drivers.every(driver => driver.distance !== 0));
     for (const driver of ai.drivers) assert.equal(Math.abs(driver.distance), Math.abs(driver.gridPosition - playerGridPosition) * 8);
