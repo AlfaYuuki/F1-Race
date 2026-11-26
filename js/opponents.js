@@ -134,7 +134,7 @@ export function createOpponents(lapDistance=4563) {
       let draftBonus=0;
       driver.defending=false;
       if(ahead&&ahead.gap<22&&!neutralised) {
-        const threat=traffic.find(car=>car.id!=='player'&&car.distance<driver.distance&&
+        const threat=traffic.find(car=>car.distance<driver.distance&&
           driver.distance-car.distance<18&&Math.abs((car.currentLane??0)-driver.currentLane)<.45);
         if(threat) {
           driver.defending=true;
