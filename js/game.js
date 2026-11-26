@@ -1,6 +1,6 @@
 import { createPhysics } from './physics.js';
 import { createRenderer } from './renderer.js';
-import { curveAt, LAP_DISTANCE, TOTAL_LAPS } from './track.js';
+import { curveAt, LAP_DISTANCE, TOTAL_LAPS, normalizeRaceLaps } from './track.js';
 import { createOpponents } from './opponents.js';
 import { createCollisionDetector } from './collision.js';
 import { createWeather } from './weather.js';
@@ -48,7 +48,7 @@ export function createGame(canvas,callbacks={}) {
   function start(playerGridPosition=10,options={}){
     if(state==='running'||state==='countdown')return;
     sessionType=['practice','qualifying','race'].includes(options.type)?options.type:'race';
-    sessionLaps=Math.max(1,Math.min(TOTAL_LAPS,Math.round(Number(options.laps)||TOTAL_LAPS)));
+    sessionLaps=normalizeRaceLaps(options.laps,sessionType==='race'?10:TOTAL_LAPS);
     finishNotified=false;
     // A new session must never inherit a held key, touch button or steering axis.
     input.clear();steerAxis=0;
