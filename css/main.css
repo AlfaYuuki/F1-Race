@@ -694,6 +694,14 @@ button,select,input{touch-action:manipulation}
 }
 
 
+/* Keep the live race message clear of the centred circuit name on wide screens. */
+@media (min-width:900px){
+  .race-message{left:auto;right:clamp(160px,18vw,260px);transform:none;max-width:220px;text-align:right}
+}
+@media (min-width:761px) and (max-width:899px){
+  .track-name{display:none}
+}
+
 /* ===== Garage / upgrades / setup ===== */
 .garage-screen{position:absolute;z-index:16;inset:0;display:grid;place-items:center;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));overflow:auto;background:radial-gradient(circle at 50% 20%,rgba(18,43,61,.96),rgba(2,8,14,.98));backdrop-filter:blur(12px)}
 .garage-screen[hidden]{display:none}
