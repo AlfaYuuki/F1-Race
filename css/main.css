@@ -1305,9 +1305,3 @@ button,select,input{touch-action:manipulation}
   .telemetry-group>div{overflow:visible!important;gap:3px!important}
   .telemetry-group small{display:block;min-height:7px;line-height:7px!important;overflow:visible!important}
 }
-
-
-/* Quick Race distance selector */
-.grid-choice{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;color:#b9c9d4;font:8px var(--mono);letter-spacing:.12em}
-.grid-choice select{min-width:88px;padding:8px 10px;border:1px solid #ffffff45;border-radius:3px;background:#102638;color:#f4f7fa;font:700 10px var(--mono)}
-@media(max-width:760px){.grid-choice{font-size:7px}.grid-choice select{padding:7px 8px}}
