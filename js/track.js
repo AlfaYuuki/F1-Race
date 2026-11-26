@@ -3,6 +3,12 @@ export const LAP_DISTANCE = 4563;
 export const TOTAL_LAPS = 5;
 export const TOTAL_DISTANCE = LAP_DISTANCE * TOTAL_LAPS;
 
+export function normalizeRaceLaps(value, maxLaps = 10) {
+  const requested = Number(value);
+  if (!Number.isFinite(requested) || requested === 0) return Math.min(TOTAL_LAPS, maxLaps);
+  return Math.max(1, Math.min(maxLaps, Math.round(requested)));
+}
+
 // Positive values bend the road to the right; values are smoothed between corner landmarks.
 const SECTIONS = [
   [0.00, 0.02], [0.055, 0.02], [0.085, 0.58], [0.115, 0.72],
