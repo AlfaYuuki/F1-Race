@@ -219,6 +219,8 @@ const game = createGame(canvas, {
     document.querySelector('#surface-value').textContent=track?.condition||'DRY';
     document.querySelector('#track-temp-value').textContent=(track?.trackTemperature??weather?.temperature??29)+'°C';
     document.querySelector('#surface-grip-value').textContent=Math.round((track?.grip??1)*100)+'%';
+    document.querySelector('#tyre-temp-value').textContent=Math.round(Number(live.tyreTemp)||0)+'°C';
+    document.querySelector('#brake-temp-value').textContent=Math.round(Number(live.brakeTemp)||0)+'°C';
     document.querySelector('#fuel-flow-value').textContent=(Number(live.fuelFlow)||0).toFixed(2)+'%/MIN';
     document.querySelector('#pit-button').textContent=pitPhase ? (pitPhase==='service'?'IN BOX':'PIT '+pitPhase.toUpperCase()) : 'BOX ↗';
     document.querySelector('#pit-button').disabled=state!=='running';
