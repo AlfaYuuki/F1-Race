@@ -176,3 +176,22 @@ test('AI pit stops are capped and neutralisation prevents passing attempts', () 
   assert.equal(attacker.overtakeTargetId, null);
   assert.equal(attacker.overtakes, 0);
 });
+
+
+test('AI defends against a player approaching from behind when a safe lane exists', () => {
+  const field = createOpponents(LAP_DISTANCE);
+  field.reset(20);
+  const defender = field.drivers.find(driver => driver.id === 'tanaka');
+  for (const driver of field.drivers) {
+    driver.distance = -1000;
+    driver.currentLane = 1;
+    driver.speed = 180;
+    driver.launchTimer = 0;
+  }
+  defender.distance = 100;
+  defender.currentLane = 0;
+  defender.launchTimer = 0;
+  field.update(1 / 60, 90, () => 0, { playerLane: 0, totalLaps: 10 });
+  assert.equal(defender.defending, true);
+  assert.notEqual(defender.targetLane, 0);
+});
