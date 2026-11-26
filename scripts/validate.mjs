@@ -45,4 +45,12 @@ if (!serviceWorker.includes("'./js/timing.js'")) {
 for (const feature of ['registration.update()', 'SKIP_WAITING', 'controllerchange', 'hadController = hasController']) {
   if (!pwa.includes(feature)) throw new Error(`PWA update flow is missing: ${feature}`);
 }
-console.log(`Validated ${ids.length} unique HTML IDs, ${modules.length} JavaScript modules and all relative imports.`);
+const aiSource = await readFile(resolve(root, 'js/opponents.js'), 'utf8');
+for (const feature of ['RELATIONSHIPS','pitDecision','pressure','mistakeCooldown','overtakeTargetId','totalLaps']) {
+  if (!aiSource.includes(feature)) throw new Error(`Advanced AI feature is missing: ${feature}`);
+}
+const aiTests = await readFile(resolve(root, 'tests/ai-personalities.test.js'), 'utf8');
+for (const feature of ['AI pit decisions react','AI exposes pressure','neutralisation prevents passing']) {
+  if (!aiTests.includes(feature)) throw new Error(`AI regression test is missing: ${feature}`);
+}
+console.log(`Validated ${ids.length} unique HTML IDs, ${modules.length} JavaScript modules, AI feature gates and all relative imports.`);
