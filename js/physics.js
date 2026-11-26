@@ -70,12 +70,13 @@ export function createPhysics() {
       this.rpm = Math.round(Math.max(850, Math.min(12000, 900 + gearProgress * 9300 + (accelerating ? 650 : 0))));
     },
     getTelemetry() { return { ...this.telemetry }; },
-    impact(direction = 1) {
-      this.speed = Math.max(35, this.speed - 48);
-      this.lateralVelocity += direction * .7;
-      this.playerX = clamp(this.playerX + direction * .09, -1.25, 1.25);
-      this.damage = Math.min(100, this.damage + 8 / Math.max(.5, this.carConfig.stats.durability));
-      this.rpm = Math.max(900, this.rpm - 1800);
+    impact(direction = 1, severity = 1) {
+      const force = clamp(Number.isFinite(severity) ? severity : 1, .15, 1);
+      this.speed = Math.max(35, this.speed - 48 * force);
+      this.lateralVelocity += direction * .7 * force;
+      this.playerX = clamp(this.playerX + direction * .09 * force, -1.25, 1.25);
+      this.damage = Math.min(100, this.damage + 8 * force / Math.max(.5, this.carConfig.stats.durability));
+      this.rpm = Math.max(900, this.rpm - 1800 * force);
     },
     applyPitService(compound, fuelTarget, repair = true) {
       const selected = Object.prototype.hasOwnProperty.call(COMPOUNDS, compound) ? compound : 'MEDIUM';
