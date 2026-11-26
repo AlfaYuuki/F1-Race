@@ -2,7 +2,7 @@ const KEY = 'the-f1-race-weekend-v1';
 const SESSION_ORDER = [
   { id: 'practice', label: 'PRACTICE', laps: 3 },
   { id: 'qualifying', label: 'QUALIFYING', laps: 1 },
-  { id: 'race', label: 'GRAND PRIX', laps: 10 }
+  { id: 'race', label: 'GRAND PRIX', laps: 5 }
 ];
 
 function safeStorage() {
