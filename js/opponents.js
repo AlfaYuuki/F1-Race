@@ -34,7 +34,7 @@ export function createOpponents(lapDistance = 4563) {
     targetLane: driver.lane,
     gridPosition: 0,
     launchTimer: 0,
-    overtakes: 0, overtakeTargetId:null, fuel:100, tireWear:0, compound:'MEDIUM', pitTimer:0, pitStops:0
+    overtakes: 0, overtakeTargetId:null, fuel:100, tireWear:0, compound:'MEDIUM', pitTimer:0, pitPhase:null, pitStops:0
   }));
 
   function update(dt, playerDistance, curveAt, weather = {}) {
