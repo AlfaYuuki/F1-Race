@@ -134,3 +134,25 @@ test('engineer status returns to a live strategy summary after an alert expires'
   assert.equal(status.isAlert, false);
   assert.match(status.title, /RACE STRATEGY/);
 });
+
+
+test('engineer preserves manual pit selections while the pit dialog is visible', () => {
+  const previousDocument = globalThis.document;
+  const fields = {
+    '#pit-dialog': { hidden: false },
+    '#pit-compound': { value: 'HARD' },
+    '#pit-fuel': { value: '65' },
+    '#fuel-choice': { textContent: '65%' }
+  };
+  globalThis.document = { querySelector: selector => fields[selector] ?? null };
+  try {
+    const engineer = createRaceEngineer();
+    engineer.update({ ...base, fuel: 10, now: 2000 });
+    assert.equal(fields['#pit-compound'].value, 'HARD');
+    assert.equal(fields['#pit-fuel'].value, '65');
+    assert.equal(fields['#fuel-choice'].textContent, '65%');
+  } finally {
+    if (previousDocument === undefined) delete globalThis.document;
+    else globalThis.document = previousDocument;
+  }
+});
