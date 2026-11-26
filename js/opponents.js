@@ -71,12 +71,12 @@ export function createOpponents(lapDistance=4563) {
     const rain=clamp(Number(weather.rain)||0,0,1);
     const totalLaps=Math.max(0,Number(weather.totalLaps)||0);
     const currentLap=driver.distance/lapDistance;
-    const remaining=totalLaps?Math.max(0,totalLaps-currentLap):Infinity;
+    const remaining=totalLaps?Math.max(0,totalLaps-currentLap):0;
     const fuelPerLap=7.2;
     const fuelRange=driver.fuel/fuelPerLap;
     const wetMismatch=rain>=.58&&driver.compound!=='INTER';
     const dryMismatch=rain<=.08&&driver.compound==='INTER';
-    const fuelNeed=fuelRange<remaining+1.25;
+    const fuelNeed=totalLaps>0&&fuelRange<remaining+1.25;
     const tyreNeed=driver.tireWear>=78;
     const weatherNeed=(wetMismatch||dryMismatch)&&driver.pitStops<3;
     const strategicWindow=remaining>3&&driver.stintLaps>=5&&driver.tireWear>=58&&driver.tireWear<78;
