@@ -133,14 +133,14 @@ export function createOpponents(lapDistance=4563) {
       let targetLane=driver.lane+getDefensiveLaneOffset(driver.personality);
       let draftBonus=0;
       driver.defending=false;
+      const threat=!neutralised?traffic.find(car=>car.distance<driver.distance&&
+        driver.distance-car.distance<18&&Math.abs((car.currentLane??0)-driver.currentLane)<.45):null;
+      if(threat) {
+        driver.defending=true;
+        const defendLane=clamp((threat.currentLane??0)+(driver.personality.defense>=.8 ? .4 : -.3),-.76,.76);
+        if(laneIsClear(driver,traffic,defendLane,18))targetLane=defendLane;
+      }
       if(ahead&&ahead.gap<22&&!neutralised) {
-        const threat=traffic.find(car=>car.distance<driver.distance&&
-          driver.distance-car.distance<18&&Math.abs((car.currentLane??0)-driver.currentLane)<.45);
-        if(threat) {
-          driver.defending=true;
-          const defendLane=clamp((threat.currentLane??0)+(driver.personality.defense>=.8?.4:-.3),-.76,.76);
-          if(laneIsClear(driver,traffic,defendLane,18))targetLane=defendLane;
-        }
         const canAttack=shouldAttemptOvertake(driver.personality,ahead.gap);
         if(canAttack) {
           const passingLane=choosePassingLane(driver,ahead,traffic);
