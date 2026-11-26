@@ -77,7 +77,9 @@ export function createGame(canvas,callbacks={}) {
     if(playerHasLaunched&&!pitPhase){
       const rival=collisionDetector.update(raceDistance,physics.playerX,opponents.drivers);
       if(rival){
-        physics.impact(physics.playerX<=(rival.currentLane??rival.lane)?-1:1);
+        const closingSpeed=Math.abs(physics.speed-(Number(rival.speed)||0));
+        const severity=Math.min(1,Math.max(.2,.25+closingSpeed/160+Math.abs(physics.lateralVelocity)*.12));
+        physics.impact(physics.playerX<=(rival.currentLane??rival.lane)?-1:1,severity);
         impactPulse=1;
         renderer.triggerImpact?.();
         notify('CONTACT — MOMENTUM LOST');
