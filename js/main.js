@@ -6,7 +6,7 @@ import { createGarage, CARS } from './garage.js';
 import { createDataManager } from './data-manager.js';
 import { createRaceEngineer } from './race-engineer.js';
 import { createRaceWeekend } from './race-weekend.js';
-import { LAP_DISTANCE, TOTAL_LAPS } from './track.js';
+import { LAP_DISTANCE, TOTAL_LAPS, normalizeRaceLaps } from './track.js';
 import { PLATFORMS, detectPlatform, loadSettings, saveSetting, controlHint } from './platform.js';
 import { formatGap } from './timing.js';
 
@@ -18,7 +18,14 @@ const championshipButton = document.querySelector('#championship-button');
 const championshipSummary = document.querySelector('#championship-summary');
 const audioButton = document.querySelector('#audio-button');
 const gridPositionSelect = document.querySelector('#grid-position');
-document.querySelector('#race-distance-meta').innerHTML = `${(LAP_DISTANCE * TOTAL_LAPS / 1000).toFixed(2)} KM <small>RACE DISTANCE</small>`;
+const quickRaceLapsSelect = document.querySelector('#quick-race-laps');
+const raceDistanceMeta = document.querySelector('#race-distance-meta');
+function updateQuickRaceDistance() {
+  const laps = normalizeRaceLaps(quickRaceLapsSelect.value, 10);
+  raceDistanceMeta.innerHTML = `${(LAP_DISTANCE * laps / 1000).toFixed(2)} KM <small>RACE DISTANCE</small>`;
+}
+updateQuickRaceDistance();
+quickRaceLapsSelect.addEventListener('change', updateQuickRaceDistance);
 const FORECAST_LABELS = { dry:'DRY', cloudy:'CLOUDY', lightRain:'LIGHT RAIN', heavyRain:'HEAVY RAIN' };
 const audio = createEngineAudio();
 const championship = createChampionship();
@@ -222,7 +229,7 @@ const game = createGame(canvas, {
     document.querySelector('#tyre-temp-value').textContent=Math.round(Number(live.tyreTemp)||0)+'°C';
     document.querySelector('#brake-temp-value').textContent=Math.round(Number(live.brakeTemp)||0)+'°C';
     document.querySelector('#fuel-flow-value').textContent=(Number(live.fuelFlow)||0).toFixed(2)+'%/MIN';
-    document.querySelector('#pit-button').textContent=pitPhase ? (pitPhase==='service'?'IN BOX':'PIT '+pitPhase.toUpperCase()) : 'BOX ↗';
+    document.querySelector('#pit-button').textContent=pitPhase ? (pitPhase==='service'?'IN BOX':pitPhase.toUpperCase()) : 'BOX ↗';
     document.querySelector('#pit-button').disabled=state!=='running';
     audio.update(rpm, throttle ?? 0, gear, state === 'running', { skid: skid ?? 0, rain: weather?.rain ?? 0 });
     if (state === 'finished') {
@@ -332,7 +339,7 @@ controls = bindControls(game, {
 const pitDialog=document.querySelector('#pit-dialog');
 document.querySelector('#pit-button').addEventListener('click',()=>{if(game.getState()==='running'){controls.releaseAll();pitDialog.hidden=false;}});
 document.querySelector('#pit-cancel').addEventListener('click',()=>{pitDialog.hidden=true;});
-document.querySelector('#pit-confirm').addEventListener('click',()=>{if(game.requestPit(document.querySelector('#pit-compound').value,Number(document.querySelector('#pit-fuel').value),document.querySelector('#pit-repair').checked))pitDialog.hidden=true;});
+document.querySelector('#pit-confirm').addEventListener('click',()=>{if(game.setPitStrategy(document.querySelector('#pit-compound').value,Number(document.querySelector('#pit-fuel').value),document.querySelector('#pit-repair').checked))pitDialog.hidden=true;});
 document.querySelector('#pit-fuel').addEventListener('input',event=>{document.querySelector('#fuel-choice').textContent=event.target.value+'%';});
 
 document.querySelector('#weekend-session-buttons').addEventListener('click', event => {
@@ -362,7 +369,9 @@ startButton.addEventListener('click', () => {
   finishedSessionType = null;
   startScreen.classList.add('hidden');
   game.setCarConfig(garage.getCar());
-  game.start(Number(gridPositionSelect.value), { type:'race', laps:TOTAL_LAPS });
+  const laps = normalizeRaceLaps(quickRaceLapsSelect.value, 10);
+  document.querySelector('#race-message').textContent = `FUJI INTERNATIONAL SPEEDWAY · ${laps} LAP GRAND PRIX`;
+  game.start(Number(gridPositionSelect.value), { type:'race', laps });
 });
 championshipButton.addEventListener('click', () => {
   let season = championship.getState();
