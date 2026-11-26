@@ -18,7 +18,13 @@ const championshipButton = document.querySelector('#championship-button');
 const championshipSummary = document.querySelector('#championship-summary');
 const audioButton = document.querySelector('#audio-button');
 const gridPositionSelect = document.querySelector('#grid-position');
-document.querySelector('#race-distance-meta').innerHTML = `${(LAP_DISTANCE * TOTAL_LAPS / 1000).toFixed(2)} KM <small>RACE DISTANCE</small>`;
+const quickRaceLapsSelect = document.querySelector('#quick-race-laps');
+function updateQuickRaceDistance() {
+  const laps = Math.max(1, Math.min(10, Number(quickRaceLapsSelect.value) || 5));
+  document.querySelector('#race-distance-meta').innerHTML = `${(LAP_DISTANCE * laps / 1000).toFixed(2)} KM <small>RACE DISTANCE</small>`;
+}
+updateQuickRaceDistance();
+quickRaceLapsSelect.addEventListener('change', updateQuickRaceDistance);
 const FORECAST_LABELS = { dry:'DRY', cloudy:'CLOUDY', lightRain:'LIGHT RAIN', heavyRain:'HEAVY RAIN' };
 const audio = createEngineAudio();
 const championship = createChampionship();
@@ -362,7 +368,9 @@ startButton.addEventListener('click', () => {
   finishedSessionType = null;
   startScreen.classList.add('hidden');
   game.setCarConfig(garage.getCar());
-  game.start(Number(gridPositionSelect.value), { type:'race', laps:TOTAL_LAPS });
+  const laps = Math.max(1, Math.min(10, Number(quickRaceLapsSelect.value) || 5));
+  document.querySelector('#race-message').textContent = `FUJI INTERNATIONAL SPEEDWAY · ${laps} LAP GRAND PRIX`;
+  game.start(Number(gridPositionSelect.value), { type:'race', laps });
 });
 championshipButton.addEventListener('click', () => {
   let season = championship.getState();

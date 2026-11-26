@@ -48,7 +48,7 @@ export function createGame(canvas,callbacks={}) {
   function start(playerGridPosition=10,options={}){
     if(state==='running'||state==='countdown')return;
     sessionType=['practice','qualifying','race'].includes(options.type)?options.type:'race';
-    sessionLaps=Math.max(1,Math.min(TOTAL_LAPS,Math.round(Number(options.laps)||TOTAL_LAPS)));
+    sessionLaps=Math.max(1,Math.min(sessionType==='race'?10:TOTAL_LAPS,Math.round(Number(options.laps)||TOTAL_LAPS)));
     finishNotified=false;
     // A new session must never inherit a held key, touch button or steering axis.
     input.clear();steerAxis=0;
@@ -111,8 +111,8 @@ export function createGame(canvas,callbacks={}) {
     if(raceDistance>=sessionDistance){raceDistance=sessionDistance;state='finished';physics.speed=0;pitPhase=null;callbacks.onPitService?.(false);notify(sessionType==='practice'?'PRACTICE COMPLETE':sessionType==='qualifying'?'QUALIFYING COMPLETE':'CHEQUERED FLAG — RACE COMPLETE!');
       if(!finishNotified){finishNotified=true;callbacks.onFinish?.({sessionType,lap:sessionLaps,elapsedMs:elapsed,bestLapMs:bestLap,standings:opponents.getStandings(raceDistance)});}}
     lap=Math.max(1,Math.min(sessionLaps,Math.floor(raceDistance/LAP_DISTANCE)+1));  // a car on the grid is still on lap 1
-    const rivalCars=opponents.drivers.map(d=>({...d,relativeDistance:d.distance-raceDistance}));
-    renderer.render({driftAngle:physics.driftAngle,position:raceDistance/LAP_DISTANCE,playerX:physics.playerX,speed:physics.speed,speedDelta:(physics.speed-previousSpeed)/Math.max(dt,.001),lateralVelocity:physics.lateralVelocity,offRoad:physics.offRoad,running:state==='running',opponents:rivalCars,cameraShake:impactPulse>0?Math.sin(now*.05)*impactPulse*3:0,playerColor,skid:Math.abs(physics.lateralVelocity)>.42,dt});
+    const rivalCars=opponents.drivers.map(d=>({...d,relativeDistance:d.distance-raceDistance,pitLane:!!d.pitPhase}));
+    renderer.render({driftAngle:physics.driftAngle,position:raceDistance/LAP_DISTANCE,playerX:physics.playerX,speed:physics.speed,speedDelta:(physics.speed-previousSpeed)/Math.max(dt,.001),lateralVelocity:physics.lateralVelocity,offRoad:physics.offRoad,running:state==='running',opponents:rivalCars,pitLane:!!pitPhase,cameraShake:impactPulse>0?Math.sin(now*.05)*impactPulse*3:0,playerColor,skid:Math.abs(physics.lateralVelocity)>.42,dt});
     hudAccumulator+=dt;
     if(hudAccumulator>=.05||state!=='running'){hudAccumulator%=.05;updateHud();}
     if(state==='running')raf=requestAnimationFrame(frame);

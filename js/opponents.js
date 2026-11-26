@@ -34,7 +34,7 @@ export function createOpponents(lapDistance = 4563) {
     targetLane: driver.lane,
     gridPosition: 0,
     launchTimer: 0,
-    overtakes: 0, overtakeTargetId:null, fuel:100, tireWear:0, compound:'MEDIUM', pitTimer:0, pitStops:0
+    overtakes: 0, overtakeTargetId:null, fuel:100, tireWear:0, compound:'MEDIUM', pitTimer:0, pitPhase:null, pitStops:0
   }));
 
   function update(dt, playerDistance, curveAt, weather = {}) {
@@ -50,20 +50,33 @@ export function createOpponents(lapDistance = 4563) {
         driver.distance += driver.speed / 3.6 * dt;
         continue;
       }
-      if (driver.pitTimer > 0) {
+      if (driver.pitPhase) {
         driver.pitTimer = Math.max(0, driver.pitTimer - dt);
-        driver.speed += (0 - driver.speed) * Math.min(1, dt * 2.8);
-        if (driver.pitTimer === 0) { driver.fuel = 100; driver.tireWear = 0; driver.pitStops++; driver.compound = weather.rain > .3 ? 'INTER' : 'MEDIUM'; }
-        driver.distance += driver.speed / 3.6 * dt;
+        if (driver.pitPhase === 'service') {
+          driver.speed = 0;
+          if (driver.pitTimer === 0) {
+            driver.fuel = 100; driver.tireWear = 0; driver.pitStops++;
+            driver.compound = weather.rain > .3 ? 'INTER' : 'MEDIUM';
+            driver.pitPhase = 'exit'; driver.pitTimer = 2.1;
+          }
+        } else {
+          driver.speed += (78 - driver.speed) * Math.min(1, dt * 1.8);
+          driver.distance += driver.speed / 3.6 * dt;
+          if (driver.pitTimer === 0) {
+            if (driver.pitPhase === 'entry') { driver.pitPhase = 'service'; driver.pitTimer = 4.2; driver.speed = 0; }
+            else driver.pitPhase = null;
+          }
+        }
         continue;
       }
       driver.fuel = Math.max(0, driver.fuel - dt * (.055 + driver.speed / 330 * .045));
       driver.tireWear = Math.min(100, driver.tireWear + dt * (driver.compound === 'SOFT' ? .16 : .1) * (weather.wear || 1) * calculateTyreWearMultiplier(driver.personality));
       const wetMismatch = weather.rain > .55 && driver.compound !== 'INTER';
       const dryMismatch = weather.rain < .12 && driver.compound === 'INTER';
-      if (driver.fuel < 18 || driver.tireWear > 82 || (wetMismatch && driver.pitStops < 2) || (dryMismatch && driver.pitStops < 2)) {
-        driver.pitTimer = 5.8 + (1-driver.skill)*2.2;
-        driver.speed = Math.max(0, driver.speed * .55);
+      if (driver.pitStops < 2 && (driver.fuel < 40 || driver.tireWear > 32 || wetMismatch || dryMismatch)) {
+        driver.pitPhase = 'entry';
+        driver.pitTimer = 2.1 + (1-driver.skill)*.5;
+        driver.speed = Math.min(driver.speed, 150);
       }
       const progress = (driver.distance % lapDistance) / lapDistance;
       const cornerLoad = Math.abs(curveAt(progress));
@@ -156,7 +169,7 @@ export function createOpponents(lapDistance = 4563) {
       driver.targetLane = driver.currentLane;
       driver.launchTimer = .16 + (1 - driver.skill) * .62;
       driver.overtakes = 0; driver.overtakeTargetId = null; driver.fuel = 100; driver.tireWear = 0;
-      driver.compound = 'MEDIUM'; driver.pitTimer = 0; driver.pitStops = 0;
+      driver.compound = 'MEDIUM'; driver.pitTimer = 0; driver.pitPhase = null; driver.pitStops = 0;
     }
     return { playerGridPosition: playerSlot, grid: getStandings(0) };
   }
