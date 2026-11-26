@@ -6,7 +6,7 @@ import { createGarage, CARS } from './garage.js';
 import { createDataManager } from './data-manager.js';
 import { createRaceEngineer } from './race-engineer.js';
 import { createRaceWeekend } from './race-weekend.js';
-import { LAP_DISTANCE, TOTAL_LAPS } from './track.js';
+import { LAP_DISTANCE, TOTAL_LAPS, normalizeRaceLaps } from './track.js';
 import { PLATFORMS, detectPlatform, loadSettings, saveSetting, controlHint } from './platform.js';
 import { formatGap } from './timing.js';
 
@@ -21,7 +21,7 @@ const gridPositionSelect = document.querySelector('#grid-position');
 const quickRaceLapsSelect = document.querySelector('#quick-race-laps');
 const raceDistanceMeta = document.querySelector('#race-distance-meta');
 function updateQuickRaceDistance() {
-  const laps = Math.max(1, Math.min(10, Number(quickRaceLapsSelect.value) || 5));
+  const laps = normalizeRaceLaps(quickRaceLapsSelect.value, 10);
   raceDistanceMeta.innerHTML = `${(LAP_DISTANCE * laps / 1000).toFixed(2)} KM <small>RACE DISTANCE</small>`;
 }
 updateQuickRaceDistance();
