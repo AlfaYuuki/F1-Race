@@ -103,7 +103,7 @@ export function createOpponents(lapDistance=4563) {
         driver.speed=Math.max(0,driver.speed-step*85);
         if(driver.pitTimer===0) {
           driver.fuel=100;driver.tireWear=0;driver.pitStops++;
-          driver.stintLaps=0;driver.compound=weather.rain>=.58?'INTER':'MEDIUM';
+          driver.stintLaps=0;driver.compound=driver.pitCompound|| (weather.rain>=.58?'INTER':'MEDIUM');driver.pitCompound=null;
         }
         driver.distance+=driver.speed/3.6*step;
         continue;
@@ -117,7 +117,7 @@ export function createOpponents(lapDistance=4563) {
       if(pit) {
         driver.pitTimer=5.8+(1-driver.skill)*2.2;
         driver.speed=Math.max(0,driver.speed*.35);
-        driver.compound=pit.compound;
+        driver.pitCompound=pit.compound;
         driver.pitReason=pit.reason;
         driver.distance+=driver.speed/3.6*step;
         continue;
@@ -208,7 +208,7 @@ export function createOpponents(lapDistance=4563) {
       d.launchTimer=.16+(1-d.skill)*.62;d.overtakes=0;d.overtakeTargetId=null;
       d.fuel=100;d.tireWear=0;d.compound='MEDIUM';d.pitTimer=0;d.pitStops=0;
       d.pressure=0;d.mistakes=0;d.mistakeCooldown=0;d.defending=false;d.stintLaps=0;
-      d.relationshipMemory=Object.create(null);d.pitReason=null;d.lastMistake=null;
+      d.relationshipMemory=Object.create(null);d.pitReason=null;d.pitCompound=null;d.lastMistake=null;
     }
     return {playerGridPosition:selectedGridPosition,grid:getStandings(0)};
   }
