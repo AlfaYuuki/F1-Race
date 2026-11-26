@@ -107,7 +107,7 @@ export function createRenderer(canvas) {
       const scale=lerp(.12,.78,perspective)*Math.max(.75,Math.min(1.1,width/900));
       car(x,y-10*scale,scale,driver.color,false);
     }
-    const playerScreenX=width*.5+(pitLane?width*.22:playerX*width*.29),playerY=height*.875;
+    const playerScreenX=width*.5+(pitLane?width*.35:playerX*width*.29),playerY=height*.875;
     if(running&&offRoad&&Math.random()<.8)spawnParticles(playerScreenX,playerY,2,false);
     if(running&&(skid||Math.abs(driftAngle)>.12)){skidClock+=dt*speed*.02;if(skidClock>.9){spawnParticles(playerScreenX,playerY+8,1,false);skidClock=0;}}
     ctx.save();ctx.translate(cameraShake,0);car(playerScreenX,playerY,Math.max(.68,Math.min(1.2,width/900)),playerColor,true,Math.max(-.7,Math.min(.7,driftAngle)));ctx.restore();
