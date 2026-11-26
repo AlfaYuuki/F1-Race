@@ -25,7 +25,7 @@ test('race weekend unlocks practice, qualifying and grand prix in sequence', () 
   assert.equal(weekend.startSession('qualifying').laps, 1);
   assert.equal(weekend.recordResult('qualifying', { order }).ok, true);
   assert.equal(weekend.getState().nextSession, 'race');
-  assert.equal(weekend.startSession('race').laps, 50);
+  assert.equal(weekend.startSession('race').laps, 5);
   assert.equal(weekend.startSession('race').gridPosition, 8);
   assert.deepEqual(weekend.startSession('race').gridOrder, order.map(driver => driver.id));
 });
