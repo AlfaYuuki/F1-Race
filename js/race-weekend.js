@@ -9,6 +9,14 @@ function safeStorage() {
   try { return globalThis.localStorage; } catch { return null; }
 }
 
+function isValidClassification(order) {
+  return Array.isArray(order) && order.length === 20 &&
+    order.every(driver => driver && typeof driver.id === 'string' && driver.id.length > 0 &&
+      typeof driver.name === 'string' && driver.name.length > 0) &&
+    new Set(order.map(driver => driver.id)).size === 20 &&
+    order.some(driver => driver.id === 'player');
+}
+
 export function createRaceWeekend(storage = safeStorage()) {
   let state = { round: 1, completed: [], results: [], qualifyingOrder: [] };
 
@@ -26,7 +34,8 @@ export function createRaceWeekend(storage = safeStorage()) {
         parsed.results.length === parsed.completed?.length &&
         parsed.results.every((result, index) => result && result.session === parsed.completed[index] &&
           Array.isArray(result.order) && result.order.every(driver =>
-            driver && typeof driver.id === 'string' && typeof driver.name === 'string'));
+            driver && typeof driver.id === 'string' && typeof driver.name === 'string') &&
+          (result.session !== 'qualifying' || isValidClassification(result.order)));
       const order = parsed?.qualifyingOrder;
       const validGrid = Array.isArray(order) &&
         (order.length === 0 || (order.length === 20 && new Set(order).size === 20 &&
@@ -76,8 +85,8 @@ export function createRaceWeekend(storage = safeStorage()) {
     const order = Array.isArray(result.order)
       ? result.order.map(driver => ({ id: String(driver.id), name: String(driver.name) }))
       : [];
-    if (id === 'qualifying' && (order.length !== 20 || !order.some(driver => driver.id === 'player'))) {
-      return { ok: false, error: 'Qualifying must contain all 20 drivers, including the player.' };
+    if (id === 'qualifying' && !isValidClassification(order)) {
+      return { ok: false, error: 'Qualifying must contain 20 unique drivers, with valid names and the player included.' };
     }
     const playerPosition = order.findIndex(driver => driver.id === 'player') + 1;
     const record = {
