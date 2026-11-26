@@ -92,8 +92,8 @@
       <div><small>BRAKE TEMP</small><strong id="brake-temp-value">180°C</strong></div>
     </div>
   </section>
-  <button id="pit-button" class="pit-button" type="button" disabled>BOX ↗</button>
-  <section id="pit-dialog" class="pit-dialog" hidden><div class="pit-card"><p class="eyebrow">TEAM RADIO · PIT WALL</p><h2>PIT STRATEGY</h2><label for="pit-compound">TYRE COMPOUND</label><select id="pit-compound"><option value="SOFT">SOFT — HIGH GRIP / HIGH WEAR</option><option value="MEDIUM" selected>MEDIUM — BALANCED</option><option value="HARD">HARD — LONG LIFE</option><option value="INTER">INTERMEDIATE — WET TRACK</option></select><label for="pit-fuel">FUEL LOAD <output id="fuel-choice">100%</output></label><input id="pit-fuel" type="range" min="20" max="100" value="100" step="5"><label class="pit-repair"><input id="pit-repair" type="checkbox" checked> REPAIR DAMAGE DURING STOP</label><p class="pit-note">Pit service takes about 4.2 seconds. Tyres, fuel and damage are serviced together.</p><div class="pit-actions"><button id="pit-cancel" type="button">CANCEL</button><button id="pit-confirm" type="button">BOX THIS LAP</button></div></div></section>
+  <button id="pit-button" class="pit-button" type="button" disabled>PIT STRATEGY</button>
+  <section id="pit-dialog" class="pit-dialog" hidden><div class="pit-card"><p class="eyebrow">TEAM RADIO · PIT WALL</p><h2>PIT STRATEGY</h2><label for="pit-compound">TYRE COMPOUND</label><select id="pit-compound"><option value="SOFT">SOFT — HIGH GRIP / HIGH WEAR</option><option value="MEDIUM" selected>MEDIUM — BALANCED</option><option value="HARD">HARD — LONG LIFE</option><option value="INTER">INTERMEDIATE — WET TRACK</option></select><label for="pit-fuel">FUEL LOAD <output id="fuel-choice">100%</output></label><input id="pit-fuel" type="range" min="20" max="100" value="100" step="5"><label class="pit-repair"><input id="pit-repair" type="checkbox" checked> REPAIR DAMAGE DURING STOP</label><p class="pit-note">Save your plan, then enter the marked pit lane on the right near the end of the lap. Hold the racing line until the pit-entry markings.</p><div class="pit-actions"><button id="pit-cancel" type="button">CANCEL</button><button id="pit-confirm" type="button">SAVE STRATEGY</button></div></div></section>
   <section id="pit-overlay" class="pit-overlay" hidden><div class="pit-service-card"><span class="pit-spinner"></span><p>CREW AT WORK</p><strong>CAR IN PIT BOX</strong><small>TYRES · FUEL · REPAIRS</small></div></section>
   <section class="timing-panel" aria-label="Lap timing"><div><small>LAST LAP</small><strong id="last-lap-label">--:--.---</strong></div><div><small>BEST LAP</small><strong id="best-lap-label">--:--.---</strong></div><div><small>SECTOR</small><strong id="sector-label">S1 --:--.---</strong></div></section>
 
@@ -115,11 +115,11 @@
     <div class="start-card">
       <p class="eyebrow">JAPAN · SHIZUOKA PREFECTURE</p>
       <h1>CHASE THE<br><em>HORIZON.</em></h1>
-      <p>Ten laps. Nineteen rivals. One mountain in your mirrors.</p>
+      <p>Five laps by default. Choose your distance. Nineteen rivals.</p>
       <div class="start-meta"><span id="race-distance-meta">228.15 KM <small>RACE DISTANCE</small></span><span>16 <small>CORNERS</small></span><span>20 <small>DRIVERS</small></span></div>
-      <label class="grid-choice" for="grid-position">YOUR STARTING GRID
+      <div class="race-setup-choices"><label class="grid-choice" for="grid-position">STARTING GRID
         <select id="grid-position" aria-label="Choose starting grid position"><option value="1" >P01</option><option value="2" >P02</option><option value="3" >P03</option><option value="4" >P04</option><option value="5" >P05</option><option value="6" >P06</option><option value="7" >P07</option><option value="8" >P08</option><option value="9" >P09</option><option value="10" selected>P10</option><option value="11" >P11</option><option value="12" >P12</option><option value="13" >P13</option><option value="14" >P14</option><option value="15" >P15</option><option value="16" >P16</option><option value="17" >P17</option><option value="18" >P18</option><option value="19" >P19</option><option value="20" >P20</option></select>
-      </label>
+      </label><label class="grid-choice" for="quick-race-laps">QUICK RACE LAPS <select id="quick-race-laps" aria-label="Choose Quick Race lap count"><option value="1">1 LAP</option><option value="2">2 LAPS</option><option value="3">3 LAPS</option><option value="4">4 LAPS</option><option value="5" selected>5 LAPS</option><option value="6">6 LAPS</option><option value="7">7 LAPS</option><option value="8">8 LAPS</option><option value="9">9 LAPS</option><option value="10">10 LAPS</option></select></label></div>
       <button id="start-button" class="start-button" type="button">QUICK RACE <span>↗</span></button>
       <section class="weekend-panel" aria-label="Race weekend sessions">
         <div class="weekend-heading"><b>RACE WEEKEND</b><span id="weekend-status">ROUND 1 · 0/3 SESSIONS COMPLETE</span></div>
