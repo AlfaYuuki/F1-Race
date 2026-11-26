@@ -76,11 +76,13 @@ test('AI only counts a pass after its distance crosses the selected rival', () =
   }
   attacker.distance = 0;
   attacker.currentLane = 0;
+  attacker.launchTimer = 0;
   attacker.speed = 300;
   attacker.pace = 285;
   target.pace = 125;
   target.distance = 10;
   target.currentLane = 0;
+  target.launchTimer = 0;
   target.speed = 200;
   field.update(.1, -1000, () => 0, {});
   assert.equal(attacker.overtakes, 0);
