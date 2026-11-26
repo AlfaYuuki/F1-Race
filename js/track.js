@@ -1,6 +1,6 @@
 // Fuji-inspired 4.563 km arcade layout. Curvature and elevation are sampled by lap progress.
 export const LAP_DISTANCE = 4563;
-export const TOTAL_LAPS = 10;
+export const TOTAL_LAPS = 5;
 export const TOTAL_DISTANCE = LAP_DISTANCE * TOTAL_LAPS;
 
 // Positive values bend the road to the right; values are smoothed between corner landmarks.
