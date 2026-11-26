@@ -696,7 +696,7 @@ button,select,input{touch-action:manipulation}
 
 /* Keep the live race message clear of the centred circuit name on wide screens. */
 @media (min-width:900px){
-  .race-message{left:auto;right:clamp(160px,18vw,260px);transform:none;max-width:220px;text-align:right}
+  .race-message{left:calc(50% + clamp(70px,8vw,120px));right:auto;transform:none;max-width:clamp(150px,16vw,220px);text-align:left}
 }
 @media (min-width:761px) and (max-width:899px){
   .track-name{display:none}
