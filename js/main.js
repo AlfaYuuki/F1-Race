@@ -229,7 +229,7 @@ const game = createGame(canvas, {
     document.querySelector('#tyre-temp-value').textContent=Math.round(Number(live.tyreTemp)||0)+'°C';
     document.querySelector('#brake-temp-value').textContent=Math.round(Number(live.brakeTemp)||0)+'°C';
     document.querySelector('#fuel-flow-value').textContent=(Number(live.fuelFlow)||0).toFixed(2)+'%/MIN';
-    document.querySelector('#pit-button').textContent=pitPhase ? (pitPhase==='service'?'IN BOX':'PIT '+pitPhase.toUpperCase()) : 'PIT STRATEGY';
+    document.querySelector('#pit-button').textContent=pitPhase ? (pitPhase==='service'?'IN BOX':pitPhase.toUpperCase()) : 'BOX ↗';
     document.querySelector('#pit-button').disabled=state!=='running';
     audio.update(rpm, throttle ?? 0, gear, state === 'running', { skid: skid ?? 0, rain: weather?.rain ?? 0 });
     if (state === 'finished') {
