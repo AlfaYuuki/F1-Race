@@ -1,5 +1,13 @@
 const POINTS = [25, 18, 15, 12, 10, 8];
 const ROUNDS = 5;
+
+function isValidClassification(order) {
+  return Array.isArray(order) && order.length === 20 &&
+    order.every(driver => driver && typeof driver.id === 'string' && driver.id.length > 0 &&
+      typeof driver.name === 'string' && driver.name.length > 0) &&
+    new Set(order.map(driver => driver.id)).size === 20 &&
+    order.some(driver => driver.id === 'player');
+}
 const KEY = 'the-f1-race-championship-v1';
 
 function availableStorage() {
@@ -39,8 +47,7 @@ export function createChampionship(storage = availableStorage()) {
         parsed.standings.some(driver => driver.id === 'player');
       const validResults = Array.isArray(parsed?.results) && parsed.results.length <= ROUNDS &&
         parsed.results.every((result, index) => result && result.round === index + 1 &&
-          Array.isArray(result.order) && result.order.every(driver =>
-            driver && typeof driver.id === 'string' && typeof driver.name === 'string'));
+          isValidClassification(result.order));
       if (Number.isInteger(parsed?.round) && parsed.round >= 0 && parsed.round <= ROUNDS &&
           parsed.round === parsed.results?.length && parsed.completed === (parsed.round >= ROUNDS) &&
           validStandings && validResults) {
@@ -72,6 +79,7 @@ export function createChampionship(storage = availableStorage()) {
 
   function recordResult(order) {
     if (!season || season.completed || season.round >= ROUNDS) return getState();
+    if (!isValidClassification(order)) return getState();
     const finishOrder = order.map(driver => ({ id: driver.id, name: driver.name }));
     const roundNumber = season.round + 1;
     finishOrder.forEach((driver, index) => {
