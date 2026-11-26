@@ -6,7 +6,7 @@ import { createGarage, CARS } from './garage.js';
 import { createDataManager } from './data-manager.js';
 import { createRaceEngineer } from './race-engineer.js';
 import { createRaceWeekend } from './race-weekend.js';
-import { LAP_DISTANCE, TOTAL_LAPS } from './track.js';
+import { LAP_DISTANCE, TOTAL_LAPS, normalizeRaceLaps } from './track.js';
 import { PLATFORMS, detectPlatform, loadSettings, saveSetting, controlHint } from './platform.js';
 import { formatGap } from './timing.js';
 
@@ -18,7 +18,14 @@ const championshipButton = document.querySelector('#championship-button');
 const championshipSummary = document.querySelector('#championship-summary');
 const audioButton = document.querySelector('#audio-button');
 const gridPositionSelect = document.querySelector('#grid-position');
-document.querySelector('#race-distance-meta').innerHTML = `${(LAP_DISTANCE * TOTAL_LAPS / 1000).toFixed(2)} KM <small>RACE DISTANCE</small>`;
+const quickRaceLapsSelect = document.querySelector('#quick-race-laps');
+const raceDistanceMeta = document.querySelector('#race-distance-meta');
+function updateQuickRaceDistance() {
+  const laps = normalizeRaceLaps(quickRaceLapsSelect.value, 10);
+  raceDistanceMeta.innerHTML = `${(LAP_DISTANCE * laps / 1000).toFixed(2)} KM <small>RACE DISTANCE</small>`;
+}
+updateQuickRaceDistance();
+quickRaceLapsSelect.addEventListener('change', updateQuickRaceDistance);
 const FORECAST_LABELS = { dry:'DRY', cloudy:'CLOUDY', lightRain:'LIGHT RAIN', heavyRain:'HEAVY RAIN' };
 const audio = createEngineAudio();
 const championship = createChampionship();
@@ -362,7 +369,7 @@ startButton.addEventListener('click', () => {
   finishedSessionType = null;
   startScreen.classList.add('hidden');
   game.setCarConfig(garage.getCar());
-  game.start(Number(gridPositionSelect.value), { type:'race', laps:TOTAL_LAPS });
+  game.start(Number(gridPositionSelect.value), { type:'race', laps:normalizeRaceLaps(quickRaceLapsSelect.value, 10) });
 });
 championshipButton.addEventListener('click', () => {
   let season = championship.getState();
