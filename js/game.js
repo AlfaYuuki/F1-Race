@@ -50,7 +50,7 @@ export function createGame(canvas,callbacks={}) {
   function start(playerGridPosition=10,options={}){
     if(state==='running'||state==='countdown')return;
     sessionType=['practice','qualifying','race'].includes(options.type)?options.type:'race';
-    sessionLaps=Math.max(1,Math.min(TOTAL_LAPS,Math.round(Number(options.laps)||TOTAL_LAPS)));
+    sessionLaps=Math.max(1,Math.min(sessionType==='race'?10:TOTAL_LAPS,Math.round(Number(options.laps)||TOTAL_LAPS)));
     finishNotified=false;
     // A new session must never inherit a held key, touch button or steering axis.
     input.clear();steerAxis=0;
