@@ -7,6 +7,11 @@ function memoryStorage() {
   return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
 }
 
+const classification = [
+  { id: 'player', name: 'YOU' },
+  ...Array.from({ length: 19 }, (_, index) => ({ id: 'driver-' + index, name: 'DRIVER ' + index }))
+];
+
 test('championship awards points, persists and completes five rounds', () => {
   const storage = memoryStorage();
   const series = createChampionship(storage);
