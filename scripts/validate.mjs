@@ -13,6 +13,9 @@ const declared = new Set(ids);
 const queried = [...main.matchAll(/querySelector\(['"]#([^'"]+)['"]\)/g)].map(match => match[1]);
 const missing = [...new Set(queried)].filter(id => !declared.has(id));
 if (missing.length) throw new Error(`main.js references missing HTML IDs: ${missing.join(', ')}`);
+const requiredMenuControls = ['start-button','weekend-session-buttons','championship-button','garage-open','data-open','platform-change','grid-position','quick-race-laps'];
+const missingMenuControls = requiredMenuControls.filter(id => !declared.has(id));
+if (missingMenuControls.length) throw new Error(`Required menu controls are missing: ${missingMenuControls.join(', ')}`);
 if (!declared.has('quick-race-laps') || !main.includes('quickRaceLapsSelect')) throw new Error('Quick Race lap selector is missing or not wired.');
 for (let lap = 1; lap <= 10; lap++) if (!html.includes('value="' + lap + '"')) throw new Error('Quick Race lap selector is missing option ' + lap + '.');
 
