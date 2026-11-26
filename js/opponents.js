@@ -25,7 +25,7 @@ const DRIVER_DATA = [
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
 export function createOpponents(lapDistance = 4563) {
-  let playerGridPosition = 10;
+  let selectedGridPosition = 10;
   const drivers = DRIVER_DATA.map(driver => ({
     ...driver,
     personality: getDriverPersonality(driver.id),
@@ -129,7 +129,7 @@ export function createOpponents(lapDistance = 4563) {
   }
 
   function getStandings(playerDistance, preserveGridOrder = false) {
-    const field = [{ id:'player', name:'YOU', color:'#ed4148', distance:playerDistance, gridPosition:playerGridPosition, isPlayer:true },
+    const field = [{ id:'player', name:'YOU', color:'#ed4148', distance:playerDistance, gridPosition:selectedGridPosition, isPlayer:true },
       ...drivers.map(driver => ({ ...driver, isPlayer:false }))];
     // During the starting procedure, use the explicit grid slots. Once the
     // lights go out, live distance determines the race order as cars move.
@@ -140,7 +140,7 @@ export function createOpponents(lapDistance = 4563) {
 
   function reset(playerGridPosition = 10, savedOrder = null) {
     const playerSlot = clamp(Math.round(Number(playerGridPosition) || 10), 1, 20);
-    playerGridPosition = playerSlot;
+    selectedGridPosition = playerSlot;
     // Simulated qualifying: pace and driver skill set the AI order, while the
     // player can choose any of the twenty grid slots before a quick race.
     const fallbackOrder = [...drivers].sort((a, b) =>
