@@ -1,4 +1,4 @@
-const CACHE_NAME = 'the-f1-race-shell-v23';
+const CACHE_NAME = 'the-f1-race-shell-v24';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest',
   './assets/favicon.png', './assets/icon.png',
