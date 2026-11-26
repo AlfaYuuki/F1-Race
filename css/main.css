@@ -1224,3 +1224,84 @@ button,select,input{touch-action:manipulation}
 .telemetry-dynamics h3{grid-column:1/-1}
 #surface-value,#track-temp-value,#surface-grip-value{font-variant-numeric:tabular-nums}
 @media(max-width:760px){.telemetry-dynamics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+
+/* =====================================================================
+   MILESTONE 23 — PROFESSIONAL VISUAL POLISH (presentation only)
+   Balanced telemetry groups, a timing tower whose gap column is never
+   clipped, a tighter HUD, and desktop control-clearance.
+   ===================================================================== */
+
+/* Telemetry: three groups sized by content (2 + 2 + 4 columns) so every
+   group is the same height and no group leaves a dead area beneath it. */
+.pit-telemetry{grid-template-columns:1fr 1fr 1.6fr!important;align-items:stretch}
+.pit-telemetry>.telemetry-group{align-content:start;row-gap:6px}
+.pit-telemetry>.telemetry-dynamics{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+@media(max-width:600px),(min-width:700px) and (max-width:800px) and (min-height:900px){
+  .pit-telemetry{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .pit-telemetry>.telemetry-dynamics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(min-width:1000px){
+  .pit-telemetry{grid-template-columns:2.6fr 2fr 4fr!important}
+  .pit-telemetry>.telemetry-dynamics{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+}
+.telemetry-group h3{padding-bottom:3px;border-bottom:1px solid #dcebf41a;margin-bottom:2px}
+.telemetry-group strong{letter-spacing:.02em}
+.telemetry-group small{text-transform:uppercase}
+
+/* Timing tower: a fixed gap column that is right-aligned, with the
+   scrollbar given its own gutter so it can never cover the values. */
+.standings ol{scrollbar-width:thin;scrollbar-color:#ffffff40 transparent}
+.standings ol::-webkit-scrollbar{width:4px}
+.standings ol::-webkit-scrollbar-thumb{background:#ffffff40;border-radius:2px}
+.standings li{padding-right:5px}
+.standings li b{flex:0 0 30px;min-width:30px;text-align:right;white-space:nowrap}
+.standings-head{white-space:nowrap;gap:6px}.standings-head span{overflow:hidden;text-overflow:clip}.standings-head b{flex:0 0 30px;text-align:right}
+.standings li.player-row span:not(.rank){color:#fff}
+
+/* HUD: content-height panels, vertically centred, no empty band. */
+.hud{align-items:center}
+.hud-block{justify-content:center}
+.timing-panel{align-items:center}
+
+/* Panels share one visual language: same border, radius and depth. */
+.hud,.timing-panel,.standings,.engineer-panel,.pit-telemetry{
+  border:1px solid #dcebf42e;border-radius:8px;box-shadow:0 8px 24px #0006
+}
+
+/* Desktop / large touch screens: keep status panels clear of the
+   on-screen controls and BOX button. */
+@media (min-width:1201px){
+  .timing-panel{bottom:auto;top:330px}
+  .standings{max-height:calc(100dvh - 78px - 250px)}
+  html[data-platform="android"] .pit-button{bottom:calc(52px + 120px)}
+}
+@media (min-width:761px) and (max-width:1200px){
+  .timing-panel{top:300px}
+}
+
+/* Portrait phones: systems + inputs share a row, dynamics gets the full
+   width beneath them so no value is abbreviated. */
+@media(orientation:portrait) and (max-width:620px){
+  .pit-telemetry{grid-template-columns:1fr 1fr!important}
+  .pit-telemetry>.telemetry-dynamics{grid-template-columns:repeat(4,minmax(0,1fr))!important;grid-column:1/-1;border-top:1px solid #dcebf421;border-right:0;padding-top:6px}
+  .pit-telemetry>.telemetry-systems{border-right:1px solid #dcebf421}
+  .telemetry-group strong{font-size:8px}
+  .standings{max-height:calc(100dvh - 112px - var(--foot) - var(--ctl) - 218px)!important}
+}
+
+/* Very small landscape phones (≤600px wide): tighten spacing so labels
+   and values never run into each other. */
+@media(orientation:landscape) and (max-width:600px){
+  .pit-telemetry{padding:4px 5px!important}
+  .pit-telemetry>.telemetry-group{padding:2px 5px!important;column-gap:6px!important}
+  .telemetry-group small{font-size:4.6px!important;letter-spacing:0!important;line-height:1.3!important}
+  .telemetry-group strong{font-size:6.5px!important}
+  .telemetry-group h3{font-size:4.6px!important;letter-spacing:.08em!important}
+  .standings-head{font-size:5px!important;letter-spacing:.06em!important}
+  .standings-head span:before{margin-right:3px}
+}
+@media(orientation:landscape) and (max-width:600px){
+  .telemetry-group>div{overflow:visible!important;gap:3px!important}
+  .telemetry-group small{display:block;min-height:7px;line-height:7px!important;overflow:visible!important}
+}
