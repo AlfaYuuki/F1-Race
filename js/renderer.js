@@ -175,6 +175,24 @@ export function createRenderer(canvas) {
   }
 
   let width = 1, height = 1, dpr = 1, lost = false, impactFlash = 0, cameraX = 0, cameraHeight = 5.5;
+  // Reuse CPU-side geometry and upload buffers: allocating thousands of arrays and
+  // reallocating two GPU buffers on every animation frame caused avoidable GC/GPU stalls.
+  const mesh = createGeometry();
+  let positionUpload = new Float32Array(0), colorUpload = new Float32Array(0);
+  let positionCapacity = 0, colorCapacity = 0;
+  function uploadDynamicBuffer(target, source, upload, capacity) {
+    if (source.length > capacity) {
+      capacity = 2 ** Math.ceil(Math.log2(source.length));
+      upload = new Float32Array(capacity);
+      gl.bindBuffer(gl.ARRAY_BUFFER, target);
+      gl.bufferData(gl.ARRAY_BUFFER, upload.byteLength, gl.DYNAMIC_DRAW);
+    } else {
+      gl.bindBuffer(gl.ARRAY_BUFFER, target);
+    }
+    upload.set(source);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, upload.subarray(0, source.length));
+    return { upload, capacity };
+  }
   const touchQuality = window.matchMedia?.('(pointer: coarse)').matches ?? false;
   function resize() {
     const rect = canvas.getBoundingClientRect();
@@ -203,8 +221,9 @@ export function createRenderer(canvas) {
 
   function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, playerColor = '#df3039', driftAngle = 0, dt = 1/60 }) {
     if (lost) return;
-    const mesh = createGeometry();
-    const roadSegments = touchQuality ? 84 : 118;
+    mesh.positions.length = 0;
+    mesh.colors.length = 0;
+    const roadSegments = touchQuality ? 64 : 118;
     const segmentLength = 4.2;
     const lapDistance = 4563;
     const path = buildRoadPath({ position, lapDistance, segments: roadSegments, segmentLength });
@@ -230,29 +249,29 @@ export function createRenderer(canvas) {
         const stripeWidth = .12;
         mesh.quad(edge(a,-stripeWidth,.035), edge(a,stripeWidth,.035), edge(b,stripeWidth,.035), edge(b,-stripeWidth,.035), [.82,.82,.75]);
       }
-      if (worldSegment % 7 === 0 && i > 4 && worldSegment % 21 !== 0) {
+      if (worldSegment % (touchQuality ? 9 : 7) === 0 && i > 4 && worldSegment % 21 !== 0) {
         const l = edge(a, -9 - (i%3)), r = edge(a, 10 + (i%4));
         mesh.tree(l[0], l[2], 2.8 + (i%4)*.2, l[1]);
         mesh.tree(r[0], r[2], 3.1, r[1]);
       }
       // Grandstands on BOTH sides, rotated to follow the bend.
-      if (worldSegment % 21 === 0 && i > 8) {
+      if (worldSegment % (touchQuality ? 28 : 21) === 0 && i > 8) {
         for (const side of [-1, 1]) {
           const base = edge(a, side * 10.2);
           const put = (lx, lz) => [base[0] + a.nx * lx + a.dx * lz, base[2] + a.nz * lx + a.dz * lz];
           const stand = (lx, ly, lz, sx, sy, sz, tint) => { const [px, pz] = put(lx, lz); mesh.box(px, base[1] + ly, pz, sx, sy, sz, tint, a.h); };
           stand(0, .05, 0, 5.8, 1.05, 12, [.25,.29,.32]);
           stand(0, 1.12, 0, 6.1, .18, 12.4, [.72,.74,.76]);
-          for (let row = 0; row < 3; row++) {
-            for (let seat = 0; seat < 9; seat++) {
+          for (let row = 0; row < (touchQuality ? 2 : 3); row++) {
+            for (let seat = 0; seat < (touchQuality ? 5 : 9); seat++) {
               const palette = [[.82,.2,.19],[.88,.78,.55],[.16,.3,.48],[.83,.83,.82],[.22,.55,.39]];
-              stand((seat - (touchQuality ? 2.5 : 4)) * .57, 1.35 + row * .34, (row - 1) * 2.2, .28, .3, .28, palette[(seat + row + i) % palette.length]);
+              stand((seat - (touchQuality ? 2 : 4)) * .72, 1.35 + row * .34, (row - 1) * 2.2, .28, .3, .28, palette[(seat + row + i) % palette.length]);
             }
           }
           stand(0, 2.55, -4.9, 6.25, .12, .22, [.85,.13,.16]);
         }
       }
-      if (worldSegment % 28 === 0 && i > 8) {
+      if (worldSegment % (touchQuality ? 35 : 28) === 0 && i > 8) {
         const base = edge(a, 15);
         mesh.box(base[0], base[1] + .05, base[2], 5.8, 2.0, 8.5, [.22,.27,.3], a.h);
         mesh.box(base[0], base[1] + 2.08, base[2], 6.2, .18, 8.8, [.76,.12,.14], a.h);
@@ -344,13 +363,13 @@ export function createRenderer(canvas) {
     gl.useProgram(program);
     gl.uniformMatrix4fv(matrixLocation, false, viewProjection);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.positions), gl.DYNAMIC_DRAW);
+    const positionResult = uploadDynamicBuffer(positionBuffer, mesh.positions, positionUpload, positionCapacity);
+    positionUpload = positionResult.upload; positionCapacity = positionResult.capacity;
     gl.enableVertexAttribArray(positionLocation);
     gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mesh.colors), gl.DYNAMIC_DRAW);
+    const colorResult = uploadDynamicBuffer(colorBuffer, mesh.colors, colorUpload, colorCapacity);
+    colorUpload = colorResult.upload; colorCapacity = colorResult.capacity;
     gl.enableVertexAttribArray(colorLocation);
     gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, false, 0, 0);
     gl.drawArrays(gl.TRIANGLES, 0, mesh.positions.length / 3);
