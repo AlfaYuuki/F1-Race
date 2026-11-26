@@ -47,3 +47,14 @@ test('pit service can leave damage unrepaired and never lower existing fuel', ()
   assert.equal(physics.fuel, 70);
   assert.equal(physics.compound, 'INTER');
 });
+
+
+test('low-energy contact causes less momentum loss and damage than a hard impact', () => {
+  const light = createPhysics(), hard = createPhysics();
+  light.speed = hard.speed = 200;
+  light.impact(1, 0.25);
+  hard.impact(1, 1);
+  assert.ok(light.speed > hard.speed);
+  assert.ok(light.damage < hard.damage);
+  assert.ok(light.damage > 0);
+});

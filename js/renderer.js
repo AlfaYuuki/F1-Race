@@ -26,6 +26,15 @@ void main() {
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
+export function isForwardOpponent(relativeDistance) {
+  const distance = Number(relativeDistance);
+  return Number.isFinite(distance) && distance >= 0 && distance < 235;
+}
+
+export function opponentWorldZ(relativeDistance) {
+  return clamp(Number(relativeDistance) * 1.12 + 9, -18, 290);
+}
+
 function perspective(fov, aspect, near, far) {
   const f = 1 / Math.tan(fov / 2), nf = 1 / (near - far);
   return new Float32Array([
@@ -275,8 +284,8 @@ export function createRenderer(canvas) {
     mesh.mountain(500, -95, 65, 54);
 
     for (const driver of opponents) {
-      if (Math.abs(driver.relativeDistance) > 235) continue;
-      const z = clamp(driver.relativeDistance * 1.12 + 30, -18, 290);
+      if (!isForwardOpponent(driver.relativeDistance)) continue;
+      const z = opponentWorldZ(driver.relativeDistance);
       const nearest = Math.min(roadSegments, Math.max(0, Math.round(z / segmentLength)));
       const road = roadPoints[nearest];
       const lane = driver.currentLane ?? driver.lane ?? 0;
