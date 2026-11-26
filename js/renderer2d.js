@@ -1,5 +1,4 @@
 import { curveAt, elevationAt } from './track.js';
-const PIT_ENTRY_START=.84,PIT_ENTRY_END=.92;
 const lerp = (a,b,t) => a + (b-a)*t;
 
 export function isForwardOpponent(relativeDistance) {
@@ -41,7 +40,7 @@ export function createRenderer(canvas) {
   }
   function spawnParticles(x,y,count,sparks=false){for(let i=0;i<count;i++)particles.push({x:x+(Math.random()-.5)*22,y:y+Math.random()*7,vx:(Math.random()-.5)*(sparks?150:24),vy:sparks?-Math.random()*125:-Math.random()*30,life:sparks?.28:.7,max:sparks?.28:.7,size:sparks?1+Math.random()*2:4+Math.random()*7,sparks});if(particles.length>120)particles.splice(0,particles.length-120);}
   function drawParticles(dt){particles=particles.filter(p=>p.life>0);for(const p of particles){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;if(!p.sparks)p.size+=dt*8;ctx.globalAlpha=Math.max(0,p.life/p.max)*.45;ctx.fillStyle=p.sparks?'#ffd16a':'#d5d8d4';ctx.beginPath();ctx.arc(p.x,p.y,p.size,0,Math.PI*2);ctx.fill();}ctx.globalAlpha=1;}
-  function render({position=0,playerX=0,speed=0,offRoad=false,running=false,opponents=[],pitLane=false,cameraShake=0,playerColor='#df3039',skid=false,driftAngle=0,dt=.016}) {
+  function render({position=0,playerX=0,speed=0,offRoad=false,running=false,opponents=[],cameraShake=0,playerColor='#df3039',skid=false,driftAngle=0,dt=.016}) {
     if(!width||!height)resize();
     const horizon=height*.405 + Math.sin(position*Math.PI*2)*height*.012;
     const sky=ctx.createLinearGradient(0,0,0,horizon);
@@ -66,17 +65,6 @@ export function createRenderer(canvas) {
     for(let i=0;i<segments;i++){
       const a=road[i],b=road[i+1],stripe=(i+Math.floor(position*LAP_SCROLL))%2;
       polygon([[a.center-a.roadW,a.y],[a.center+a.roadW,a.y],[b.center+b.roadW,b.y],[b.center-b.roadW,b.y]],'#343a40');
-      const pitInnerA=a.center+a.roadW*.54,pitOuterA=a.center+a.roadW*.94;
-      const pitInnerB=b.center+b.roadW*.54,pitOuterB=b.center+b.roadW*.94;
-      polygon([[pitInnerA,a.y],[pitOuterA,a.y],[pitOuterB,b.y],[pitInnerB,b.y]],'#252d33');
-      const pitEntryProgress=((position+(1-a.t)*.18)%1+1)%1;
-      if(pitEntryProgress<PIT_ENTRY_START || pitEntryProgress>PIT_ENTRY_END){
-        polygon([[pitInnerA,a.y],[pitInnerA+Math.max(1,a.roadW*.012),a.y],[pitInnerB+Math.max(1,b.roadW*.012),b.y],[pitInnerB,b.y]],'#e7e4d8');
-      } else if(i%7===0) {
-        polygon([[pitInnerA,a.y],[pitOuterA,a.y],[pitOuterB,b.y],[pitInnerB,b.y]],'#80602b');
-      }
-      polygon([[pitOuterA,a.y],[pitOuterA+Math.max(1,a.roadW*.012),a.y],[pitOuterB+Math.max(1,b.roadW*.012),b.y],[pitOuterB,b.y]],'#e7e4d8');
-      if(i%18===0&&b.depth>.12){const bay=lerp(pitInnerB,pitOuterB,.58),w=Math.max(1,b.roadW*.08);polygon([[bay-w,b.y],[bay+w,b.y],[bay+w*1.08,b.y-2],[bay-w*1.08,b.y-2]],'#d7d9d5');}
       const ca=a.roadW*.075,cb=b.roadW*.075;
       polygon([[a.center-a.roadW-ca,a.y],[a.center-a.roadW,a.y],[b.center-b.roadW,b.y],[b.center-b.roadW-cb,b.y]],stripe?'#f5f0e7':'#d83c42');
       polygon([[a.center+a.roadW,a.y],[a.center+a.roadW+ca,a.y],[b.center+b.roadW+cb,b.y],[b.center+b.roadW,b.y]],stripe?'#f5f0e7':'#d83c42');
@@ -103,11 +91,11 @@ export function createRenderer(canvas) {
       const roadW=lerp(width*.025,width*.49,perspective);
       const center=width*.5+curveAt(position)*width*.12*(1-perspective);
       const lane=driver.currentLane??driver.lane??0;
-      const x=center+(driver.pitPhase?roadW*.72:lane*roadW*.7);
+      const x=center+lane*roadW*.7;
       const scale=lerp(.12,.78,perspective)*Math.max(.75,Math.min(1.1,width/900));
       car(x,y-10*scale,scale,driver.color,false);
     }
-    const playerScreenX=width*.5+(pitLane?width*.35:playerX*width*.29),playerY=height*.875;
+    const playerScreenX=width*.5+playerX*width*.29,playerY=height*.875;
     if(running&&offRoad&&Math.random()<.8)spawnParticles(playerScreenX,playerY,2,false);
     if(running&&(skid||Math.abs(driftAngle)>.12)){skidClock+=dt*speed*.02;if(skidClock>.9){spawnParticles(playerScreenX,playerY+8,1,false);skidClock=0;}}
     ctx.save();ctx.translate(cameraShake,0);car(playerScreenX,playerY,Math.max(.68,Math.min(1.2,width/900)),playerColor,true,Math.max(-.7,Math.min(.7,driftAngle)));ctx.restore();

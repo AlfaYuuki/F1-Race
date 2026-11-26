@@ -229,7 +229,7 @@ const game = createGame(canvas, {
     document.querySelector('#tyre-temp-value').textContent=Math.round(Number(live.tyreTemp)||0)+'°C';
     document.querySelector('#brake-temp-value').textContent=Math.round(Number(live.brakeTemp)||0)+'°C';
     document.querySelector('#fuel-flow-value').textContent=(Number(live.fuelFlow)||0).toFixed(2)+'%/MIN';
-    document.querySelector('#pit-button').textContent=pitPhase ? (pitPhase==='service'?'IN BOX':pitPhase.toUpperCase()) : 'BOX ↗';
+    document.querySelector('#pit-button').textContent=pitPhase ? (pitPhase==='service'?'IN BOX':'PIT '+pitPhase.toUpperCase()) : 'BOX ↗';
     document.querySelector('#pit-button').disabled=state!=='running';
     audio.update(rpm, throttle ?? 0, gear, state === 'running', { skid: skid ?? 0, rain: weather?.rain ?? 0 });
     if (state === 'finished') {
@@ -339,7 +339,7 @@ controls = bindControls(game, {
 const pitDialog=document.querySelector('#pit-dialog');
 document.querySelector('#pit-button').addEventListener('click',()=>{if(game.getState()==='running'){controls.releaseAll();pitDialog.hidden=false;}});
 document.querySelector('#pit-cancel').addEventListener('click',()=>{pitDialog.hidden=true;});
-document.querySelector('#pit-confirm').addEventListener('click',()=>{if(game.setPitStrategy(document.querySelector('#pit-compound').value,Number(document.querySelector('#pit-fuel').value),document.querySelector('#pit-repair').checked))pitDialog.hidden=true;});
+document.querySelector('#pit-confirm').addEventListener('click',()=>{if(game.requestPit(document.querySelector('#pit-compound').value,Number(document.querySelector('#pit-fuel').value),document.querySelector('#pit-repair').checked))pitDialog.hidden=true;});
 document.querySelector('#pit-fuel').addEventListener('input',event=>{document.querySelector('#fuel-choice').textContent=event.target.value+'%';});
 
 document.querySelector('#weekend-session-buttons').addEventListener('click', event => {
@@ -369,9 +369,7 @@ startButton.addEventListener('click', () => {
   finishedSessionType = null;
   startScreen.classList.add('hidden');
   game.setCarConfig(garage.getCar());
-  const laps = normalizeRaceLaps(quickRaceLapsSelect.value, 10);
-  document.querySelector('#race-message').textContent = `FUJI INTERNATIONAL SPEEDWAY · ${laps} LAP GRAND PRIX`;
-  game.start(Number(gridPositionSelect.value), { type:'race', laps });
+  game.start(Number(gridPositionSelect.value), { type:'race', laps:normalizeRaceLaps(quickRaceLapsSelect.value, 10) });
 });
 championshipButton.addEventListener('click', () => {
   let season = championship.getState();

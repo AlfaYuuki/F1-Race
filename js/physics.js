@@ -113,7 +113,7 @@ export function createPhysics() {
       this.lateralVelocity -= curve * velocityRatio * .28 * dt;
       this.updateDrift(dt, steer, grip, braking, accelerating, curve, velocityRatio);
       this.playerX += this.lateralVelocity * dt * (1.4 + velocityRatio * 1.2);
-      this.offRoad = Math.abs(this.playerX) > .88 && !options.pitLane;
+      this.offRoad = Math.abs(this.playerX) > .88;
       if (this.offRoad) {
         this.speed = Math.max(0, this.speed - (48 + this.speed * .38) * dt);
         this.lateralVelocity *= .94;

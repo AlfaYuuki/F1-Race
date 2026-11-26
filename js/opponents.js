@@ -35,7 +35,7 @@ export function createOpponents(lapDistance = 4563) {
     targetLane: driver.lane,
     gridPosition: 0,
     launchTimer: 0,
-    overtakes: 0, overtakeTargetId:null, fuel:100, tireWear:0, compound:'MEDIUM', pitTimer:0, pitPhase:null, pitRequested:false, pitStops:0
+    overtakes: 0, overtakeTargetId:null, fuel:100, tireWear:0, compound:'MEDIUM', pitTimer:0, pitStops:0
   }));
 
   function update(dt, playerDistance, curveAt, weather = {}) {
@@ -51,44 +51,22 @@ export function createOpponents(lapDistance = 4563) {
         driver.distance += driver.speed / 3.6 * dt;
         continue;
       }
-      const progress = (driver.distance % lapDistance) / lapDistance;
-      if (!driver.pitPhase) {
-        driver.fuel = Math.max(0, driver.fuel - dt * (.055 + driver.speed / 330 * .045));
-        driver.tireWear = Math.min(100, driver.tireWear + dt * (driver.compound === 'SOFT' ? .16 : .1) * (weather.wear || 1) * calculateTyreWearMultiplier(driver.personality));
-        const wetMismatch = weather.rain > .55 && driver.compound !== 'INTER';
-        const dryMismatch = weather.rain < .12 && driver.compound === 'INTER';
-        if (driver.pitStops < 2 && (driver.fuel < 76 || driver.tireWear > 24 || wetMismatch || dryMismatch)) driver.pitRequested = true;
-        // AI waits for the same marked pit-entry zone used by the player.
-        if (driver.pitRequested && progress >= .84 && progress <= .92) {
-          driver.pitPhase = 'entry';
-          driver.pitTimer = 1.45 + (1-driver.skill)*.25;
-          driver.speed = Math.min(driver.speed, 80);
-          driver.targetLane = 1.12;
-        }
-      }
-      if (driver.pitPhase) {
+      if (driver.pitTimer > 0) {
         driver.pitTimer = Math.max(0, driver.pitTimer - dt);
-        if (driver.pitPhase === 'entry') {
-          driver.currentLane += (1.12-driver.currentLane)*Math.min(1,dt*2.8);
-          driver.speed = Math.min(80,driver.speed);
-          driver.distance += driver.speed/3.6*dt;
-          if (driver.pitTimer === 0) { driver.pitPhase='service';driver.pitTimer=4.2;driver.speed=0; }
-        } else if (driver.pitPhase === 'service') {
-          driver.speed=0;
-          if (driver.pitTimer === 0) {
-            driver.fuel=100;driver.tireWear=0;driver.pitStops++;
-            driver.compound=weather.rain>.3?'INTER':'MEDIUM';
-            driver.pitPhase='exit';driver.pitTimer=1.45;
-          }
-        } else {
-          driver.currentLane += (.35-driver.currentLane)*Math.min(1,dt*2.2);
-          driver.speed=Math.min(driver.pace*.62,driver.speed+dt*75);
-          driver.distance += driver.speed/3.6*dt;
-          if(driver.pitTimer===0){driver.pitPhase=null;driver.pitRequested=false;driver.targetLane=driver.lane;}
-        }
+        driver.speed += (0 - driver.speed) * Math.min(1, dt * 2.8);
+        if (driver.pitTimer === 0) { driver.fuel = 100; driver.tireWear = 0; driver.pitStops++; driver.compound = weather.rain > .3 ? 'INTER' : 'MEDIUM'; }
+        driver.distance += driver.speed / 3.6 * dt;
         continue;
       }
-
+      driver.fuel = Math.max(0, driver.fuel - dt * (.055 + driver.speed / 330 * .045));
+      driver.tireWear = Math.min(100, driver.tireWear + dt * (driver.compound === 'SOFT' ? .16 : .1) * (weather.wear || 1) * calculateTyreWearMultiplier(driver.personality));
+      const wetMismatch = weather.rain > .55 && driver.compound !== 'INTER';
+      const dryMismatch = weather.rain < .12 && driver.compound === 'INTER';
+      if (driver.fuel < 18 || driver.tireWear > 82 || (wetMismatch && driver.pitStops < 2) || (dryMismatch && driver.pitStops < 2)) {
+        driver.pitTimer = 5.8 + (1-driver.skill)*2.2;
+        driver.speed = Math.max(0, driver.speed * .55);
+      }
+      const progress = (driver.distance % lapDistance) / lapDistance;
       const cornerLoad = Math.abs(curveAt(progress));
       const rhythm = calculatePersonalityPace(driver.personality, { phase:driver.distance * .001 + driver.skill * 8, rain:weather.rain || 0, cornerLoad:Math.abs(curveAt((driver.distance % lapDistance) / lapDistance)) });
       const trafficAhead = traffic
@@ -153,6 +131,8 @@ export function createOpponents(lapDistance = 4563) {
   function getStandings(playerDistance, preserveGridOrder = false) {
     const field = [{ id:'player', name:'YOU', color:'#ed4148', distance:playerDistance, gridPosition:selectedGridPosition, isPlayer:true },
       ...drivers.map(driver => ({ ...driver, isPlayer:false }))];
+    // During the starting procedure, use the explicit grid slots. Once the
+    // lights go out, live distance determines the race order as cars move.
     return field.sort((a, b) => preserveGridOrder
       ? a.gridPosition - b.gridPosition
       : b.distance - a.distance);
@@ -182,7 +162,7 @@ export function createOpponents(lapDistance = 4563) {
       driver.targetLane = driver.currentLane;
       driver.launchTimer = .16 + (1 - driver.skill) * .62;
       driver.overtakes = 0; driver.overtakeTargetId = null; driver.fuel = 100; driver.tireWear = 0;
-      driver.compound = 'MEDIUM'; driver.pitTimer = 0; driver.pitPhase = null; driver.pitRequested = false; driver.pitStops = 0;
+      driver.compound = 'MEDIUM'; driver.pitTimer = 0; driver.pitStops = 0;
     }
     return { playerGridPosition: playerSlot, grid: getStandings(0) };
   }

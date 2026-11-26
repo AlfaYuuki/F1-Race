@@ -25,7 +25,6 @@ void main() {
 }`;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-const PIT_ENTRY_START=.84,PIT_ENTRY_END=.92;
 
 export function isForwardOpponent(relativeDistance) {
   const distance = Number(relativeDistance);
@@ -220,7 +219,7 @@ export function createRenderer(canvas) {
     for (const side of [-1, 1]) for (const axle of [-1, 1]) part(side * .96, .04, axle * 1.25, .34, .48, .82, [.035,.04,.045]);
   }
 
-  function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], pitLane = false, cameraShake = 0, playerColor = '#df3039', driftAngle = 0, dt = 1/60 }) {
+  function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, playerColor = '#df3039', driftAngle = 0, dt = 1/60 }) {
     if (lost) return;
     mesh.positions.length = 0;
     mesh.colors.length = 0;
@@ -244,19 +243,6 @@ export function createRenderer(canvas) {
       mesh.quad(edge(a,-half-.42,-.01), edge(a,-half-30,-.02), edge(b,-half-30,-.02), edge(b,-half-.42,-.01), grass);
       mesh.quad(edge(a,half+.42,-.01), edge(b,half+.42,-.01), edge(b,half+30,-.02), edge(a,half+30,-.02), grass);
       mesh.quad(edge(a,-half), edge(a,half), edge(b,half), edge(b,-half), roadTint);
-      // Dedicated right-side pit lane, separated from the racing surface by a solid line.
-      mesh.quad(edge(a,half+.85),edge(a,half+4.55),edge(b,half+4.55),edge(b,half+.85),[.13,.16,.19]);
-      const segmentProgress=((travelledThisLap+i*segmentLength)%lapDistance)/lapDistance;
-      if(segmentProgress<PIT_ENTRY_START || segmentProgress>PIT_ENTRY_END){
-        mesh.quad(edge(a,half+.72,.04),edge(a,half+.88,.04),edge(b,half+.88,.04),edge(b,half+.72,.04),[.94,.91,.82]);
-      } else if(worldSegment%5===0) {
-        mesh.quad(edge(a,half+.9,.07),edge(a,half+4.45,.07),edge(b,half+4.45,.07),edge(b,half+.9,.07),[.78,.58,.16]);
-      }
-      mesh.quad(edge(a,half+4.5,.04),edge(a,half+4.66,.04),edge(b,half+4.66,.04),edge(b,half+4.5,.04),[.94,.91,.82]);
-      if(worldSegment%30===0){
-        const bay=half+2.7;
-        mesh.quad(edge(a,bay-.72,.06),edge(a,bay+.72,.06),edge(b,bay+.72,.06),edge(b,bay-.72,.06),[.82,.84,.84]);
-      }
       mesh.quad(edge(a,-half-.42,.025), edge(a,-half,.025), edge(b,-half,.025), edge(b,-half-.42,.025), kerb);
       mesh.quad(edge(a,half,.025), edge(a,half+.42,.025), edge(b,half+.42,.025), edge(b,half,.025), kerb);
       if (worldSegment % 9 === 0) {
@@ -317,25 +303,24 @@ export function createRenderer(canvas) {
       const z = opponentWorldZ(driver.relativeDistance);
       const road = pointAt(path, z);
       const lane = driver.currentLane ?? driver.lane ?? 0;
-      const pos = lateral(road, driver.pitPhase ? 8.2 : lane * 4.0);
+      const pos = lateral(road, lane * 4.0);
       addCar(mesh, pos[0], road.y, pos[1], .78, hexColor(driver.color), road.h);
     }
 
     const playerRoad = pointAt(path, 9);
     const trackCenterX = playerRoad.x;
-    const playerWorldPos = pitLane ? lateral(playerRoad, 8.2) : [trackCenterX + playerX * 4.2, 9];
-    const playerWorldX = playerWorldPos[0], playerWorldZ = playerWorldPos[1];
+    const playerWorldX = trackCenterX + playerX * 4.2;
     const suspensionBob = running ? Math.sin(position * 4563 * .72) * Math.min(.075, speed / 330 * .075) : 0;
     const carYaw = clamp(driftAngle, -.9, .9);
-    addCar(mesh, playerWorldX, playerRoad.y + suspensionBob, playerWorldZ, 1, offRoad ? [.72,.25,.12] : hexColor(playerColor), carYaw);
+    addCar(mesh, playerWorldX, playerRoad.y + suspensionBob, 9, 1, offRoad ? [.72,.25,.12] : hexColor(playerColor), carYaw);
 
     // Rubber trails appear behind the rear tyres when lateral grip is being used.
     if (running && (Math.abs(lateralVelocity) > .48 || Math.abs(driftAngle) > .1)) {
       const markStrength = clamp((Math.abs(lateralVelocity) - .42) * .24 + Math.abs(driftAngle) * .3, .035, .22);
       for (const side of [-1, 1]) {
         const markX = playerWorldX + side * .72;
-        mesh.quad([markX-.12,playerRoad.y+.045,playerWorldZ-4.8],[markX+.12,playerRoad.y+.045,playerWorldZ-4.8],
-          [markX+.12,playerRoad.y+.045,playerWorldZ-1.8],[markX-.12,playerRoad.y+.045,playerWorldZ-1.8],
+        mesh.quad([markX-.12,playerRoad.y+.045,4.2],[markX+.12,playerRoad.y+.045,4.2],
+          [markX+.12,playerRoad.y+.045,7.2],[markX-.12,playerRoad.y+.045,7.2],
           [.055,.06,.065].map(channel => channel * (1-markStrength)));
       }
     }
