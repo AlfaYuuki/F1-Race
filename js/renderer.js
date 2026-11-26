@@ -219,7 +219,7 @@ export function createRenderer(canvas) {
     for (const side of [-1, 1]) for (const axle of [-1, 1]) part(side * .96, .04, axle * 1.25, .34, .48, .82, [.035,.04,.045]);
   }
 
-  function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, playerColor = '#df3039', driftAngle = 0, dt = 1/60 }) {
+  function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], pitLane = false, cameraShake = 0, playerColor = '#df3039', driftAngle = 0, dt = 1/60 }) {
     if (lost) return;
     mesh.positions.length = 0;
     mesh.colors.length = 0;
@@ -243,6 +243,14 @@ export function createRenderer(canvas) {
       mesh.quad(edge(a,-half-.42,-.01), edge(a,-half-30,-.02), edge(b,-half-30,-.02), edge(b,-half-.42,-.01), grass);
       mesh.quad(edge(a,half+.42,-.01), edge(b,half+.42,-.01), edge(b,half+30,-.02), edge(a,half+30,-.02), grass);
       mesh.quad(edge(a,-half), edge(a,half), edge(b,half), edge(b,-half), roadTint);
+      // Dedicated pit lane runs beside the racing surface, separated by a painted line.
+      mesh.quad(edge(a,half+.85), edge(a,half+4.35), edge(b,half+4.35), edge(b,half+.85), [.16,.18,.2]);
+      mesh.quad(edge(a,half+.72,.035), edge(a,half+.88,.035), edge(b,half+.88,.035), edge(b,half+.72,.035), [.92,.9,.78]);
+      mesh.quad(edge(a,half+4.3,.035), edge(a,half+4.46,.035), edge(b,half+4.46,.035), edge(b,half+4.3,.035), [.92,.9,.78]);
+      if (worldSegment % 24 === 0) {
+        const bay = half + 2.6;
+        mesh.quad(edge(a,bay-.72,.05), edge(a,bay+.72,.05), edge(a,bay+.72, .05).map((v,i)=>i===2?v+2.2:v), edge(a,bay-.72,.05).map((v,i)=>i===2?v+2.2:v), [.88,.88,.82]);
+      }
       mesh.quad(edge(a,-half-.42,.025), edge(a,-half,.025), edge(b,-half,.025), edge(b,-half-.42,.025), kerb);
       mesh.quad(edge(a,half,.025), edge(a,half+.42,.025), edge(b,half+.42,.025), edge(b,half,.025), kerb);
       if (worldSegment % 9 === 0) {
@@ -303,13 +311,13 @@ export function createRenderer(canvas) {
       const z = opponentWorldZ(driver.relativeDistance);
       const road = pointAt(path, z);
       const lane = driver.currentLane ?? driver.lane ?? 0;
-      const pos = lateral(road, lane * 4.0);
+      const pos = lateral(road, driver.pitLane ? 8.0 : lane * 4.0);
       addCar(mesh, pos[0], road.y, pos[1], .78, hexColor(driver.color), road.h);
     }
 
     const playerRoad = pointAt(path, 9);
     const trackCenterX = playerRoad.x;
-    const playerWorldX = trackCenterX + playerX * 4.2;
+    const playerWorldX = trackCenterX + (pitLane ? 8.0 : playerX * 4.2);
     const suspensionBob = running ? Math.sin(position * 4563 * .72) * Math.min(.075, speed / 330 * .075) : 0;
     const carYaw = clamp(driftAngle, -.9, .9);
     addCar(mesh, playerWorldX, playerRoad.y + suspensionBob, 9, 1, offRoad ? [.72,.25,.12] : hexColor(playerColor), carYaw);
