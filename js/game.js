@@ -42,7 +42,7 @@ export function createGame(canvas,callbacks={}) {
     return physics.speed>60?best:0;
   }
   function updateHud(){
-    const standings=opponents.getStandings(raceDistance),position=standings.findIndex(d=>d.isPlayer)+1;
+    const standings=opponents.getStandings(raceDistance, state==='countdown'||state==='ready'),position=standings.findIndex(d=>d.isPlayer)+1;
     callbacks.onUpdate?.({speed:physics.speed,rpm:physics.rpm,gear:physics.gear,lap,totalLaps:sessionLaps,sessionType,time:formatTime(elapsed),state,position,standings,offRoad:physics.offRoad,lastLap:formatTime(lastLap),bestLap:formatTime(bestLap),lastLapMs:lastLap,bestLapMs:bestLap,sector:sector===1?'S1':sector===2?'S2':'S3',sectorTime:formatTime(sectorElapsed),fuel:physics.fuel,tireWear:physics.tireWear,compound:physics.compound,damage:physics.damage,pitStops:physics.pitStops,pitPhase,weather:currentWeather,track:trackEvolution.getState(),throttle:input.has('accelerate')?1:0,skid:Math.min(1,Math.abs(physics.lateralVelocity)),telemetry:{...physics.getTelemetry(),...physics.getDynamics()}});
   }
   function start(playerGridPosition=10,options={}){
