@@ -72,7 +72,7 @@ export function createOpponents(lapDistance=4563) {
     const totalLaps=Math.max(0,Number(weather.totalLaps)||0);
     const currentLap=driver.distance/lapDistance;
     const remaining=totalLaps?Math.max(0,totalLaps-currentLap):Infinity;
-    const fuelPerLap=.72;
+    const fuelPerLap=7.2;
     const fuelRange=driver.fuel/fuelPerLap;
     const wetMismatch=rain>=.58&&driver.compound!=='INTER';
     const dryMismatch=rain<=.08&&driver.compound==='INTER';
