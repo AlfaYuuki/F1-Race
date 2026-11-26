@@ -25,6 +25,7 @@ void main() {
 }`;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+const PIT_ENTRY_START=.84,PIT_ENTRY_END=.92;
 
 export function isForwardOpponent(relativeDistance) {
   const distance = Number(relativeDistance);
