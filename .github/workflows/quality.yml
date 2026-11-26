@@ -42,4 +42,14 @@ jobs:
       - name: Run simulation tests
         run: npm test
       - name: Validate structure and 17 phone, tablet and desktop layouts
+        env:
+          LAYOUT_OUT: artifacts/layout
         run: npm run check
+      - name: Upload responsive layout screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: f1-race-layout-screenshots
+          path: artifacts/layout/
+          if-no-files-found: warn
+          retention-days: 7
