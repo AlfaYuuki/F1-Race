@@ -1305,3 +1305,9 @@ button,select,input{touch-action:manipulation}
   .telemetry-group>div{overflow:visible!important;gap:3px!important}
   .telemetry-group small{display:block;min-height:7px;line-height:7px!important;overflow:visible!important}
 }
+
+
+/* Quick Race distance selector; retain the existing start-menu controls. */
+.start-card>.grid-choice{margin-bottom:10px}
+.start-card>.grid-choice select{min-width:82px}
+@media(max-width:430px){.start-card>.grid-choice{font-size:7px}.start-card>.grid-choice select{font-size:9px;padding:6px}}
