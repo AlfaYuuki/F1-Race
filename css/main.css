@@ -1040,7 +1040,7 @@ button,select,input{touch-action:manipulation}
   .start-screen{padding:6px max(8px,env(safe-area-inset-right)) 6px max(8px,env(safe-area-inset-left))!important;align-items:center}
   .start-card{display:block!important;column-count:2;column-gap:22px;width:min(700px,100%)!important;max-height:calc(100dvh - 12px)!important;margin:0 auto!important;padding:12px 16px!important;transform:none!important;overflow-y:auto}
   .start-card>*{break-inside:avoid}
-  .start-card>.grid-choice{break-after:column}
+  .start-card>.race-setup-choices{break-after:column}
   .start-card h1{font-size:38px!important;margin:0 0 6px!important}
   .start-card .eyebrow{margin:0 0 6px!important;font-size:7px!important}
   .start-card>p:not(.eyebrow){font-size:9.5px!important;line-height:1.45!important;margin:0 0 6px!important}
