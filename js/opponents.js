@@ -73,7 +73,7 @@ export function createOpponents(lapDistance = 4563) {
       driver.tireWear = Math.min(100, driver.tireWear + dt * (driver.compound === 'SOFT' ? .16 : .1) * (weather.wear || 1) * calculateTyreWearMultiplier(driver.personality));
       const wetMismatch = weather.rain > .55 && driver.compound !== 'INTER';
       const dryMismatch = weather.rain < .12 && driver.compound === 'INTER';
-      if (driver.fuel < 18 || driver.tireWear > 82 || (wetMismatch && driver.pitStops < 2) || (dryMismatch && driver.pitStops < 2)) {
+      if (driver.pitStops < 2 && (driver.fuel < 40 || driver.tireWear > 32 || wetMismatch || dryMismatch)) {
         driver.pitPhase = 'entry';
         driver.pitTimer = 2.1 + (1-driver.skill)*.5;
         driver.speed = Math.min(driver.speed, 150);
