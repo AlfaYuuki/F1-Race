@@ -147,7 +147,7 @@ export function createRenderer(canvas) {
   let gl;
   try {
     gl = canvas.getContext('webgl', {
-      alpha: false, antialias: false, depth: true, powerPreference: 'low-power',
+      alpha: false, antialias: false, depth: true, powerPreference: 'high-performance',
       preserveDrawingBuffer: false
     }) || canvas.getContext('experimental-webgl');
   } catch { gl = null; }
