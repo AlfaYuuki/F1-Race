@@ -1,5 +1,10 @@
 import { curveAt, elevationAt } from './track.js';
 const lerp = (a,b,t) => a + (b-a)*t;
+
+export function isForwardOpponent(relativeDistance) {
+  const distance = Number(relativeDistance);
+  return Number.isFinite(distance) && distance >= 0 && distance < 230;
+}
 export function createRenderer(canvas) {
   const ctx = canvas.getContext('2d');
   let width = 0, height = 0, dpr = 1, particles = [], impactFlash = 0, skidClock = 0;
@@ -79,7 +84,7 @@ export function createRenderer(canvas) {
       ctx.fillStyle='#3e5542';ctx.fillRect(cx-3*s,y-28*s,6*s,28*s);
       ctx.fillStyle=i%2?'#234b3b':'#2d6042';ctx.beginPath();ctx.arc(cx,y-34*s,19*s,0,Math.PI*2);ctx.fill();
     }
-    const visible=opponents.filter(d=>Math.abs(d.relativeDistance)<230).sort((a,b)=>b.relativeDistance-a.relativeDistance);
+    const visible=opponents.filter(d=>isForwardOpponent(d.relativeDistance)).sort((a,b)=>b.relativeDistance-a.relativeDistance);
     for(const driver of visible){
       const depth=1-Math.min(1,Math.abs(driver.relativeDistance)/230),perspective=depth*depth;
       const y=horizon+(height-horizon)*perspective;
