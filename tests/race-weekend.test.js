@@ -37,6 +37,18 @@ test('qualifying requires a complete twenty-driver classification', () => {
   assert.equal(weekend.getState().nextSession, 'qualifying');
 });
 
+test('qualifying rejects duplicate driver identities and blank driver names', () => {
+  const weekend = createRaceWeekend(memoryStorage());
+  weekend.recordResult('practice', {});
+  const duplicate = order.map(driver => ({ ...driver }));
+  duplicate[19].id = duplicate[18].id;
+  assert.equal(weekend.recordResult('qualifying', { order: duplicate }).ok, false);
+  const unnamed = order.map(driver => ({ ...driver }));
+  unnamed[3].name = '';
+  assert.equal(weekend.recordResult('qualifying', { order: unnamed }).ok, false);
+  assert.equal(weekend.getState().nextSession, 'qualifying');
+});
+
 test('race weekend saves progress and restores qualifying grid', () => {
   const storage = memoryStorage();
   const weekend = createRaceWeekend(storage);
@@ -63,6 +75,21 @@ test('race weekend ignores corrupt persisted session order and grid data', () =>
   const storage = memoryStorage();
   storage.setItem('the-f1-race-weekend-v1', JSON.stringify({
     round: 2, completed: ['qualifying'], results: [], qualifyingOrder: ['player']
+  }));
+  const weekend = createRaceWeekend(storage);
+  assert.equal(weekend.getState().round, 1);
+  assert.equal(weekend.getState().nextSession, 'practice');
+});
+
+test('race weekend rejects a saved qualifying classification with duplicate identities', () => {
+  const storage = memoryStorage();
+  const duplicate = order.map(driver => ({ ...driver }));
+  duplicate[19].id = duplicate[18].id;
+  storage.setItem('the-f1-race-weekend-v1', JSON.stringify({
+    round: 1,
+    completed: ['practice', 'qualifying'],
+    results: [{ session: 'practice', order: [] }, { session: 'qualifying', order: duplicate }],
+    qualifyingOrder: duplicate.map(driver => driver.id)
   }));
   const weekend = createRaceWeekend(storage);
   assert.equal(weekend.getState().round, 1);
