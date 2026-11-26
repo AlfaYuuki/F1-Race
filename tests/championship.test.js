@@ -13,11 +13,7 @@ test('championship awards points, persists and completes five rounds', () => {
   assert.equal(series.getState().hasSeason, false);
   series.startNewSeason();
   for (let round = 0; round < 5; round++) {
-    const state = series.recordResult([
-      { id: 'player', name: 'YOU' },
-      { id: 'sato', name: 'K. SATO' },
-      { id: 'tanaka', name: 'M. TANAKA' }
-    ]);
+    const state = series.recordResult(classification);
     assert.equal(state.round, round + 1);
   }
   const final = series.getState();
@@ -34,4 +30,17 @@ test('championship ignores structurally corrupt saved seasons', () => {
   const series = createChampionship(storage);
   assert.equal(series.getState().hasSeason, false);
   assert.equal(series.getState().round, 0);
+});
+
+
+test('championship rejects incomplete and duplicate classifications without awarding points', () => {
+  const series = createChampionship(memoryStorage());
+  series.startNewSeason();
+  const incomplete = series.recordResult(classification.slice(0, 3));
+  assert.equal(incomplete.round, 0);
+  const duplicate = classification.map(driver => ({ ...driver }));
+  duplicate[19].id = duplicate[18].id;
+  const rejected = series.recordResult(duplicate);
+  assert.equal(rejected.round, 0);
+  assert.equal(rejected.standings.find(driver => driver.id === 'player').points, 0);
 });
