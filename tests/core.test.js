@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createPhysics } from '../js/physics.js';
 import { createOpponents } from '../js/opponents.js';
-import { curveAt, elevationAt, LAP_DISTANCE, TOTAL_DISTANCE, TOTAL_LAPS } from '../js/track.js';
+import { curveAt, elevationAt, LAP_DISTANCE, TOTAL_DISTANCE, TOTAL_LAPS, normalizeRaceLaps } from '../js/track.js';
 
 test('track samples stay finite and wrap around one lap', () => {
   for (let i = -20; i <= 120; i++) {
@@ -60,4 +60,16 @@ test('qualifying order is carried into the Grand Prix grid without reshuffling',
   const grid = ai.reset(2, order).grid;
   assert.deepEqual(grid.map(driver => driver.id), order);
   assert.equal(grid.findIndex(driver => driver.id === 'player') + 1, 2);
+});
+
+
+test('Quick Race lap selector accepts one through ten laps and clamps invalid values', () => {
+  assert.equal(normalizeRaceLaps(1), 1);
+  assert.equal(normalizeRaceLaps(5), 5);
+  assert.equal(normalizeRaceLaps(10), 10);
+  assert.equal(normalizeRaceLaps(11), 10);
+  assert.equal(normalizeRaceLaps(-2), 1);
+  assert.equal(normalizeRaceLaps(0), TOTAL_LAPS);
+  assert.equal(normalizeRaceLaps('invalid'), TOTAL_LAPS);
+  assert.equal(normalizeRaceLaps(6, 5), 5);
 });
