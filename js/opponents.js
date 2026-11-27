@@ -89,10 +89,10 @@ export function createOpponents(lapDistance=4563) {
     const step=clamp(Number(dt)||0,0,.1);
     if(!step)return getStandings(playerDistance);
     const traffic=[{id:'player',distance:Number(playerDistance)||0,currentLane:Number(weather.playerLane)||0},...drivers];
-    const neutralised=!!(weather.yellowFlag||weather.safetyCar);
+    const neutralised=!!(weather.yellowFlag||weather.doubleYellow||weather.vsc||weather.safetyCar||weather.redFlag);
     for(const driver of drivers) {
       driver.mistakeCooldown=Math.max(0,driver.mistakeCooldown-step);
-      if(driver.launchTimer>0) {
+      if(weather.redFlag){driver.speed=0;continue;}\n      if(driver.launchTimer>0) {
         driver.launchTimer=Math.max(0,driver.launchTimer-step);
         driver.speed=Math.min(driver.pace*.72,driver.speed+step*95);
         driver.distance+=driver.speed/3.6*step;
@@ -114,7 +114,7 @@ export function createOpponents(lapDistance=4563) {
       const newStint=Math.floor(driver.distance/lapDistance);
       if(newStint>driver.stintLaps)driver.stintLaps=newStint;
       const pit=pitDecision(driver,weather);
-      if(pit) {
+      if(pit&&!weather.redFlag) {
         driver.pitTimer=5.8+(1-driver.skill)*2.2;
         driver.speed=Math.max(0,driver.speed*.35);
         driver.pitCompound=pit.compound;
@@ -162,7 +162,7 @@ export function createOpponents(lapDistance=4563) {
       const cornerPenalty=curve*(15+(1-driver.skill)*27)*(1.08-driver.personality.consistency*.12);
       const wearPenalty=driver.tireWear*.13;
       const pressurePenalty=driver.pressure*(1-driver.personality.consistency)*2.2;
-      const safePace=weather.safetyCar?145:weather.yellowFlag?170:285;
+      const safePace=weather.redFlag?0:weather.doubleYellow?80:weather.vsc?140:weather.safetyCar?110:weather.yellowFlag?170:285;
       let targetSpeed=clamp(driver.pace+rhythm+draftBonus-cornerPenalty-surfacePenalty-wetPenalty-wearPenalty-pressurePenalty,125,safePace);
 
       // Deterministic, infrequent pressure errors: no random frame-to-frame jitter.
