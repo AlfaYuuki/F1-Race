@@ -292,6 +292,10 @@ export function createRenderer(canvas) {
       mesh.quad(edge(a,-half-.42,-.01), edge(a,-half-30,-.02), edge(b,-half-30,-.02), edge(b,-half-.42,-.01), grass);
       mesh.quad(edge(a,half+.42,-.01), edge(b,half+.42,-.01), edge(b,half+30,-.02), edge(a,half+30,-.02), grass);
       mesh.quad(edge(a,-half), edge(a,half), edge(b,half), edge(b,-half), roadTint);
+      if (wetness > .08 && i % 4 === 0) {
+        const sheen = .1 + wetness * .18;
+        mesh.quad(edge(a,-half*.62,.04), edge(a,half*.62,.04), edge(b,half*.62,.04), edge(b,-half*.62,.04), [sheen,sheen+.012,sheen+.025]);
+      }
       mesh.quad(edge(a,-half-.42,.025), edge(a,-half,.025), edge(b,-half,.025), edge(b,-half-.42,.025), kerb);
       mesh.quad(edge(a,half,.025), edge(a,half+.42,.025), edge(b,half+.42,.025), edge(b,half,.025), kerb);
       if (worldSegment % 9 === 0) {
