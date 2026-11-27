@@ -297,7 +297,7 @@ export function createRenderer(canvas) {
           for (let row = 0; row < (touchQuality ? 2 : 3); row++) {
             for (let seat = 0; seat < (touchQuality ? 5 : 9); seat++) {
               const palette = [[.82,.2,.19],[.88,.78,.55],[.16,.3,.48],[.83,.83,.82],[.22,.55,.39]];
-              stand((seat - (touchQuality ? 2 : 4)) * .72, 1.35 + row * .34 + Math.sin(elapsed*2.8+seat*1.7+row)*.035, (row - 1) * 2.2, .28, .3, palette[(seat + row + i + Math.floor(elapsed*2)) % palette.length]);
+              stand((seat - (touchQuality ? 2 : 4)) * .72, 1.35 + row * .34 + Math.sin(elapsed*.0028+seat*1.7+row)*.035, (row - 1) * 2.2, .28, .3, palette[(seat + row + i + Math.floor(elapsed*.002)) % palette.length]);
             }
           }
           stand(0, 2.55, -4.9, 6.25, .12, .22, [.85,.13,.16]);
@@ -343,7 +343,7 @@ export function createRenderer(canvas) {
     const playerRoad = pointAt(path, 9);
     const trackCenterX = playerRoad.x;
     const playerWorldX = trackCenterX + playerX * 4.2;
-    const suspensionBob = running ? Math.sin(elapsed*8.5) * Math.min(.075, speed / 330 * .075) : 0;
+    const suspensionBob = running ? Math.sin(elapsed*.0085) * Math.min(.075, speed / 330 * .075) : 0;
     mesh.quad([playerWorldX-1.25,playerRoad.y+.04,7.1],[playerWorldX+1.25,playerRoad.y+.04,7.1],[playerWorldX+1.25,playerRoad.y+.04,10.8],[playerWorldX-1.25,playerRoad.y+.04,10.8],[.025,.03,.035]);
     const carYaw = clamp(driftAngle, -.9, .9);
     addCar(mesh, playerWorldX, playerRoad.y + suspensionBob, 9, 1, offRoad ? [.72,.25,.12] : hexColor(playerColor), carYaw, position*lapDistance/2.6, speed, offRoad);
