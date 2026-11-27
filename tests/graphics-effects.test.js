@@ -24,6 +24,7 @@ test('suspension travel remains bounded and animates each wheel independently', 
 test('weather, tyre smoke and sparks emit bounded short-lived particles', () => {
   const effects = createGraphicsEffects(() => .5);
   const car = { x: 2, y: .2, z: 9 };
+  effects.update(.05, { rain: .9, speed: 220, driftAngle: .35, offRoad: true, impact: .8, car });
   const particles = effects.update(.05, { rain: .9, speed: 220, driftAngle: .35, offRoad: true, impact: .8, car });
   assert.ok(particles.some(p => p.type === 'rain'));
   assert.ok(particles.some(p => p.type === 'smoke'));
