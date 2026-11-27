@@ -1375,3 +1375,7 @@ button,select,input{touch-action:manipulation}
 .career-actions .career-primary{border-color:#f04b57;background:linear-gradient(110deg,#a92635,#70202d);color:white}
 @media(max-width:560px){.career-screen{padding:8px}.career-panel{padding:14px;max-height:96dvh}.career-stats{gap:5px}.career-stats>div{padding:8px}.career-stats b{font-size:18px}.career-columns{grid-template-columns:1fr}.career-actions{flex-direction:column}.career-identity{font-size:8px}}
 @media(prefers-reduced-motion:reduce){.career-screen{backdrop-filter:none}}
+
+.career-history{display:grid;gap:5px;margin:0;padding:0;list-style:none}
+.career-history li{display:grid;grid-template-columns:1fr auto auto;gap:12px;padding:6px 0;border-bottom:1px solid #dcebf414;color:#c2d0d9;font:8px var(--mono)}
+.career-history b{font-variant-numeric:tabular-nums}.career-history em{color:#f0cb7c;font-style:normal}
