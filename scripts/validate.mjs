@@ -56,7 +56,7 @@ if (!main.includes('type:config.id') || !main.includes('career.recordRace') || !
   throw new Error('Career weekend integration or achievement rewards are not wired.');
 }
 const careerTests = await readFile(resolve(root, 'tests/career.test.js'), 'utf8');
-for (const feature of ['ten-round championship','career achievement credit rewards','season completion']) {
+for (const feature of ['ten-round championship','result.rewardCredits','season completion']) {
   if (!careerTests.includes(feature)) throw new Error(`Career regression test is missing: ${feature}`);
 }
 const graphicsSource = await readFile(resolve(root, 'js/graphics-effects.js'), 'utf8');
