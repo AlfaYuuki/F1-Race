@@ -522,6 +522,8 @@ document.querySelector('#career-close').addEventListener('click',closeCareer);
 document.querySelector('#career-enter').addEventListener('click',()=>{
   let state=career.getState();
   if(!state.active||state.completed) state=career.start();
+  if(weekend.getState().weekendComplete) weekend.startNewWeekend();
+  renderWeekendPanel();
   careerModeActive=true;
   closeCareer();
   document.querySelector('#race-message').textContent=`CAREER SEASON · ROUND ${state.round+1} OF ${career.rounds} · ${state.team}`;
