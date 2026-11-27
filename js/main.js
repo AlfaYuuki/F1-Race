@@ -178,6 +178,26 @@ function choosePlatform(id) {
   closePlatformPicker();
 }
 
+// ---- Cheap, cached HUD writers ----
+const hudElements = new Map(), hudValues = new Map();
+let lastHudWrite = 0;
+function hudElement(selector) {
+  let element = hudElements.get(selector);
+  if (!element) { element = document.querySelector(selector); hudElements.set(selector, element); }
+  return element;
+}
+function hudWrite(kind, selector, value, apply) {
+  const key = kind + selector, text = String(value);
+  if (hudValues.get(key) === text) return;
+  hudValues.set(key, text);
+  const element = hudElement(selector);
+  if (element) apply(element, value);
+}
+const setText = (selector, value) => hudWrite('t', selector, value, (el, v) => { el.textContent = v; });
+const setHtml = (selector, value) => hudWrite('h', selector, value, (el, v) => { el.innerHTML = v; });
+const setWidth = (selector, value) => hudWrite('w', selector, typeof value === 'number' ? Math.round(value * 10) / 10 + '%' : value, (el, v) => { el.style.width = v; });
+const setDisabled = (selector, value) => hudWrite('d', selector, !!value, (el, v) => { el.disabled = v; });
+
 const game = createGame(canvas, {
   onUpdate: ({ speed, rpm, gear, lap, totalLaps = TOTAL_LAPS, sessionType, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, track, throttle, skid, telemetry = {} }) => {
     const raceOrder = standings || [];
@@ -191,46 +211,52 @@ const game = createGame(canvas, {
     });
     if (engineerAlert) showEngineerAlert(engineerAlert);
 
-    document.querySelector('#speed-label').textContent = String(Math.round(speed)).padStart(3, '0');
-    document.querySelector('#speed-bar').style.width = `${Math.min(100, speed / 330 * 100)}%`;
-    document.querySelector('#gear-label').textContent = displayGear || 'N';
-    document.querySelector('#rpm-label').textContent = `${Math.round(rpm / 100) * 100} RPM`;
-    document.querySelector('#rpm-bar').style.width = `${Math.min(100, rpm / 12000 * 100)}%`;
-    document.querySelector('#last-lap-label').textContent = lastLap || '--:--.---';
-    document.querySelector('#best-lap-label').textContent = bestLap || '--:--.---';
-    document.querySelector('#sector-label').textContent = `${sector || 'S1'} ${sectorTime || '--:--.---'}`;
-    document.querySelector('#time-label').textContent = time;
-    document.querySelector('#lap-label').innerHTML = `${String(lap).padStart(2, '0')}<span> / ${String(totalLaps).padStart(2, '0')}</span>`;
-    document.querySelector('#position-label').innerHTML = `P${playerPosition || position}<span> / ${raceOrder.length || 20}</span>`;
-    document.querySelector('#status-label').textContent = pitPhase ? 'PIT LANE' : offRoad ? 'OFF TRACK' :
-      state === 'running' ? 'ENGINE ACTIVE' :
-      state === 'finished' ? 'SESSION COMPLETE' :
-      state === 'paused' ? 'PAUSED' : 'ENGINE STANDBY';
+    // The HUD is DOM-heavy: refresh it ~15 times a second while racing (every frame otherwise)
+    // and skip writes whose value did not change, so phones spend their time rendering.
+    const hudNow = performance.now();
+    if (state !== 'running' || hudNow - lastHudWrite >= 66) {
+      lastHudWrite = hudNow;
+      setText('#speed-label', String(Math.round(speed)).padStart(3, '0'));
+      setWidth('#speed-bar', `${Math.min(100, speed / 330 * 100)}%`);
+      setText('#gear-label', displayGear || 'N');
+      setText('#rpm-label', `${Math.round(rpm / 100) * 100} RPM`);
+      setWidth('#rpm-bar', `${Math.min(100, rpm / 12000 * 100)}%`);
+      setText('#last-lap-label', lastLap || '--:--.---');
+      setText('#best-lap-label', bestLap || '--:--.---');
+      setText('#sector-label', `${sector || 'S1'} ${sectorTime || '--:--.---'}`);
+      setText('#time-label', time);
+      setHtml('#lap-label', `${String(lap).padStart(2, '0')}<span> / ${String(totalLaps).padStart(2, '0')}</span>`);
+      setHtml('#position-label', `P${playerPosition || position}<span> / ${raceOrder.length || 20}</span>`);
+      setText('#status-label', pitPhase ? 'PIT LANE' : offRoad ? 'OFF TRACK' :
+        state === 'running' ? 'ENGINE ACTIVE' :
+        state === 'finished' ? 'SESSION COMPLETE' :
+        state === 'paused' ? 'PAUSED' : 'ENGINE STANDBY');
 
-    document.querySelector('#fuel-value').textContent=Math.round(fuel)+'%';
-    document.querySelector('#fuel-bar').style.width=fuel+'%';
-    document.querySelector('#tyre-value').textContent=compound+' · '+Math.round(tireWear)+'%';
-    document.querySelector('#tyre-bar').style.width=tireWear+'%';
-    document.querySelector('#damage-value').textContent=Math.round(damage)+'%';
-    document.querySelector('#pit-stops-value').textContent=String(pitStops);
-    const throttlePct=Math.max(0,Math.min(100,Number(live.throttle)||0));
-    const brakePct=Math.max(0,Math.min(100,Number(live.brake)||0));
-    document.querySelector('#throttle-value').textContent=Math.round(throttlePct)+'%';
-    document.querySelector('#throttle-bar').style.width=throttlePct+'%';
-    document.querySelector('#brake-value').textContent=Math.round(brakePct)+'%';
-    document.querySelector('#brake-bar').style.width=brakePct+'%';
-    document.querySelector('#steering-value').textContent=(Number(live.steering)||0)>0?'+ '+Math.round(live.steering)+'%':Math.round(Number(live.steering)||0)+'%';
-    document.querySelector('#lateral-g-value').textContent=(Number(live.lateralG)||0).toFixed(2)+' G';
-    document.querySelector('#longitudinal-g-value').textContent=(Number(live.longitudinalG)||0).toFixed(2)+' G';
-    document.querySelector('#grip-value').textContent=Math.round(Number(live.grip)||0)+'%';
-    document.querySelector('#surface-value').textContent=track?.condition||'DRY';
-    document.querySelector('#track-temp-value').textContent=(track?.trackTemperature??weather?.temperature??29)+'°C';
-    document.querySelector('#surface-grip-value').textContent=Math.round((track?.grip??1)*100)+'%';
-    document.querySelector('#tyre-temp-value').textContent=Math.round(Number(live.tyreTemp)||0)+'°C';
-    document.querySelector('#brake-temp-value').textContent=Math.round(Number(live.brakeTemp)||0)+'°C';
-    document.querySelector('#fuel-flow-value').textContent=(Number(live.fuelFlow)||0).toFixed(2)+'%/MIN';
-    document.querySelector('#pit-button').textContent=pitPhase ? (pitPhase==='service'?'IN BOX':'PIT '+pitPhase.toUpperCase()) : 'BOX ↗';
-    document.querySelector('#pit-button').disabled=state!=='running';
+      setText('#fuel-value', Math.round(fuel)+'%');
+      setWidth('#fuel-bar', fuel+'%');
+      setText('#tyre-value', compound+' · '+Math.round(tireWear)+'%');
+      setWidth('#tyre-bar', tireWear+'%');
+      setText('#damage-value', Math.round(damage)+'%');
+      setText('#pit-stops-value', String(pitStops));
+      const throttlePct=Math.max(0,Math.min(100,Number(live.throttle)||0));
+      const brakePct=Math.max(0,Math.min(100,Number(live.brake)||0));
+      setText('#throttle-value', Math.round(throttlePct)+'%');
+      setWidth('#throttle-bar', throttlePct+'%');
+      setText('#brake-value', Math.round(brakePct)+'%');
+      setWidth('#brake-bar', brakePct+'%');
+      setText('#steering-value', (Number(live.steering)||0)>0?'+ '+Math.round(live.steering)+'%':Math.round(Number(live.steering)||0)+'%');
+      setText('#lateral-g-value', (Number(live.lateralG)||0).toFixed(2)+' G');
+      setText('#longitudinal-g-value', (Number(live.longitudinalG)||0).toFixed(2)+' G');
+      setText('#grip-value', Math.round(Number(live.grip)||0)+'%');
+      setText('#surface-value', track?.condition||'DRY');
+      setText('#track-temp-value', (track?.trackTemperature??weather?.temperature??29)+'°C');
+      setText('#surface-grip-value', Math.round((track?.grip??1)*100)+'%');
+      setText('#tyre-temp-value', Math.round(Number(live.tyreTemp)||0)+'°C');
+      setText('#brake-temp-value', Math.round(Number(live.brakeTemp)||0)+'°C');
+      setText('#fuel-flow-value', (Number(live.fuelFlow)||0).toFixed(2)+'%/MIN');
+      setText('#pit-button', pitPhase ? (pitPhase==='service'?'IN BOX':'PIT '+pitPhase.toUpperCase()) : 'BOX ↗');
+      setDisabled('#pit-button', state!=='running');
+    }
     audio.update(rpm, throttle ?? 0, gear, state === 'running', { skid: skid ?? 0, rain: weather?.rain ?? 0 });
     if (state === 'finished') {
       if (!raceRewardRecorded && !['practice','qualifying'].includes(finishedSessionType)) { const reward=garage.awardCredits(position); raceRewardRecorded=true; document.querySelector('#garage-feedback').textContent='RACE REWARD · CR '+reward.toLocaleString(); renderGarage(); }

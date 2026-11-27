@@ -1323,3 +1323,12 @@ button,select,input{touch-action:manipulation}
 /* Game version stamp — persistent, unobtrusive release identifier. */
 .race-bottom .game-version{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;padding:3px 6px;border:1px solid #ffffff30;border-radius:3px;color:#d9e7f0;font:700 8px var(--mono);letter-spacing:.1em;white-space:nowrap;}
 @media(max-width:760px){.race-bottom .game-version{display:inline-flex!important;font-size:7px;margin-left:auto;padding:2px 5px;}}
+/* PERFORMANCE — live blur behind panels forces the GPU to re-blur the moving 3D scene every
+   frame. On phones/tablets use solid panels instead, and isolate each panel's layout. */
+@media (pointer:coarse), (max-width:1100px){
+  .hud,.standings,.timing-panel,.pit-telemetry,.engineer-panel,.race-topbar,.race-bottom,
+  .race-message,.pit-button,.mobile-controls,.mobile-controls button,.start-card,.weekend-panel{
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important
+  }
+  .hud,.standings,.timing-panel,.pit-telemetry,.engineer-panel{contain:layout style;box-shadow:0 4px 12px #0006!important}
+}

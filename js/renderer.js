@@ -113,7 +113,7 @@ function createGeometry() {
     colors.push(tint[0], tint[1], tint[2]);
   }
   function triangle(a, b, c, tint) {
-    vertex(...a, tint); vertex(...b, tint); vertex(...c, tint);
+    vertex(a[0], a[1], a[2], tint); vertex(b[0], b[1], b[2], tint); vertex(c[0], c[1], c[2], tint);
   }
   function quad(a, b, c, d, tint) {
     triangle(a, b, c, tint); triangle(a, c, d, tint);
@@ -194,6 +194,23 @@ export function createRenderer(canvas) {
     return { upload, capacity };
   }
   const touchQuality = window.matchMedia?.('(pointer: coarse)').matches ?? false;
+  // Adaptive resolution: if frames keep taking longer than ~24 ms the canvas is rendered at a
+  // lower pixel density (HUD stays crisp); when there is headroom it climbs back up.
+  const QUALITY_STEPS = [1, .8, .64, .5];
+  let qualityLevel = 0, qualityScale = 1, slowFrames = 0, fastFrames = 0, lastFrameAt = 0;
+  function adaptQuality(now) {
+    const delta = lastFrameAt ? now - lastFrameAt : 16;
+    lastFrameAt = now;
+    if (delta > 250) { slowFrames = fastFrames = 0; return; } // tab switch / pause, not load
+    if (delta > 24) { slowFrames++; fastFrames = 0; } else if (delta < 18.5) { fastFrames++; slowFrames = Math.max(0, slowFrames - 1); }
+    let next = qualityLevel;
+    if (slowFrames >= 45 && qualityLevel < QUALITY_STEPS.length - 1) next++;
+    else if (fastFrames >= 600 && qualityLevel > 0) next--;
+    if (next !== qualityLevel) {
+      qualityLevel = next; qualityScale = QUALITY_STEPS[next]; slowFrames = fastFrames = 0;
+      resize();
+    }
+  }
   function resize() {
     const rect = canvas.getBoundingClientRect();
     dpr = Math.min(window.devicePixelRatio || 1, touchQuality ? 1.2 : 1.5);
@@ -201,7 +218,7 @@ export function createRenderer(canvas) {
     height = Math.max(1, rect.height);
     const maxDimension = 1920;
     const pixelBudgetScale = Math.sqrt(1500000 / Math.max(1, width * height));
-    const scale = Math.min(dpr, maxDimension / Math.max(width, height), pixelBudgetScale);
+    const scale = Math.min(dpr, maxDimension / Math.max(width, height), pixelBudgetScale) * qualityScale;
     canvas.width = Math.max(1, Math.round(width * scale));
     canvas.height = Math.max(1, Math.round(height * scale));
     gl.viewport(0, 0, canvas.width, canvas.height);
@@ -221,6 +238,7 @@ export function createRenderer(canvas) {
 
   function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, playerColor = '#df3039', driftAngle = 0, dt = 1/60 }) {
     if (lost) return;
+    adaptQuality(performance.now());
     mesh.positions.length = 0;
     mesh.colors.length = 0;
     const roadSegments = touchQuality ? 64 : 118;
@@ -386,5 +404,5 @@ export function createRenderer(canvas) {
   canvas.addEventListener('webglcontextrestored', () => { window.location.reload(); });
   window.addEventListener('resize', resize, { passive: true });
   resize();
-  return { render, resize, triggerImpact, mode: 'webgl-3d' };
+  return { render, resize, triggerImpact, mode: 'webgl-3d', getQuality: () => ({ level: qualityLevel, scale: qualityScale }) };
 }
