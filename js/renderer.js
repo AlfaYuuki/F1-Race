@@ -1,5 +1,6 @@
 import { buildRoadPath, pointAt, lateral } from './road-path.js';
 import { createRenderer as create2DRenderer } from './renderer2d.js';
+import { cameraProfile, suspensionOffset, createGraphicsEffects } from './graphics-effects.js';
 
 const VERTEX_SHADER = `
 attribute vec3 aPosition;
@@ -175,6 +176,7 @@ export function createRenderer(canvas) {
   }
 
   let width = 1, height = 1, dpr = 1, lost = false, impactFlash = 0, cameraX = 0, cameraHeight = 5.5;
+  const graphicsEffects = createGraphicsEffects();
   // Reuse CPU-side geometry and upload buffers: allocating thousands of arrays and
   // reallocating two GPU buffers on every animation frame caused avoidable GC/GPU stalls.
   const mesh = createGeometry();
@@ -225,18 +227,45 @@ export function createRenderer(canvas) {
   }
 
   // Cars are built in local space and rotated by `yaw` (road heading plus any drift angle).
-  function addCar(mesh, x, y, z, scale, tint, yaw = 0) {
+  function addCar(mesh, x, y, z, scale, tint, yaw = 0, phase = 0, speed = 0, offRoad = false) {
     const c = Math.cos(yaw), n = Math.sin(yaw);
     const place = (lx, lz) => [x + lx * c + lz * n, z - lx * n + lz * c];
+    const point = (lx, ly, lz) => { const [px,pz]=place(lx*scale,lz*scale); return [px,y+ly*scale,pz]; };
     const part = (lx, ly, lz, sx, sy, sz, color) => { const [px, pz] = place(lx * scale, lz * scale); mesh.box(px, y + ly * scale, pz, sx * scale, sy * scale, sz * scale, color, yaw); };
-    part(0, .12, 0, 1.8, .48, 4.2, tint);
-    part(0, .58, .08, 1.02, .42, 1.5, [.08,.12,.16]);
-    part(0, .14, 2.12, 2.05, .12, .28, [.88,.88,.82]);
-    part(0, .48, -2.08, 2.0, .12, .24, tint);
-    for (const side of [-1, 1]) for (const axle of [-1, 1]) part(side * .96, .04, axle * 1.25, .34, .48, .82, [.035,.04,.045]);
+    part(0,.12,0,1.65,.38,3.8,tint);
+    part(0,.09,1.05,.58,.24,2.25,tint);
+    part(0,.56,-.05,.9,.38,1.25,[.055,.085,.11]);
+    part(0,.69,-.1,.62,.08,.92,[.16,.2,.23]);
+    part(0,.1,2.02,2.35,.11,.34,[.12,.14,.16]);
+    part(0,.16,2.2,.22,.17,.62,tint);
+    part(0,.5,-2.05,2.1,.12,.25,tint);
+    part(0,.72,-2.08,2.22,.09,.32,[.12,.14,.16]);
+    for(const side of [-1,1]){
+      part(side*.83,.16,-.1,.36,.28,1.55,[.1,.12,.14]);
+      part(side*.25,.91,.2,.08,.07,1.1,[.72,.76,.78]);
+      part(side*1.04,.17,2.12,.12,.32,.22,[.85,.86,.82]);
+    }
+    let wheelIndex=0;
+    for(const side of [-1,1]) for(const axle of [-1,1]){
+      const lx=side*.96,lz=axle*1.22;
+      const bounce=suspensionOffset(phase,wheelIndex,speed,offRoad);
+      const centerY=.08+bounce;
+      const rotation=phase*(.7+Math.min(1,speed/330)*1.8);
+      const width=.19*scale;
+      for(let segment=0;segment<12;segment++){
+        const a=segment*Math.PI/6+rotation,b=(segment+1)*Math.PI/6+rotation;
+        const ring=(angle,offset)=>point(lx+offset,centerY+Math.cos(angle)*.31,lz+Math.sin(angle)*.31);
+        const innerA=ring(a,0),innerB=ring(b,0),outerA=ring(a,side*width),outerB=ring(b,side*width);
+        const rubber=[.025,.03,.035];
+        mesh.triangle(innerA,innerB,outerB,rubber);mesh.triangle(innerA,outerB,outerA,rubber);
+        const hubA=ring(a,side*(width+.006)),hubB=ring(b,side*(width+.006));
+        mesh.triangle(point(lx,centerY,lz),hubA,hubB,[.42,.46,.49]);
+      }
+      wheelIndex++;
+    }
   }
 
-  function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, playerColor = '#df3039', driftAngle = 0, dt = 1/60 }) {
+  function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, playerColor = '#df3039', driftAngle = 0, dt = 1/60, weather = {}, elapsed = 0, raceState = 'running', finishAge = 0 }) {
     if (lost) return;
     adaptQuality(performance.now());
     mesh.positions.length = 0;
@@ -248,19 +277,25 @@ export function createRenderer(canvas) {
     const roadPoints = path.points;
     const travelledThisLap = path.travelled;
     const half = 5.5;
+    const wetness = clamp(Number(weather?.rain)||0,0,.9);
     const edge = (p, off, dy = 0) => [p.x + p.nx * off, p.y + dy, p.z + p.nz * off];
 
     mesh.quad([-900,-2.5,-60],[900,-2.5,-60],[900,-2.5,700],[-900,-2.5,700],[.28,.43,.29]);
     for (let i = 0; i < roadSegments; i++) {
       const a = roadPoints[i], b = roadPoints[i+1];
       const worldSegment = Math.floor(travelledThisLap / segmentLength) + i;
-      const roadTint = worldSegment % 2 ? [.19,.21,.23] : [.22,.24,.26];
+      const roadBase = worldSegment % 2 ? [.19,.21,.23] : [.22,.24,.26];
+      const roadTint = roadBase.map(channel=>channel*(1-wetness*.22)+.12*wetness);
       const kerb = i % 2 ? [.88,.85,.78] : [.78,.18,.2];
       // Grass verge follows the road so hills and bends read clearly against the ground plane.
       const grass = worldSegment % 2 ? [.27,.45,.29] : [.31,.5,.32];
       mesh.quad(edge(a,-half-.42,-.01), edge(a,-half-30,-.02), edge(b,-half-30,-.02), edge(b,-half-.42,-.01), grass);
       mesh.quad(edge(a,half+.42,-.01), edge(b,half+.42,-.01), edge(b,half+30,-.02), edge(a,half+30,-.02), grass);
       mesh.quad(edge(a,-half), edge(a,half), edge(b,half), edge(b,-half), roadTint);
+      if (wetness > .08 && i % 4 === 0) {
+        const sheen = .1 + wetness * .18;
+        mesh.quad(edge(a,-half*.62,.04), edge(a,half*.62,.04), edge(b,half*.62,.04), edge(b,-half*.62,.04), [sheen,sheen+.012,sheen+.025]);
+      }
       mesh.quad(edge(a,-half-.42,.025), edge(a,-half,.025), edge(b,-half,.025), edge(b,-half-.42,.025), kerb);
       mesh.quad(edge(a,half,.025), edge(a,half+.42,.025), edge(b,half+.42,.025), edge(b,half,.025), kerb);
       if (worldSegment % 9 === 0) {
@@ -283,7 +318,7 @@ export function createRenderer(canvas) {
           for (let row = 0; row < (touchQuality ? 2 : 3); row++) {
             for (let seat = 0; seat < (touchQuality ? 5 : 9); seat++) {
               const palette = [[.82,.2,.19],[.88,.78,.55],[.16,.3,.48],[.83,.83,.82],[.22,.55,.39]];
-              stand((seat - (touchQuality ? 2 : 4)) * .72, 1.35 + row * .34, (row - 1) * 2.2, .28, .3, .28, palette[(seat + row + i) % palette.length]);
+              stand((seat - (touchQuality ? 2 : 4)) * .72, 1.35 + row * .34 + Math.sin(elapsed*.0028+seat*1.7+row)*.035, (row - 1) * 2.2, .28, .3, .28, palette[(seat + row + i + Math.floor(elapsed*.002)) % palette.length]);
             }
           }
           stand(0, 2.55, -4.9, 6.25, .12, .22, [.85,.13,.16]);
@@ -322,15 +357,25 @@ export function createRenderer(canvas) {
       const road = pointAt(path, z);
       const lane = driver.currentLane ?? driver.lane ?? 0;
       const pos = lateral(road, lane * 4.0);
-      addCar(mesh, pos[0], road.y, pos[1], .78, hexColor(driver.color), road.h);
+      mesh.quad([pos[0]-1,road.y+.035,pos[1]-1.5],[pos[0]+1,road.y+.035,pos[1]-1.5],[pos[0]+1,road.y+.035,pos[1]+1.5],[pos[0]-1,road.y+.035,pos[1]+1.5],[.035,.04,.045]);
+      addCar(mesh, pos[0], road.y, pos[1], .78, hexColor(driver.color), road.h, (Number(driver.distance)||0)/2.6, Number(driver.speed)||0);
     }
 
     const playerRoad = pointAt(path, 9);
     const trackCenterX = playerRoad.x;
     const playerWorldX = trackCenterX + playerX * 4.2;
-    const suspensionBob = running ? Math.sin(position * 4563 * .72) * Math.min(.075, speed / 330 * .075) : 0;
+    const suspensionBob = running ? Math.sin(elapsed*.0085) * Math.min(.075, speed / 330 * .075) : 0;
+    mesh.quad([playerWorldX-1.25,playerRoad.y+.04,7.1],[playerWorldX+1.25,playerRoad.y+.04,7.1],[playerWorldX+1.25,playerRoad.y+.04,10.8],[playerWorldX-1.25,playerRoad.y+.04,10.8],[.025,.03,.035]);
     const carYaw = clamp(driftAngle, -.9, .9);
-    addCar(mesh, playerWorldX, playerRoad.y + suspensionBob, 9, 1, offRoad ? [.72,.25,.12] : hexColor(playerColor), carYaw);
+    addCar(mesh, playerWorldX, playerRoad.y + suspensionBob, 9, 1, offRoad ? [.72,.25,.12] : hexColor(playerColor), carYaw, position*lapDistance/2.6, speed, offRoad);
+
+    const effects = graphicsEffects.update(dt,{rain:wetness,speed,driftAngle,lateralVelocity,offRoad,impact:impactFlash,car:{x:playerWorldX,y:playerRoad.y,z:9}});
+    for(const particle of effects){
+      const fade=clamp(1-particle.age/particle.life,0,1),size=particle.size;
+      if(particle.type==='rain') mesh.box(particle.x,particle.y,particle.z,size*.18,size*5,size*.18,[.55,.68,.76]);
+      else if(particle.type==='spark') mesh.box(particle.x,particle.y,particle.z,size*2.2,size*.45,size*.45,[1,.62+.25*fade,.18]);
+      else { const shade=.58+.12*fade; mesh.box(particle.x,particle.y,particle.z,size,size*.72,size,[shade,shade+.015,shade+.025]); }
+    }
 
     // Rubber trails appear behind the rear tyres when lateral grip is being used.
     if (running && (Math.abs(lateralVelocity) > .48 || Math.abs(driftAngle) > .1)) {
@@ -360,23 +405,25 @@ export function createRenderer(canvas) {
     // Keep the camera aligned with the circuit, not locked to the player's car.
     // It leans into bends, looks ahead along the road and swings with a drift.
     const aspect = canvas.width / canvas.height;
-    const baseFov = aspect < .8 ? 1.08 : .96;
-    const speedFov = clamp(speed / 330, 0, 1) * .12;
-    const projection = perspective(baseFov + speedFov, aspect, .1, 1000);
-    const followTargetX = trackCenterX + playerX * 1.35;
-    const followTargetY = playerRoad.y + 5.5 + clamp(speed / 330, 0, 1) * .28 - clamp(speedDelta / 180, -1, 1) * .12;
-    const followEase = 1 - Math.exp(-Math.max(.001, dt) * 4.2);
+    const camera = cameraProfile({speed,driftAngle,lateralVelocity,offRoad,impact:impactFlash});
+    const baseFov = camera.fov + (aspect < .8 ? .12 : 0);
+    const finishBlend = raceState==='finished' ? clamp(1-finishAge/4,0,1) : 0;
+    const cinematic = raceState==='finished' ? -.09*finishBlend : raceState==='countdown' ? -.045 : 0;
+    const projection = perspective(baseFov + cinematic, aspect, .1, 1000);
+    const followTargetX = trackCenterX + playerX * 1.35 + camera.lateral;
+    const followTargetY = playerRoad.y + camera.height + clamp(speedDelta / 180, -1, 1) * -.12;
+    const followEase = 1 - Math.exp(-Math.max(.001, dt) * (impactFlash>.1?7:4.2));
     cameraX += (followTargetX - cameraX) * followEase;
     cameraHeight += (followTargetY - cameraHeight) * followEase;
-    const lookAhead = pointAt(path, 48);
+    const lookAhead = pointAt(path, camera.lookAhead);
     const eye = [cameraX + cameraShake * .012, cameraHeight, -8];
-    const target = [cameraX + (playerWorldX - cameraX) * .42 + (lookAhead.x - trackCenterX) * .55 + carYaw * 7, playerRoad.y + 1.15 + (lookAhead.y - playerRoad.y) * .35, 33];
+    const target = [cameraX + (playerWorldX - cameraX) * .42 + (lookAhead.x - trackCenterX) * .55 + carYaw * 7 + camera.lateral*1.5, playerRoad.y + 1.15 + (lookAhead.y - playerRoad.y) * .35 + camera.roll*8, 33];
     const view = lookAt(eye, target, [0,1,0]);
     const viewProjection = multiply(projection, view);
 
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
-    gl.clearColor(.43,.59,.68,1);
+    gl.clearColor(.43-wetness*.07,.59-wetness*.08,.68-wetness*.07,1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.useProgram(program);
     gl.uniformMatrix4fv(matrixLocation, false, viewProjection);
@@ -404,5 +451,5 @@ export function createRenderer(canvas) {
   canvas.addEventListener('webglcontextrestored', () => { window.location.reload(); });
   window.addEventListener('resize', resize, { passive: true });
   resize();
-  return { render, resize, triggerImpact, mode: 'webgl-3d', getQuality: () => ({ level: qualityLevel, scale: qualityScale }) };
+  return { render, resize, triggerImpact, resetEffects: graphicsEffects.reset, mode: 'webgl-3d', getQuality: () => ({ level: qualityLevel, scale: qualityScale }) };
 }
