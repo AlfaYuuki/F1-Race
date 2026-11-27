@@ -19,7 +19,7 @@ if (missingMenuControls.length) throw new Error(`Required menu controls are miss
 if (!declared.has('quick-race-laps') || !main.includes('quickRaceLapsSelect')) throw new Error('Quick Race lap selector is missing or not wired.');
 for (let lap = 1; lap <= 10; lap++) if (!html.includes('value="' + lap + '"')) throw new Error('Quick Race lap selector is missing option ' + lap + '.');
 
-const modules = ['graphics-effects.js','track-evolution.js','collision.js','race-start.js','main.js','game.js','renderer.js','renderer2d.js','physics.js','track.js','opponents.js','controls.js','platform.js','audio.js','championship.js','garage.js','weather.js','data-manager.js','race-engineer.js','ai-personalities.js','race-weekend.js','career.js','pit-strategy.js','timing.js'];
+const modules = ['race-control.js','graphics-effects.js','track-evolution.js','collision.js','race-start.js','main.js','game.js','renderer.js','renderer2d.js','physics.js','track.js','opponents.js','controls.js','platform.js','audio.js','championship.js','garage.js','weather.js','data-manager.js','race-engineer.js','ai-personalities.js','race-weekend.js','career.js','pit-strategy.js','timing.js'];
 for (const file of modules) {
   const path = resolve(root, 'js', file);
   await access(path);
@@ -28,10 +28,10 @@ for (const file of modules) {
     if (match[1].startsWith('.')) await access(resolve(dirname(path), match[1]));
   }
 }
-if (!html.includes('V1.28.0') || !html.includes('major version 1, milestone 28, sub-milestone 0')) throw new Error('In-game semantic version label is missing or invalid.');
+if (!html.includes('V1.29.0') || !html.includes('major version 1, milestone 29, sub-milestone 0')) throw new Error('In-game semantic version label is missing or invalid.');
 const serviceWorker = await readFile(resolve(root, 'sw.js'), 'utf8');
 const pwa = await readFile(resolve(root, 'js/pwa.js'), 'utf8');
-if (!serviceWorker.includes("const CACHE_NAME = 'the-f1-race-shell-v40'")) {
+if (!serviceWorker.includes("const CACHE_NAME = 'the-f1-race-shell-v41'")) {
   throw new Error('Service worker cache version is missing or invalid.');
 }
 if (!serviceWorker.includes("'./js/race-start.js'")) { throw new Error('The race start gate module is missing from the PWA app shell.'); }
@@ -71,4 +71,8 @@ const aiTests = await readFile(resolve(root, 'tests/ai-personalities.test.js'), 
 for (const feature of ['AI pit decisions react','AI exposes pressure','neutralisation prevents passing']) {
   if (!aiTests.includes(feature)) throw new Error(`AI regression test is missing: ${feature}`);
 }
-console.log(`Validated ${ids.length} unique HTML IDs, ${modules.length} JavaScript modules, AI feature gates and all relative imports.`);
+const raceControlSource = await readFile(resolve(root, 'js/race-control.js'), 'utf8');
+for (const feature of ['DOUBLE_YELLOW','reportTrackLimit','DRIVE THROUGH','SAFETY CAR','retire','speedLimit']) if (!raceControlSource.includes(feature)) throw new Error(`Race-control feature is missing: ${feature}`);
+const raceControlTests = await readFile(resolve(root, 'tests/race-control.test.js'), 'utf8');
+for (const feature of ['red flag freezes','track-limit penalties','drive-through','AI race-control']) if (!raceControlTests.includes(feature)) throw new Error(`Race-control regression test is missing: ${feature}`);
+console.log(`Validated ${ids.length} unique HTML IDs, ${modules.length} JavaScript modules, race-control feature gates and all relative imports.`);

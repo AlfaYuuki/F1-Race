@@ -39,7 +39,7 @@ export function createOpponents(lapDistance=4563) {
     currentLane:data.lane,targetLane:data.lane,gridPosition:0,launchTimer:0,
     overtakes:0,overtakeTargetId:null,fuel:100,tireWear:0,compound:'MEDIUM',
     pitTimer:0,pitStops:0,pressure:0,mistakes:0,relationshipMemory:Object.create(null),
-    mistakeCooldown:0,defending:false,stintLaps:0
+    mistakeCooldown:0,defending:false,stintLaps:0,retired:false,retirementReason:'',trackWarnings:0,trackPenaltySeconds:0,offTrackLatched:false,mechanicalHealth:100
   }));
 
   function findTrafficAhead(driver,traffic) {
@@ -89,12 +89,13 @@ export function createOpponents(lapDistance=4563) {
     const step=clamp(Number(dt)||0,0,.1);
     if(!step)return getStandings(playerDistance);
     const traffic=[{id:'player',distance:Number(playerDistance)||0,currentLane:Number(weather.playerLane)||0},...drivers];
-    const neutralised=!!(weather.yellowFlag||weather.safetyCar);
+    const neutralised=!!(weather.yellowFlag||weather.doubleYellow||weather.vsc||weather.safetyCar||weather.redFlag);
     for(const driver of drivers) {
       driver.mistakeCooldown=Math.max(0,driver.mistakeCooldown-step);
+      if(driver.retired||weather.redFlag){driver.speed=0;continue;}
       if(driver.launchTimer>0) {
         driver.launchTimer=Math.max(0,driver.launchTimer-step);
-        driver.speed=Math.min(driver.pace*.72,driver.speed+step*95);
+        driver.speed=Math.min(driver.pace*.72,driver.speed+step*95,neutralised?(weather.doubleYellow?80:weather.vsc?140:weather.safetyCar?110:170):Infinity);
         driver.distance+=driver.speed/3.6*step;
         continue;
       }
@@ -109,12 +110,16 @@ export function createOpponents(lapDistance=4563) {
         continue;
       }
       driver.fuel=clamp(driver.fuel-step*(.055+driver.speed/330*.045),0,100);
+      driver.mechanicalHealth=clamp(driver.mechanicalHealth-step*(.0007+(driver.speed/330)*.0006),0,100);
+      const completedLaps=Math.floor(driver.distance/lapDistance);
+      const failureSeed=[...driver.id].reduce((n,ch)=>n+ch.charCodeAt(0),0);
+      if(completedLaps>=2&&driver.mechanicalHealth<99.4&&((completedLaps*37+failureSeed*13)%997)<3){driver.retired=true;driver.retirementReason='Mechanical failure';driver.speed=0;continue;}
       const wearBase=driver.compound==='SOFT'?.16:driver.compound==='HARD'?.075:.105;
       driver.tireWear=clamp(driver.tireWear+step*wearBase*(Number(weather.wear)||1)*calculateTyreWearMultiplier(driver.personality),0,100);
       const newStint=Math.floor(driver.distance/lapDistance);
       if(newStint>driver.stintLaps)driver.stintLaps=newStint;
       const pit=pitDecision(driver,weather);
-      if(pit) {
+      if(pit&&!weather.redFlag) {
         driver.pitTimer=5.8+(1-driver.skill)*2.2;
         driver.speed=Math.max(0,driver.speed*.35);
         driver.pitCompound=pit.compound;
@@ -152,6 +157,9 @@ export function createOpponents(lapDistance=4563) {
       }
       driver.targetLane=clamp(targetLane,-.76,.76);
       driver.currentLane+= (driver.targetLane-driver.currentLane)*Math.min(1,step*(1.25+driver.aggression*1.6));
+      const outsideTrack=Math.abs(driver.currentLane)>.745;
+      if(!outsideTrack)driver.offTrackLatched=false;
+      else if(!driver.offTrackLatched){driver.offTrackLatched=true;driver.trackWarnings++;if(driver.trackWarnings>=3)driver.trackPenaltySeconds+=5;}
 
       const rhythm=calculatePersonalityPace(driver.personality,{
         phase:driver.distance*.001+driver.skill*8,rain:weather.rain||0,cornerLoad:curve
@@ -162,8 +170,8 @@ export function createOpponents(lapDistance=4563) {
       const cornerPenalty=curve*(15+(1-driver.skill)*27)*(1.08-driver.personality.consistency*.12);
       const wearPenalty=driver.tireWear*.13;
       const pressurePenalty=driver.pressure*(1-driver.personality.consistency)*2.2;
-      const safePace=weather.safetyCar?145:weather.yellowFlag?170:285;
-      let targetSpeed=clamp(driver.pace+rhythm+draftBonus-cornerPenalty-surfacePenalty-wetPenalty-wearPenalty-pressurePenalty,125,safePace);
+      const safePace=weather.redFlag?0:weather.doubleYellow?80:weather.vsc?140:weather.safetyCar?110:weather.yellowFlag?170:285;
+      let targetSpeed=clamp(driver.pace+rhythm+draftBonus-cornerPenalty-surfacePenalty-wetPenalty-wearPenalty-pressurePenalty,Math.min(125,safePace),safePace);
 
       // Deterministic, infrequent pressure errors: no random frame-to-frame jitter.
       const phase=Math.floor(driver.distance/95)+driver.id.length*17;
@@ -192,7 +200,7 @@ export function createOpponents(lapDistance=4563) {
   }
   function getStandings(playerDistance,preserveGridOrder=false) {
     const field=[{id:'player',name:'YOU',color:'#ed4148',distance:playerDistance,gridPosition:selectedGridPosition,isPlayer:true},
-      ...drivers.map(driver=>({...driver,isPlayer:false}))];
+      ...drivers.map(driver=>({...driver,distance:driver.distance-driver.trackPenaltySeconds*Math.max(1,driver.speed/3.6),isPlayer:false}))];
     return field.sort((a,b)=>preserveGridOrder?a.gridPosition-b.gridPosition:b.distance-a.distance);
   }
   function reset(playerGridPosition=10,savedOrder=null) {
@@ -206,7 +214,7 @@ export function createOpponents(lapDistance=4563) {
       const d=order[index++];d.gridPosition=slot;d.distance=(selectedGridPosition-slot)*8;d.speed=0;
       d.currentLane=slot%2?-.42:.42;d.targetLane=d.currentLane;
       d.launchTimer=.16+(1-d.skill)*.62;d.overtakes=0;d.overtakeTargetId=null;
-      d.fuel=100;d.tireWear=0;d.compound='MEDIUM';d.pitTimer=0;d.pitStops=0;
+      d.fuel=100;d.tireWear=0;d.compound='MEDIUM';d.retired=false;d.retirementReason='';d.trackWarnings=0;d.trackPenaltySeconds=0;d.offTrackLatched=false;d.mechanicalHealth=100;d.pitTimer=0;d.pitStops=0;
       d.pressure=0;d.mistakes=0;d.mistakeCooldown=0;d.defending=false;d.stintLaps=0;
       d.relationshipMemory=Object.create(null);d.pitReason=null;d.pitCompound=null;d.lastMistake=null;
     }
