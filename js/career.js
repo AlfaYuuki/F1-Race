@@ -30,7 +30,11 @@ function freshCareer() {
     driverName:'YOU', results:[],
     standings:DRIVERS.map(driver=>({...driver,points:0})),
     stats:{ starts:0,wins:0,podiums:0,points:0,bestFinish:null,bestLapMs:null },
-    objectives:[], achievements:[]
+    objectives:[
+      {id:'finish-top-10',title:'FINISH IN THE TOP 10',done:false,round:1},
+      {id:'beat-sato',title:'BEAT RIVAL K. SATO',done:false,round:1},
+      {id:'score-points',title:'SCORE CHAMPIONSHIP POINTS',done:false,round:1}
+    ], achievements:[]
   };
 }
 
