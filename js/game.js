@@ -111,7 +111,7 @@ export function createGame(canvas,callbacks={}) {
     if(currentLapIndex>previousLapIndex){lastLap=lapElapsed;bestLap=bestLap===null?lastLap:Math.min(bestLap,lastLap);lapElapsed=0;sector=1;sectorElapsed=0;notify('LAP '+(currentLapIndex+1)+' — '+formatTime(lastLap));}
     const sessionDistance=LAP_DISTANCE*sessionLaps;
     if(raceDistance>=sessionDistance){raceDistance=sessionDistance;state='finished';finishTimestamp=performance.now();physics.speed=0;pitPhase=null;callbacks.onPitService?.(false);notify(sessionType==='practice'?'PRACTICE COMPLETE':sessionType==='qualifying'?'QUALIFYING COMPLETE':'CHEQUERED FLAG — RACE COMPLETE!');
-      if(!finishNotified){finishNotified=true;callbacks.onFinish?.({sessionType,lap:sessionLaps,elapsedMs:elapsed+raceControl.getState().penaltySeconds*1000,bestLapMs:bestLap,standings:opponents.getStandings(raceDistance),raceControl:raceControl.getState()});}}
+      if(!finishNotified){finishNotified=true;const finishControl=raceControl.getState();const penaltySeconds=finishControl.penaltySeconds+(finishControl.driveThroughPending?20:0);const finishStandings=opponents.getStandings(raceDistance).map(driver=>({...driver,distance:driver.distance-(driver.isPlayer?penaltySeconds*Math.max(1,raceDistance/Math.max(1,elapsed/1000)):0)})).sort((a,b)=>b.distance-a.distance);callbacks.onFinish?.({sessionType,lap:sessionLaps,elapsedMs:elapsed+penaltySeconds*1000,bestLapMs:bestLap,standings:finishStandings,raceControl:finishControl});}}
     lap=Math.max(1,Math.min(sessionLaps,Math.floor(raceDistance/LAP_DISTANCE)+1));  // a car on the grid is still on lap 1
     const rivalCars=opponents.drivers.map(d=>({...d,relativeDistance:d.distance-raceDistance}));
     if(physics.gear!==lastGear){lastGear=physics.gear;shiftAt=now;}
