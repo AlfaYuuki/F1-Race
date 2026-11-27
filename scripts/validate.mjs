@@ -48,6 +48,17 @@ if (!serviceWorker.includes("'./js/timing.js'")) {
 for (const feature of ['registration.update()', 'SKIP_WAITING', 'controllerchange', 'hadController = hasController']) {
   if (!pwa.includes(feature)) throw new Error(`PWA update flow is missing: ${feature}`);
 }
+const careerSource = await readFile(resolve(root, 'js/career.js'), 'utf8');
+for (const feature of ['recordRace','newlyUnlocked','finish-top-10','beat-sato','bestLapMs']) {
+  if (!careerSource.includes(feature)) throw new Error(`Career progression feature is missing: ${feature}`);
+}
+if (!main.includes('type:config.id') || !main.includes('career.recordRace') || !main.includes('garage.addCredits')) {
+  throw new Error('Career weekend integration or achievement rewards are not wired.');
+}
+const careerTests = await readFile(resolve(root, 'tests/career.test.js'), 'utf8');
+for (const feature of ['ten-round championship','career achievement credit rewards','season completion']) {
+  if (!careerTests.includes(feature)) throw new Error(`Career regression test is missing: ${feature}`);
+}
 const graphicsSource = await readFile(resolve(root, 'js/graphics-effects.js'), 'utf8');
 for (const feature of ['cameraProfile','suspensionOffset','createGraphicsEffects']) if (!graphicsSource.includes(feature)) throw new Error(`Graphics milestone feature is missing: ${feature}`);
 const graphicsTests = await readFile(resolve(root, 'tests/graphics-effects.test.js'), 'utf8');
