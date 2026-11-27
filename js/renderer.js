@@ -367,7 +367,7 @@ export function createRenderer(canvas) {
       const road = pointAt(path, z);
       const lane = driver.currentLane ?? driver.lane ?? 0;
       const pos = lateral(road, lane * 4.0);
-      mesh.quad([pos[0]-1.05,road.y+.03,z-2.2],[pos[0]+1.05,road.y+.03,z-2.2],[pos[0]+1.05,road.y+.03,z+2.2],[pos[0]-1.05,road.y+.03,z+2.2],[.06,.065,.07]);
+      mesh.quad([pos[0]-1.05,road.y+.03,pos[1]-2.2],[pos[0]+1.05,road.y+.03,pos[1]-2.2],[pos[0]+1.05,road.y+.03,pos[1]+2.2],[pos[0]-1.05,road.y+.03,pos[1]+2.2],[.06,.065,.07]);
       addCar(mesh, pos[0], road.y, pos[1], .78, hexColor(driver.color), road.h, position * 4563 * .65 + Number(driver.relativeDistance || 0) * .08, Math.sin(position * 4563 + Number(driver.relativeDistance || 0)) * .025);
     }
 
