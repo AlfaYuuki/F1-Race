@@ -23,7 +23,7 @@
     <a class="brand" href="#" aria-label="The F1 Race home"><span class="brand-mark">F1</span><span>THE <b>F1 RACE</b></span></a>
     <div class="track-name"><i></i> FUJI SPEEDWAY <span>·</span> JAPAN</div>
     <div class="top-actions">
-      <span class="game-version" aria-label="Version 1.26.0: major version 1, milestone 26, sub-milestone 0" title="Major version · Milestone · Sub-milestone">V1.26.0</span>
+      <span class="game-version" aria-label="Version 1.27.0: major version 1, milestone 27, sub-milestone 0" title="Major version · Milestone · Sub-milestone">V1.27.0</span>
       <button id="install-button" class="icon-button install-button" type="button" aria-label="Install The F1 Race" title="Install The F1 Race" hidden>↓</button>
       <button id="controls-button" class="icon-button" type="button" aria-label="Change controls (Android / Windows)" title="Change controls">🎮</button>
       <button id="audio-button" class="icon-button" type="button" aria-label="Toggle engine audio" title="Toggle engine audio">♫</button>
@@ -137,6 +137,7 @@
         <button id="weekend-new" class="weekend-new" type="button" hidden>START NEW WEEKEND ↻</button>
       </section>
       <button id="championship-button" class="championship-button" type="button">START CHAMPIONSHIP <span>🏆</span></button>
+      <button id="career-button" class="championship-button career-open" type="button">DRIVER CAREER <span>🏁</span></button>
       <button id="garage-open" class="championship-button garage-open" type="button">CAR GARAGE <span>⚙</span></button>
       <button id="data-open" class="championship-button data-open" type="button">SAVE &amp; DATA <span>▤</span></button>
       <p id="championship-summary" class="championship-summary">5 ROUNDS · POINTS SERIES · YOUR RESULTS SAVE ON THIS DEVICE</p>
@@ -175,6 +176,24 @@
       <div class="data-warning"><strong>DELETE ALL GAME DATA</strong><p>Erases local garage progress, credits, upgrades, championship and race-weekend results, and control preferences. This does not uninstall the game or delete its offline files.</p><button id="data-delete" type="button">DELETE ALL DATA</button></div>
       <p id="data-feedback" class="data-feedback" role="status" aria-live="polite">Backups are JSON files. Keep a copy somewhere safe.</p>
       <button id="data-back" class="data-back" type="button">BACK TO GRID</button>
+    </div>
+  </section>
+
+  <section id="career-screen" class="career-screen" role="dialog" aria-modal="true" aria-labelledby="career-title" hidden>
+    <div class="career-panel">
+      <div class="career-heading"><div><p class="eyebrow">THE F1 RACE · DRIVER DEVELOPMENT</p><h2 id="career-title">DRIVER CAREER</h2></div><button id="career-close" type="button" aria-label="Close driver career">✕</button></div>
+      <div class="career-identity"><strong id="career-team">NO TEAM SIGNED</strong><span id="career-round">10-ROUND CHAMPIONSHIP</span></div>
+      <div class="career-stats">
+        <div><small>STARTS</small><b id="career-starts">0</b></div><div><small>WINS</small><b id="career-wins">0</b></div><div><small>PODIUMS</small><b id="career-podiums">0</b></div><div><small>POINTS</small><b id="career-points">0</b></div>
+      </div>
+      <div class="career-columns">
+        <section><h3>TEAM OBJECTIVES · CURRENT ROUND</h3><div id="career-objectives" class="career-objectives"><p>Sign a team contract to receive your first objectives.</p></div></section>
+        <section><h3>RIVAL CHAMPIONSHIP</h3><ol id="career-standings" class="career-standings"></ol></section>
+      </div>
+      <section class="career-records"><h3>CAREER RECORDS</h3><p id="career-record-summary">No Grand Prix completed yet.</p></section>
+      <section class="career-achievements"><h3>UNLOCKED ACHIEVEMENTS</h3><div id="career-achievement-list" class="career-achievement-list"></div></section>
+      <p id="career-feedback" class="career-feedback" role="status" aria-live="polite">Build your legacy across ten rounds.</p>
+      <div class="career-actions"><button id="career-enter" class="career-primary" type="button">START DRIVER CAREER</button><button id="career-reset" type="button">NEW CAREER</button></div>
     </div>
   </section>
 
