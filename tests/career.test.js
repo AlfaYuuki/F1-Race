@@ -16,6 +16,7 @@ test('career awards points, tracks records, objectives and achievements',()=>{
  assert.equal(result.state.stats.points,15);assert.equal(result.state.stats.bestFinish,3);
  assert.equal(result.state.objectives.find(o=>o.id==='finish-top-10').done,true);
  assert.ok(result.state.achievements.includes('podium'));
+ assert.ok(result.rewardCredits>=250);
 });
 test('career rival standings and season completion are persistent',()=>{
  const storage=memoryStorage();const career=createCareer(storage);career.start();
