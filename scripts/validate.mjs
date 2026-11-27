@@ -40,6 +40,7 @@ if (!serviceWorker.includes("'./js/race-weekend.js'")) {
 }
 if (!serviceWorker.includes("'./js/pit-strategy.js'")) { throw new Error('The pit strategy module is missing from the PWA app shell.'); }
 if (!serviceWorker.includes("'./js/track-evolution.js'")) { throw new Error('The track evolution module is missing from the PWA app shell.'); }
+if (!serviceWorker.includes("'./js/graphics-effects.js'")) { throw new Error('The graphics effects module is missing from the PWA app shell.'); }
 if (!serviceWorker.includes("'./js/timing.js'")) {
   throw new Error('The live timing module is missing from the PWA app shell.');
 }
