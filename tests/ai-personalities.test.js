@@ -112,3 +112,86 @@ test('AI does not initiate overtaking while yellow flag or safety car is active'
     assert.equal(attacker.overtakes, 0);
   }
 });
+
+
+test('AI pit decisions react to race distance, fuel and changing weather', () => {
+  const field = createOpponents(LAP_DISTANCE);
+  field.reset(20);
+  const driver = field.drivers.find(item => item.id === 'mori');
+  driver.distance = 0;
+  driver.launchTimer = 0;
+  driver.fuel = 5;
+  driver.speed = 220;
+  field.update(1 / 60, -1000, () => 0, { totalLaps: 10, rain: 0 });
+  assert.ok(driver.pitTimer > 0, 'low fuel must trigger a strategic stop');
+  assert.equal(driver.pitReason, 'fuel');
+
+  const wetField = createOpponents(LAP_DISTANCE);
+  wetField.reset(20);
+  const wetDriver = wetField.drivers.find(item => item.id === 'mori');
+  wetDriver.launchTimer = 0;
+  wetDriver.distance = 0;
+  wetDriver.speed = 220;
+  wetField.update(1 / 60, -1000, () => 0, { totalLaps: 10, rain: 0.8 });
+  assert.ok(wetDriver.pitTimer > 0, 'rain tyre mismatch must trigger a stop');
+  assert.equal(wetDriver.pitReason, 'weather');
+});
+
+test('AI exposes pressure, defensive state, rival memory and bounded mistakes', () => {
+  const field = createOpponents(LAP_DISTANCE);
+  field.reset(20);
+  const driver = field.drivers.find(item => item.id === 'sato');
+  assert.ok(driver.personality);
+  assert.ok(driver.relationshipMemory);
+  assert.equal(driver.mistakes, 0);
+  for (let i = 0; i < 600; i++) {
+    field.update(1 / 60, i * 2, curveAt, { totalLaps: 10, rain: i > 300 ? 0.35 : 0 });
+  }
+  for (const rival of field.drivers) {
+    assert.ok(Number.isFinite(rival.pressure));
+    assert.ok(rival.pressure >= 0 && rival.pressure <= 1);
+    assert.ok(Number.isFinite(rival.currentLane));
+    assert.ok(rival.currentLane >= -0.76 && rival.currentLane <= 0.76);
+    assert.ok(rival.mistakes >= 0);
+  }
+});
+
+test('AI pit stops are capped and neutralisation prevents passing attempts', () => {
+  const field = createOpponents(LAP_DISTANCE);
+  field.reset(20);
+  const attacker = field.drivers.find(driver => driver.id === 'sato');
+  const target = field.drivers.find(driver => driver.id === 'tanaka');
+  for (const driver of field.drivers) {
+    driver.distance = -1000;
+    driver.currentLane = 1;
+    driver.speed = 200;
+  }
+  attacker.distance = 0;
+  attacker.currentLane = 0;
+  attacker.launchTimer = 0;
+  target.distance = 10;
+  target.currentLane = 0;
+  target.launchTimer = 0;
+  field.update(1 / 60, -1000, () => 0, { yellowFlag: true, totalLaps: 10 });
+  assert.equal(attacker.overtakeTargetId, null);
+  assert.equal(attacker.overtakes, 0);
+});
+
+
+test('AI defends against a player approaching from behind when a safe lane exists', () => {
+  const field = createOpponents(LAP_DISTANCE);
+  field.reset(20);
+  const defender = field.drivers.find(driver => driver.id === 'tanaka');
+  for (const driver of field.drivers) {
+    driver.distance = -1000;
+    driver.currentLane = 1;
+    driver.speed = 180;
+    driver.launchTimer = 0;
+  }
+  defender.distance = 100;
+  defender.currentLane = 0;
+  defender.launchTimer = 0;
+  field.update(1 / 60, 90, () => 0, { playerLane: 0, totalLaps: 10 });
+  assert.equal(defender.defending, true);
+  assert.notEqual(defender.targetLane, 0);
+});
