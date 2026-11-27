@@ -158,3 +158,13 @@ The final checks should still be run in a real browser and on a physical Android
 - Off-track recovery and nearby-rival passing opportunities
 - Position-gain acknowledgement and per-alert cooldowns to prevent radio spam
 - Engineer advice is advisory: it never takes control of the car or triggers a pit stop automatically
+
+
+### Milestone 27 — Expanded career and game modes
+- Added a persistent ten-round Driver Career with team identity, championship points and rival standings.
+- Career weekends use the existing practice → qualifying → Grand Prix flow; qualifying order determines the race grid.
+- Team objectives track top-ten finishes, championship points and beating the designated rival.
+- Career records track starts, wins, podiums, points, best finish and personal-best lap.
+- Added seven unlockable achievements, including debut, first points, podium, victory, rivalry and championship honours.
+- Career progress is included in local save backups and validated on restore.
+- Released as V1.27.0 with PWA shell cache v38.
