@@ -71,4 +71,8 @@ const aiTests = await readFile(resolve(root, 'tests/ai-personalities.test.js'), 
 for (const feature of ['AI pit decisions react','AI exposes pressure','neutralisation prevents passing']) {
   if (!aiTests.includes(feature)) throw new Error(`AI regression test is missing: ${feature}`);
 }
-const raceControlSource = await readFile(resolve(root, 'js/race-control.js'), 'utf8');\nfor (const feature of ['DOUBLE_YELLOW','reportTrackLimit','DRIVE THROUGH','SAFETY CAR','retire','speedLimit']) if (!raceControlSource.includes(feature)) throw new Error(`Race-control feature is missing: ${feature}`);\nconst raceControlTests = await readFile(resolve(root, 'tests/race-control.test.js'), 'utf8');\nfor (const feature of ['red flag freezes','track-limit penalties','drive-through','AI race-control']) if (!raceControlTests.includes(feature)) throw new Error(`Race-control regression test is missing: ${feature}`);\nconsole.log(`Validated ${ids.length} unique HTML IDs, ${modules.length} JavaScript modules, race-control feature gates and all relative imports.`);
+const raceControlSource = await readFile(resolve(root, 'js/race-control.js'), 'utf8');
+for (const feature of ['DOUBLE_YELLOW','reportTrackLimit','DRIVE THROUGH','SAFETY CAR','retire','speedLimit']) if (!raceControlSource.includes(feature)) throw new Error(`Race-control feature is missing: ${feature}`);
+const raceControlTests = await readFile(resolve(root, 'tests/race-control.test.js'), 'utf8');
+for (const feature of ['red flag freezes','track-limit penalties','drive-through','AI race-control']) if (!raceControlTests.includes(feature)) throw new Error(`Race-control regression test is missing: ${feature}`);
+console.log(`Validated ${ids.length} unique HTML IDs, ${modules.length} JavaScript modules, race-control feature gates and all relative imports.`);
