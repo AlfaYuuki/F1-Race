@@ -39,7 +39,7 @@ export function createOpponents(lapDistance=4563) {
     currentLane:data.lane,targetLane:data.lane,gridPosition:0,launchTimer:0,
     overtakes:0,overtakeTargetId:null,fuel:100,tireWear:0,compound:'MEDIUM',
     pitTimer:0,pitStops:0,pressure:0,mistakes:0,relationshipMemory:Object.create(null),
-    mistakeCooldown:0,defending:false,stintLaps:0
+    mistakeCooldown:0,defending:false,stintLaps:0,retired:false,retirementReason:'',trackWarnings:0,trackPenaltySeconds:0,offTrackLatched:false,mechanicalHealth:100
   }));
 
   function findTrafficAhead(driver,traffic) {
@@ -92,9 +92,10 @@ export function createOpponents(lapDistance=4563) {
     const neutralised=!!(weather.yellowFlag||weather.doubleYellow||weather.vsc||weather.safetyCar||weather.redFlag);
     for(const driver of drivers) {
       driver.mistakeCooldown=Math.max(0,driver.mistakeCooldown-step);
-      if(weather.redFlag){driver.speed=0;continue;}\n      if(driver.launchTimer>0) {
+      if(driver.retired||weather.redFlag){driver.speed=0;continue;}
+      if(driver.launchTimer>0) {
         driver.launchTimer=Math.max(0,driver.launchTimer-step);
-        driver.speed=Math.min(driver.pace*.72,driver.speed+step*95);
+        driver.speed=Math.min(driver.pace*.72,driver.speed+step*95,neutralised?(weather.doubleYellow?80:weather.vsc?140:weather.safetyCar?110:170):Infinity);
         driver.distance+=driver.speed/3.6*step;
         continue;
       }
@@ -109,6 +110,10 @@ export function createOpponents(lapDistance=4563) {
         continue;
       }
       driver.fuel=clamp(driver.fuel-step*(.055+driver.speed/330*.045),0,100);
+      driver.mechanicalHealth=clamp(driver.mechanicalHealth-step*(.0007+(driver.speed/330)*.0006),0,100);
+      const completedLaps=Math.floor(driver.distance/lapDistance);
+      const failureSeed=[...driver.id].reduce((n,ch)=>n+ch.charCodeAt(0),0);
+      if(completedLaps>=2&&driver.mechanicalHealth<99.4&&((completedLaps*37+failureSeed*13)%997)<3){driver.retired=true;driver.retirementReason='Mechanical failure';driver.speed=0;continue;}
       const wearBase=driver.compound==='SOFT'?.16:driver.compound==='HARD'?.075:.105;
       driver.tireWear=clamp(driver.tireWear+step*wearBase*(Number(weather.wear)||1)*calculateTyreWearMultiplier(driver.personality),0,100);
       const newStint=Math.floor(driver.distance/lapDistance);
@@ -152,6 +157,9 @@ export function createOpponents(lapDistance=4563) {
       }
       driver.targetLane=clamp(targetLane,-.76,.76);
       driver.currentLane+= (driver.targetLane-driver.currentLane)*Math.min(1,step*(1.25+driver.aggression*1.6));
+      const outsideTrack=Math.abs(driver.currentLane)>.745;
+      if(!outsideTrack)driver.offTrackLatched=false;
+      else if(!driver.offTrackLatched){driver.offTrackLatched=true;driver.trackWarnings++;if(driver.trackWarnings>=3)driver.trackPenaltySeconds+=5;}
 
       const rhythm=calculatePersonalityPace(driver.personality,{
         phase:driver.distance*.001+driver.skill*8,rain:weather.rain||0,cornerLoad:curve
@@ -192,7 +200,7 @@ export function createOpponents(lapDistance=4563) {
   }
   function getStandings(playerDistance,preserveGridOrder=false) {
     const field=[{id:'player',name:'YOU',color:'#ed4148',distance:playerDistance,gridPosition:selectedGridPosition,isPlayer:true},
-      ...drivers.map(driver=>({...driver,isPlayer:false}))];
+      ...drivers.map(driver=>({...driver,distance:driver.distance-driver.trackPenaltySeconds*Math.max(1,driver.speed/3.6),isPlayer:false}))];
     return field.sort((a,b)=>preserveGridOrder?a.gridPosition-b.gridPosition:b.distance-a.distance);
   }
   function reset(playerGridPosition=10,savedOrder=null) {
@@ -206,7 +214,7 @@ export function createOpponents(lapDistance=4563) {
       const d=order[index++];d.gridPosition=slot;d.distance=(selectedGridPosition-slot)*8;d.speed=0;
       d.currentLane=slot%2?-.42:.42;d.targetLane=d.currentLane;
       d.launchTimer=.16+(1-d.skill)*.62;d.overtakes=0;d.overtakeTargetId=null;
-      d.fuel=100;d.tireWear=0;d.compound='MEDIUM';d.pitTimer=0;d.pitStops=0;
+      d.fuel=100;d.tireWear=0;d.compound='MEDIUM';d.retired=false;d.retirementReason='';d.trackWarnings=0;d.trackPenaltySeconds=0;d.offTrackLatched=false;d.mechanicalHealth=100;d.pitTimer=0;d.pitStops=0;
       d.pressure=0;d.mistakes=0;d.mistakeCooldown=0;d.defending=false;d.stintLaps=0;
       d.relationshipMemory=Object.create(null);d.pitReason=null;d.pitCompound=null;d.lastMistake=null;
     }
