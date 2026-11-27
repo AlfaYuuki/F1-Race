@@ -271,8 +271,17 @@ function animateHud({ playerPosition, displayGear, lastLap, lastLapMs, bestLapMs
 }
 
 const game = createGame(canvas, {
-  onUpdate: ({ speed, rpm, gear, lap, totalLaps = TOTAL_LAPS, sessionType, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, track, throttle, skid, telemetry = {} }) => {
+  onUpdate: ({ raceControl, speed, rpm, gear, lap, totalLaps = TOTAL_LAPS, sessionType, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, track, throttle, skid, telemetry = {} }) => {
     const raceOrder = standings || [];
+    if(raceControl){
+      const panel=hudElement('#race-control-panel');
+      const active=raceControl.flag!=='GREEN'||raceControl.penalties?.length>0;
+      if(panel){panel.hidden=!active;panel.dataset.flag=raceControl.flag;}
+      setText('#race-control-flag',raceControl.flag);
+      setText('#race-control-detail',raceControl.reason|| (raceControl.formation?'FORMATION LAP':'RACE CONTROL'));
+      const pending=(raceControl.penalties||[]).filter(p=>!p.served);
+      setText('#race-control-penalties',pending.length?pending.map(p=>p.type==='TIME'?p.seconds+'S':'DRIVE THROUGH').join(' · '):'');
+    }
     const playerPosition = raceOrder.length ? raceOrder.findIndex(driver => driver.isPlayer || driver.id === 'player') + 1 : position;
     const displayGear = speed < 8 ? 'N' : gear;
     const live = telemetry || {};
