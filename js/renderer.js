@@ -265,7 +265,7 @@ export function createRenderer(canvas) {
     }
   }
 
-  function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, playerColor = '#df3039', driftAngle = 0, dt = 1/60, weather = {}, elapsed = 0, raceState = 'running' }) {
+  function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, playerColor = '#df3039', driftAngle = 0, dt = 1/60, weather = {}, elapsed = 0, raceState = 'running', finishAge = 0 }) {
     if (lost) return;
     adaptQuality(performance.now());
     mesh.positions.length = 0;
@@ -403,7 +403,8 @@ export function createRenderer(canvas) {
     const aspect = canvas.width / canvas.height;
     const camera = cameraProfile({speed,driftAngle,lateralVelocity,offRoad,impact:impactFlash});
     const baseFov = camera.fov + (aspect < .8 ? .12 : 0);
-    const cinematic = raceState==='finished' ? -.09 : raceState==='countdown' ? -.045 : 0;
+    const finishBlend = raceState==='finished' ? clamp(1-finishAge/4,0,1) : 0;
+    const cinematic = raceState==='finished' ? -.09*finishBlend : raceState==='countdown' ? -.045 : 0;
     const projection = perspective(baseFov + cinematic, aspect, .1, 1000);
     const followTargetX = trackCenterX + playerX * 1.35 + camera.lateral;
     const followTargetY = playerRoad.y + camera.height + clamp(speedDelta / 180, -1, 1) * -.12;
