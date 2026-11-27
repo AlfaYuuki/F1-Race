@@ -6,10 +6,12 @@ import { createCollisionDetector } from './collision.js';
 import { createWeather } from './weather.js';
 import { createTrackEvolution } from './track-evolution.js';
 import { createRaceStartGate } from './race-start.js';
+import { createRaceControl } from './race-control.js';
 const weatherSystem=createWeather();
 const trackEvolution=createTrackEvolution();
 const collisionDetector=createCollisionDetector();
 const raceStartGate=createRaceStartGate();
+const raceControl=createRaceControl();
 const formatTime=ms=>{if(ms==null||!Number.isFinite(ms))return '--:--.---';const m=Math.floor(ms/60000),s=Math.floor(ms/1000)%60,mm=Math.floor(ms%1000);return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')+'.'+String(mm).padStart(3,'0');};
 export function createGame(canvas,callbacks={}) {
   const physics=createPhysics(),renderer=createRenderer(canvas),input=new Set(),opponents=createOpponents(LAP_DISTANCE);
@@ -43,13 +45,13 @@ export function createGame(canvas,callbacks={}) {
   }
   function updateHud(){
     const standings=opponents.getStandings(raceDistance, state==='countdown'||state==='ready'),position=standings.findIndex(d=>d.isPlayer)+1;
-    callbacks.onUpdate?.({speed:physics.speed,rpm:physics.rpm,gear:physics.gear,lap,totalLaps:sessionLaps,sessionType,time:formatTime(elapsed),state,position,standings,offRoad:physics.offRoad,lastLap:formatTime(lastLap),bestLap:formatTime(bestLap),lastLapMs:lastLap,bestLapMs:bestLap,sector:sector===1?'S1':sector===2?'S2':'S3',sectorTime:formatTime(sectorElapsed),fuel:physics.fuel,tireWear:physics.tireWear,compound:physics.compound,damage:physics.damage,pitStops:physics.pitStops,pitPhase,weather:currentWeather,track:trackEvolution.getState(),throttle:input.has('accelerate')?1:0,skid:Math.min(1,Math.abs(physics.lateralVelocity)),telemetry:{...physics.getTelemetry(),...physics.getDynamics()}});
+    callbacks.onUpdate?.({raceControl:raceControl.getState(),speed:physics.speed,rpm:physics.rpm,gear:physics.gear,lap,totalLaps:sessionLaps,sessionType,time:formatTime(elapsed),state,position,standings,offRoad:physics.offRoad,lastLap:formatTime(lastLap),bestLap:formatTime(bestLap),lastLapMs:lastLap,bestLapMs:bestLap,sector:sector===1?'S1':sector===2?'S2':'S3',sectorTime:formatTime(sectorElapsed),fuel:physics.fuel,tireWear:physics.tireWear,compound:physics.compound,damage:physics.damage,pitStops:physics.pitStops,pitPhase,weather:currentWeather,track:trackEvolution.getState(),throttle:input.has('accelerate')?1:0,skid:Math.min(1,Math.abs(physics.lateralVelocity)),telemetry:{...physics.getTelemetry(),...physics.getDynamics()}});
   }
   function start(playerGridPosition=10,options={}){
     if(state==='running'||state==='countdown')return;
     sessionType=['practice','qualifying','race'].includes(options.type)?options.type:'race';
     sessionLaps=normalizeRaceLaps(options.laps,sessionType==='race'?10:TOTAL_LAPS);
-    finishNotified=false;finishTimestamp=0;
+    finishNotified=false;finishTimestamp=0;raceControl.start();
     // A new session must never inherit a held key, touch button or steering axis.
     input.clear();steerAxis=0;
     cancelAnimationFrame(raf);clearInterval(countdownTimer);state='countdown';raceStartGate.begin();physics.reset();renderer.resetEffects?.();weatherSystem.reset();currentWeather=weatherSystem.getState();lastYellow=false;lastSafetyCar=false;callbacks.onWeather?.(currentWeather);trackEvolution.reset(currentWeather.temperature);elapsed=0;raceDistance=0;lap=1;hudAccumulator=0;weatherAccumulator=0;collisionDetector.reset();impactPulse=0;opponents.reset(playerGridPosition, options.gridOrder);playerHasLaunched=false;lapElapsed=0;lastLap=null;bestLap=null;sector=1;sectorElapsed=0;pitPhase=null;pitPlan=null;
@@ -66,7 +68,7 @@ export function createGame(canvas,callbacks={}) {
   function frame(now){
     if(state!=='running')return;
     const dt=Math.min((now-last)/1000,.1);last=now;elapsed+=dt*1000;lapElapsed+=dt*1000;sectorElapsed+=dt*1000;
-    currentWeather=weatherSystem.update(dt);
+    currentWeather=weatherSystem.update(dt);\n    const controlState=raceControl.update(dt);\n    if(currentWeather.yellowFlag&&controlState.flag==='GREEN')raceControl.deploy(raceControl.FLAGS.YELLOW,'Track incident',9);\n    if(currentWeather.safetyCar&&controlState.flag!=='SAFETY CAR')raceControl.deploy(raceControl.FLAGS.SAFETY_CAR,'Incident requires field neutralisation',14);\n    const liveControl=raceControl.getState();\n    if(liveControl.flag!==lastRaceFlag){lastRaceFlag=liveControl.flag;notify(liveControl.flag==='GREEN'?'GREEN FLAG — RACING RESUMES':liveControl.flag+' — FOLLOW RACE CONTROL');}\n    const limitResult=raceControl.reportTrackLimit({now:raceControl.getState().elapsed,offTrack:physics.offRoad,corner:'FUJI CIRCUIT'});\n    if(limitResult?.penalty)notify('TIME PENALTY — '+limitResult.penalty.seconds+' SECONDS');
     if(currentWeather.yellowFlag!==lastYellow){lastYellow=currentWeather.yellowFlag;notify(lastYellow?'YELLOW FLAG — REDUCE SPEED, NO OVERTAKING':'GREEN FLAG — RACING RESUMES');}
     if(currentWeather.safetyCar!==lastSafetyCar){lastSafetyCar=currentWeather.safetyCar;notify(lastSafetyCar?'SAFETY CAR DEPLOYED — HOLD POSITION':'SAFETY CAR IN — RACE RESUMES');}
     const trackState=trackEvolution.update(dt,currentWeather,1+opponents.drivers.length);
@@ -79,13 +81,13 @@ export function createGame(canvas,callbacks={}) {
       physics.speed=0;physics.rpm=850;physics.update(0,new Set(),0,0);physics.speed=0;physics.rpm=850;pitTimer-=dt;
       if(pitTimer<=0){physics.applyPitService(pitPlan.compound,pitPlan.fuelTarget,pitPlan.repair);pitPhase='exit';pitTimer=1.25;callbacks.onPitService?.(false);notify('PIT SERVICE COMPLETE — RELEASED');}
     } else {
-      physics.update(dt,pitPhase==='entry'?new Set():input,curve,pitPhase==='entry'?0:steerAxis,{pitLimiter:pitPhase==='entry'||pitPhase==='exit',yellowFlag:currentWeather.yellowFlag,safetyCar:currentWeather.safetyCar,weatherGrip:currentWeather.grip,weatherWear:currentWeather.wear,trackGrip:trackEvolution.sample(progress,physics.playerX).grip,draft:slipstream()});
+      physics.update(dt,pitPhase==='entry'?new Set():input,curve,pitPhase==='entry'?0:steerAxis,{pitLimiter:pitPhase==='entry'||pitPhase==='exit',yellowFlag:liveControl.flag==='YELLOW'||liveControl.flag==='DOUBLE YELLOW',safetyCar:liveControl.flag==='SAFETY CAR'||liveControl.flag==='VSC',raceControlSpeedLimit:liveControl.speedLimit,weatherGrip:currentWeather.grip,weatherWear:currentWeather.wear,trackGrip:trackEvolution.sample(progress,physics.playerX).grip,draft:slipstream()});
       const driftEvents=physics.consumeDriftEvents();if(driftEvents.banked)notify('DRIFT +'+driftEvents.banked+' PTS');if(driftEvents.spin)notify('SPIN — LIFT OFF AND COUNTER-STEER EARLIER');
       if(pitPhase==='entry'){pitTimer-=dt;if(pitTimer<=0){pitPhase='service';pitTimer=4.2;physics.speed=0;callbacks.onPitService?.(true);notify('CAR IN PIT BOX — CREW AT WORK');}}
       else if(pitPhase==='exit'){pitTimer-=dt;if(pitTimer<=0){pitPhase=null;pitPlan=null;notify('PIT EXIT — BACK TO RACING');}}
       raceDistance+=physics.speed/3.6*dt;
     }
-    opponents.update(dt,raceDistance,curveAt,{...currentWeather,totalLaps:sessionLaps,playerLane:physics.playerX});
+    opponents.update(dt,raceDistance,curveAt,{...currentWeather,totalLaps:sessionLaps,playerLane:physics.playerX,yellowFlag:liveControl.flag==='YELLOW'||liveControl.flag==='DOUBLE YELLOW',doubleYellow:liveControl.flag==='DOUBLE YELLOW',vsc:liveControl.flag==='VSC',safetyCar:liveControl.flag==='SAFETY CAR',redFlag:liveControl.flag==='RED'});
     if(physics.speed>=25)playerHasLaunched=true;
     impactPulse=Math.max(0,impactPulse-dt*3.8);
     // Only genuine vehicle-footprint overlap can trigger a physical impact.
@@ -109,7 +111,7 @@ export function createGame(canvas,callbacks={}) {
     if(currentLapIndex>previousLapIndex){lastLap=lapElapsed;bestLap=bestLap===null?lastLap:Math.min(bestLap,lastLap);lapElapsed=0;sector=1;sectorElapsed=0;notify('LAP '+(currentLapIndex+1)+' — '+formatTime(lastLap));}
     const sessionDistance=LAP_DISTANCE*sessionLaps;
     if(raceDistance>=sessionDistance){raceDistance=sessionDistance;state='finished';finishTimestamp=performance.now();physics.speed=0;pitPhase=null;callbacks.onPitService?.(false);notify(sessionType==='practice'?'PRACTICE COMPLETE':sessionType==='qualifying'?'QUALIFYING COMPLETE':'CHEQUERED FLAG — RACE COMPLETE!');
-      if(!finishNotified){finishNotified=true;callbacks.onFinish?.({sessionType,lap:sessionLaps,elapsedMs:elapsed,bestLapMs:bestLap,standings:opponents.getStandings(raceDistance)});}}
+      if(!finishNotified){finishNotified=true;callbacks.onFinish?.({sessionType,lap:sessionLaps,elapsedMs:elapsed+raceControl.getState().penaltySeconds*1000,bestLapMs:bestLap,standings:opponents.getStandings(raceDistance),raceControl:raceControl.getState()});}}
     lap=Math.max(1,Math.min(sessionLaps,Math.floor(raceDistance/LAP_DISTANCE)+1));  // a car on the grid is still on lap 1
     const rivalCars=opponents.drivers.map(d=>({...d,relativeDistance:d.distance-raceDistance}));
     if(physics.gear!==lastGear){lastGear=physics.gear;shiftAt=now;}
@@ -121,5 +123,5 @@ export function createGame(canvas,callbacks={}) {
   }
   function idleFrame(now){if(state==='running'||state==='countdown')return;const finishAge=state==='finished'&&finishTimestamp?Math.max(0,(now-finishTimestamp)/1000):0;renderer.render({position:state==='finished'?raceDistance/LAP_DISTANCE:now/1000*.012,playerX:state==='finished'?physics.playerX:0,speed:0,offRoad:state==='finished'?physics.offRoad:false,running:false,opponents:[],weather:currentWeather,elapsed,raceState:state,finishAge,dt:1/60});raf=requestAnimationFrame(idleFrame);}
   function init(){opponents.reset(10);renderer.resize();renderer.render({position:0,playerX:0,speed:0,offRoad:false,running:false,opponents:[]});updateHud();raf=requestAnimationFrame(idleFrame);}
-  return {init,start,setInput,setSteerAxis,togglePause,requestPit,setCarConfig:config=>{physics.setCarConfig(config);playerColor=config?.color||'#df3039';},getState:()=>state,getPitPhase:()=>pitPhase};
+  return {init,start,setInput,setSteerAxis,togglePause,requestPit,deployRaceControl:(flag,reason,duration)=>raceControl.deploy(flag,reason,duration),addRacePenalty:(type,seconds,reason)=>raceControl.addPenalty(type,seconds,reason),retire:(reason)=>raceControl.retire(reason),setCarConfig:config=>{physics.setCarConfig(config);playerColor=config?.color||'#df3039';},getState:()=>state,getPitPhase:()=>pitPhase};
 }
