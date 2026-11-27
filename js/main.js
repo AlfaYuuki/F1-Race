@@ -89,6 +89,7 @@ function renderCareer() {
   document.querySelector('#career-record-summary').textContent=state.stats.starts
     ? `BEST FINISH P${state.stats.bestFinish} · PERSONAL BEST LAP ${bestLap} · ${state.round} / ${career.rounds} ROUNDS`
     :'No Grand Prix completed yet.';
+  document.querySelector('#career-history').innerHTML=state.results.length?state.results.slice().reverse().map(r=>`<li><span>ROUND ${r.round} · P${r.position}</span><b>${r.bestLapMs?((r.bestLapMs/1000).toFixed(3)+'s'):'NO LAP'}</b><em>${r.rewardCredits?'+CR '+r.rewardCredits.toLocaleString():''}</em></li>`).join(''):'<li>No rounds completed yet.</li>';
   document.querySelector('#career-achievement-list').innerHTML=career.achievements.map(a=>{
     const unlocked=state.achievements.includes(a.id);
     return `<span class="career-achievement ${unlocked?'unlocked':'locked'}" title="${escapeHtml(a.detail)}">${unlocked?'🏆':'◇'} ${escapeHtml(a.title)}</span>`;
