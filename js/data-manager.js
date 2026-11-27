@@ -88,7 +88,9 @@ function validateCareer(raw) {
   const validDriver=d=>isObject(d)&&typeof d.id==='string'&&typeof d.name==='string'&&Number.isFinite(d.points)&&d.points>=0;
   return standings.every(validDriver)&&new Set(standings.map(d=>d.id)).size===6&&standings.some(d=>d.id==='player')&&
     results.every((r,i)=>isObject(r)&&r.round===i+1&&Number.isInteger(r.position)&&r.position>=1&&r.position<=20&&
-      Array.isArray(r.order)&&r.order.every(d=>isObject(d)&&typeof d.id==='string'&&typeof d.name==='string'))&&
+      Array.isArray(r.order)&&r.order.every(d=>isObject(d)&&typeof d.id==='string'&&typeof d.name==='string')&&
+      (r.rewardCredits===undefined||(Number.isInteger(r.rewardCredits)&&r.rewardCredits>=0))&&
+      (r.bestLapMs===null||r.bestLapMs===undefined||(Number.isFinite(r.bestLapMs)&&r.bestLapMs>0)))&&
     ['starts','wins','podiums','points'].every(k=>Number.isInteger(stats[k])&&stats[k]>=0)&&
     (stats.bestFinish===null||Number.isInteger(stats.bestFinish))&&
     (stats.bestLapMs===null||(Number.isFinite(stats.bestLapMs)&&stats.bestLapMs>0))&&
