@@ -227,11 +227,15 @@ export function createRenderer(canvas) {
   }
 
   // Cars are built in local space and rotated by `yaw` (road heading plus any drift angle).
-  function addCar(mesh, x, y, z, scale, tint, yaw = 0, phase = 0, speed = 0, offRoad = false) {
+  const side0 = () => .28;
+  function addCar(mesh, x, y, z, scale, tint, yaw = 0, phase = 0, speed = 0, offRoad = false, fx = null) {
     const c = Math.cos(yaw), n = Math.sin(yaw);
     const place = (lx, lz) => [x + lx * c + lz * n, z - lx * n + lz * c];
-    const point = (lx, ly, lz) => { const [px,pz]=place(lx*scale,lz*scale); return [px,y+ly*scale,pz]; };
-    const part = (lx, ly, lz, sx, sy, sz, color) => { const [px, pz] = place(lx * scale, lz * scale); mesh.box(px, y + ly * scale, pz, sx * scale, sy * scale, sz * scale, color, yaw); };
+    // Body attitude: nose lifts on throttle / dives on the brakes (pitch) and leans out of corners (roll).
+    const pitch = fx?.pitch || 0, roll = fx?.roll || 0, steer = fx?.steer || 0;
+    const attitude = (lx, lz) => pitch * lz + roll * lx;
+    const point = (lx, ly, lz) => { const [px,pz]=place(lx*scale,lz*scale); return [px,y+(ly+attitude(lx,lz))*scale,pz]; };
+    const part = (lx, ly, lz, sx, sy, sz, color) => { const [px, pz] = place(lx * scale, lz * scale); mesh.box(px, y + (ly + attitude(lx, lz)) * scale, pz, sx * scale, sy * scale, sz * scale, color, yaw); };
     part(0,.12,0,1.65,.38,3.8,tint);
     part(0,.09,1.05,.58,.24,2.25,tint);
     part(0,.56,-.05,.9,.38,1.25,[.055,.085,.11]);
@@ -240,6 +244,16 @@ export function createRenderer(canvas) {
     part(0,.16,2.2,.22,.17,.62,tint);
     part(0,.5,-2.05,2.1,.12,.25,tint);
     part(0,.72,-2.08,2.22,.09,.32,[.12,.14,.16]);
+    // Rear lamp: bright when braking, dim otherwise (always visible so the car reads from behind).
+    const lamp = fx?.braking ? [1,.1,.12] : [.5,.05,.07];
+    part(0,.47,-2.2,.3,.1,.08,lamp);
+    if (fx?.braking) part(0,.47,-2.28,.6,.16,.05,[.9,.12,.14]);
+    // Exhaust flame on gear changes: short orange burst that fades over ~120 ms.
+    if (fx?.flame > 0) {
+      const f = fx.flame;
+      part(side0(), .2, -2.45 - f * .5, .16 + f * .18, .14 + f * .14, .4 + f * .9, [1, .5 + f * .35, .1]);
+      part(-side0(), .2, -2.45 - f * .5, .16 + f * .18, .14 + f * .14, .4 + f * .9, [1, .5 + f * .35, .1]);
+    }
     for(const side of [-1,1]){
       part(side*.83,.16,-.1,.36,.28,1.55,[.1,.12,.14]);
       part(side*.25,.91,.2,.08,.07,1.1,[.72,.76,.78]);
@@ -254,7 +268,8 @@ export function createRenderer(canvas) {
       const width=.19*scale;
       for(let segment=0;segment<12;segment++){
         const a=segment*Math.PI/6+rotation,b=(segment+1)*Math.PI/6+rotation;
-        const ring=(angle,offset)=>point(lx+offset,centerY+Math.cos(angle)*.31,lz+Math.sin(angle)*.31);
+        const steerAngle=axle===1?steer*.5:0,sc=Math.cos(steerAngle),sn=Math.sin(steerAngle);
+        const ring=(angle,offset)=>{const rz=Math.sin(angle)*.31;return point(lx+offset*sc+rz*sn,centerY+Math.cos(angle)*.31,lz-offset*sn+rz*sc);};
         const innerA=ring(a,0),innerB=ring(b,0),outerA=ring(a,side*width),outerB=ring(b,side*width);
         const rubber=[.025,.03,.035];
         mesh.triangle(innerA,innerB,outerB,rubber);mesh.triangle(innerA,outerB,outerA,rubber);
@@ -265,7 +280,7 @@ export function createRenderer(canvas) {
     }
   }
 
-  function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, playerColor = '#df3039', driftAngle = 0, dt = 1/60, weather = {}, elapsed = 0, raceState = 'running', finishAge = 0 }) {
+  function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, playerColor = '#df3039', driftAngle = 0, dt = 1/60, weather = {}, elapsed = 0, raceState = 'running', finishAge = 0, steer = 0, braking = false, accelerating = false, shiftAge = 9999 }) {
     if (lost) return;
     adaptQuality(performance.now());
     mesh.positions.length = 0;
@@ -348,6 +363,13 @@ export function createRenderer(canvas) {
     // Distant mountains sit in a fixed backdrop but slide against the road heading,
     // which sells the sensation of the whole circuit turning.
     const farHeading = roadPoints[Math.min(roadSegments, 60)].h;
+    // Slow-moving clouds (cheap flat boxes) — drift with time and slide against the road heading.
+    for (let cloud = 0; cloud < (touchQuality ? 3 : 6); cloud++) {
+      const drift = ((elapsed * .0012 + cloud * 83) % 520) - 260;
+      const cx = drift - farHeading * 120, cy = 78 + (cloud % 3) * 14, cz = 430 + (cloud % 2) * 70;
+      mesh.box(cx, cy, cz, 52 + (cloud % 3) * 14, 7, 14, [.95, .97, .98]);
+      mesh.box(cx + 9, cy + 7, cz, 30, 6, 10, [.98, .99, 1]);
+    }
     mesh.mountain(470, 48 - farHeading * 160, 86, 86);
     mesh.mountain(500, -95 - farHeading * 160, 65, 54);
 
@@ -367,7 +389,14 @@ export function createRenderer(canvas) {
     const suspensionBob = running ? Math.sin(elapsed*.0085) * Math.min(.075, speed / 330 * .075) : 0;
     mesh.quad([playerWorldX-1.25,playerRoad.y+.04,7.1],[playerWorldX+1.25,playerRoad.y+.04,7.1],[playerWorldX+1.25,playerRoad.y+.04,10.8],[playerWorldX-1.25,playerRoad.y+.04,10.8],[.025,.03,.035]);
     const carYaw = clamp(driftAngle, -.9, .9);
-    addCar(mesh, playerWorldX, playerRoad.y + suspensionBob, 9, 1, offRoad ? [.72,.25,.12] : hexColor(playerColor), carYaw, position*lapDistance/2.6, speed, offRoad);
+    const kerbRumble = running && Math.abs(playerX) > .8 && Math.abs(playerX) < 1.05 && speed > 40 ? Math.sin(elapsed * .09) * .035 * Math.min(1, speed / 200) : 0;
+    const bodyFx = {
+      steer, braking: running && braking,
+      pitch: clamp((accelerating ? .035 : 0) - (braking ? .06 : 0) - clamp(speedDelta / 600, -.04, .04), -.09, .06),
+      roll: clamp(-steer * speed / 330 * .09 - lateralVelocity * .03, -.12, .12),
+      flame: clamp(1 - shiftAge / 130, 0, 1) * (running && speed > 40 ? 1 : 0)
+    };
+    addCar(mesh, playerWorldX, playerRoad.y + suspensionBob + kerbRumble, 9, 1, offRoad ? [.72,.25,.12] : hexColor(playerColor), carYaw, position*lapDistance/2.6, speed, offRoad, bodyFx);
 
     const effects = graphicsEffects.update(dt,{rain:wetness,speed,driftAngle,lateralVelocity,offRoad,impact:impactFlash,car:{x:playerWorldX,y:playerRoad.y,z:9}});
     for(const particle of effects){

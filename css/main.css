@@ -1379,3 +1379,54 @@ button,select,input{touch-action:manipulation}
 .career-history{display:grid;gap:5px;margin:0;padding:0;list-style:none}
 .career-history li{display:grid;grid-template-columns:1fr auto auto;gap:12px;padding:6px 0;border-bottom:1px solid #dcebf414;color:#c2d0d9;font:8px var(--mono)}
 .career-history b{font-variant-numeric:tabular-nums}.career-history em{color:#f0cb7c;font-style:normal}
+
+/* =====================================================================
+   ANIMATION POLISH — transform/opacity keyframes only (cheap on phones).
+   ===================================================================== */
+@keyframes pos-up{0%{transform:translateY(0);color:#fff}25%{transform:translateY(-4px) scale(1.12);color:#5ee6a1;text-shadow:0 0 14px #5ee6a1aa}100%{transform:none}}
+@keyframes pos-down{0%{transform:translateY(0)}25%{transform:translateY(4px) scale(.94);color:#ff6b78;text-shadow:0 0 14px #ff6b78aa}100%{transform:none}}
+@keyframes gear-pop{0%{transform:scale(1.35);filter:brightness(1.6)}100%{transform:scale(1);filter:none}}
+@keyframes lap-flash{0%{transform:scale(1.18);color:#fff;text-shadow:0 0 12px #fff8}100%{transform:none}}
+@keyframes lap-best{0%{transform:scale(1.25);color:#c985ff;text-shadow:0 0 16px #c985ffcc}60%{color:#c985ff}100%{transform:none}}
+@keyframes msg-in{0%{opacity:0;transform:translateY(-8px)}100%{opacity:1;transform:none}}
+@keyframes alert-in{0%{opacity:0;transform:translateY(-14px) scale(.97)}60%{opacity:1;transform:translateY(2px)}100%{opacity:1;transform:none}}
+@keyframes warn-blink{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes critical-pulse{0%,100%{box-shadow:0 8px 24px #0006,0 0 0 0 #f0445500}50%{box-shadow:0 8px 24px #0006,0 0 0 3px #f0445588}}
+@keyframes row-gain{0%{background:#5ee6a155}100%{background:transparent}}
+@keyframes row-loss{0%{background:#ff6b7855}100%{background:transparent}}
+@keyframes box-suggest{0%,100%{transform:scale(1);box-shadow:0 0 0 0 #ff3a4d00}50%{transform:scale(1.06);box-shadow:0 0 0 5px #ff3a4d55}}
+@keyframes card-in{0%{opacity:0;transform:translateY(18px) scale(.98)}100%{opacity:1;transform:none}}
+@keyframes panel-in{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:none}}
+@keyframes shine{0%{transform:translateX(-120%)}100%{transform:translateX(220%)}}
+
+.pos-up{animation:pos-up .9s ease-out}
+.pos-down{animation:pos-down .9s ease-out}
+.gear-pop{animation:gear-pop .22s ease-out}
+.lap-flash{animation:lap-flash .8s ease-out}
+.lap-best{animation:lap-best 1.4s ease-out}
+.msg-in{animation:msg-in .28s ease-out}
+.engineer-panel.alert-in{animation:alert-in .38s cubic-bezier(.2,.9,.25,1)}
+.engineer-panel[data-level="critical"]{animation:critical-pulse 1.3s ease-in-out infinite}
+.engineer-panel[data-level="critical"].alert-in{animation:alert-in .38s cubic-bezier(.2,.9,.25,1),critical-pulse 1.3s ease-in-out .4s infinite}
+.is-warning{animation:warn-blink .9s ease-in-out infinite;color:#ff8792!important}
+.standings li.row-gain{animation:row-gain 1.2s ease-out}
+.standings li.row-loss{animation:row-loss 1.2s ease-out}
+.pit-button.is-suggested:not(:disabled){animation:box-suggest 1.2s ease-in-out infinite}
+
+/* Smooth gauges: bars ease towards each new value instead of jumping. */
+#speed-bar,#rpm-bar,#fuel-bar,#tyre-bar,#throttle-bar,#brake-bar{transition:width .12s linear}
+
+/* Entrances */
+.start-card{animation:card-in .5s cubic-bezier(.2,.8,.2,1) both}
+.race-game:not(.is-idle) .hud,.race-game:not(.is-idle) .timing-panel{animation:panel-in .45s ease-out both}
+.start-button,.championship-button{position:relative;overflow:hidden}
+.start-button:after{content:"";position:absolute;inset:0;width:40%;background:linear-gradient(100deg,transparent,#ffffff40,transparent);transform:translateX(-120%);pointer-events:none}
+.start-button:hover:after,.start-button:focus-visible:after{animation:shine .9s ease-out}
+.mobile-controls button:active,.pit-button:active,.start-button:active{transform:scale(.95)}
+.mobile-controls button{transition:transform .08s ease-out,filter .12s}
+
+@media(prefers-reduced-motion:reduce){
+  .pos-up,.pos-down,.gear-pop,.lap-flash,.lap-best,.msg-in,.engineer-panel.alert-in,.engineer-panel[data-level="critical"],
+  .is-warning,.standings li.row-gain,.standings li.row-loss,.pit-button.is-suggested,.start-card,.start-button:hover:after{animation:none!important}
+  #speed-bar,#rpm-bar,#fuel-bar,#tyre-bar,#throttle-bar,#brake-bar{transition:none}
+}

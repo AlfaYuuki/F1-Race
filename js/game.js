@@ -17,7 +17,7 @@ export function createGame(canvas,callbacks={}) {
   let state='ready',last=0,elapsed=0,raceDistance=0,lap=1,countdownTimer=null,raf=0,impactPulse=0,hudAccumulator=0,weatherAccumulator=0,finishTimestamp=0;
   let sessionType='race',sessionLaps=TOTAL_LAPS,finishNotified=false;
   let lapElapsed=0,lastLap=null,bestLap=null,sector=1,sectorElapsed=0,playerHasLaunched=false;
-  let steerAxis=0,pitPhase=null,pitTimer=0,pitPlan=null,currentWeather=weatherSystem.getState(),lastYellow=false,lastSafetyCar=false;
+  let lastGear=1,shiftAt=-9999,steerAxis=0,pitPhase=null,pitTimer=0,pitPlan=null,currentWeather=weatherSystem.getState(),lastYellow=false,lastSafetyCar=false;
   const notify=message=>callbacks.onMessage?.(message);
   function setInput(action,active){if(!raceStartGate.acceptsInput()&&active)return;active?input.add(action):input.delete(action);}
   function setSteerAxis(value){if(!raceStartGate.acceptsInput()){steerAxis=0;return;}steerAxis=Number.isFinite(value)?Math.max(-1,Math.min(1,value)):0;}
@@ -112,7 +112,9 @@ export function createGame(canvas,callbacks={}) {
       if(!finishNotified){finishNotified=true;callbacks.onFinish?.({sessionType,lap:sessionLaps,elapsedMs:elapsed,bestLapMs:bestLap,standings:opponents.getStandings(raceDistance)});}}
     lap=Math.max(1,Math.min(sessionLaps,Math.floor(raceDistance/LAP_DISTANCE)+1));  // a car on the grid is still on lap 1
     const rivalCars=opponents.drivers.map(d=>({...d,relativeDistance:d.distance-raceDistance}));
-    renderer.render({driftAngle:physics.driftAngle,position:raceDistance/LAP_DISTANCE,playerX:physics.playerX,speed:physics.speed,speedDelta:(physics.speed-previousSpeed)/Math.max(dt,.001),lateralVelocity:physics.lateralVelocity,offRoad:physics.offRoad,running:state==='running',opponents:rivalCars,cameraShake:impactPulse>0?Math.sin(now*.05)*impactPulse*3:0,playerColor,skid:Math.abs(physics.lateralVelocity)>.42,dt,weather:currentWeather,elapsed,raceState:state,finishAge:state==='finished'&&finishTimestamp?Math.max(0,(now-finishTimestamp)/1000):0});
+    if(physics.gear!==lastGear){lastGear=physics.gear;shiftAt=now;}
+    const steerCommand=Math.max(-1,Math.min(1,(input.has('right')?1:0)-(input.has('left')?1:0)+steerAxis));
+    renderer.render({steer:steerCommand,braking:input.has('brake'),accelerating:input.has('accelerate'),shiftAge:now-shiftAt,driftAngle:physics.driftAngle,position:raceDistance/LAP_DISTANCE,playerX:physics.playerX,speed:physics.speed,speedDelta:(physics.speed-previousSpeed)/Math.max(dt,.001),lateralVelocity:physics.lateralVelocity,offRoad:physics.offRoad,running:state==='running',opponents:rivalCars,cameraShake:impactPulse>0?Math.sin(now*.05)*impactPulse*3:0,playerColor,skid:Math.abs(physics.lateralVelocity)>.42,dt,weather:currentWeather,elapsed,raceState:state,finishAge:state==='finished'&&finishTimestamp?Math.max(0,(now-finishTimestamp)/1000):0});
     hudAccumulator+=dt;
     if(hudAccumulator>=.05||state!=='running'){hudAccumulator%=.05;updateHud();}
     if(state==='running')raf=requestAnimationFrame(frame);else if(state==='finished')raf=requestAnimationFrame(idleFrame);

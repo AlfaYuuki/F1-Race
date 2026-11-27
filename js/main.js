@@ -55,6 +55,7 @@ function showEngineerAlert(alert) {
   document.querySelector('#engineer-message').textContent=alert.message;
   document.querySelector('#engineer-action').textContent=alert.action;
   document.querySelector('#engineer-panel').dataset.level=alert.level;
+  retrigger('#engineer-panel', 'alert-in');
   if(alert.isAlert&&(alert.level==='warning'||alert.level==='critical'))audio.playRadio(alert.message);
 }
 
@@ -235,6 +236,40 @@ const setHtml = (selector, value) => hudWrite('h', selector, value, (el, v) => {
 const setWidth = (selector, value) => hudWrite('w', selector, typeof value === 'number' ? Math.round(value * 10) / 10 + '%' : value, (el, v) => { el.style.width = v; });
 const setDisabled = (selector, value) => hudWrite('d', selector, !!value, (el, v) => { el.disabled = v; });
 
+// ---- Small UI animation helpers (transform/opacity keyframes defined in CSS) ----
+function retrigger(selector, className) {
+  const element = hudElement(selector);
+  if (!element) return;
+  element.classList.remove(className);
+  void element.offsetWidth; // restart the CSS animation
+  element.classList.add(className);
+}
+function setFlag(selector, className, on) {
+  const element = hudElement(selector);
+  if (element && element.classList.contains(className) !== !!on) element.classList.toggle(className, !!on);
+}
+let lastAnimatedPosition = 0, lastAnimatedGear = '', lastAnimatedLap = '', flashPlayerRow = false;
+function animateHud({ playerPosition, displayGear, lastLap, lastLapMs, bestLapMs, fuel, tireWear, damage, state }) {
+  if (state !== 'running') { lastAnimatedPosition = 0; return; }
+  if (playerPosition && lastAnimatedPosition && playerPosition !== lastAnimatedPosition) {
+    retrigger('#position-label', playerPosition < lastAnimatedPosition ? 'pos-up' : 'pos-down');
+    flashPlayerRow = playerPosition < lastAnimatedPosition ? 'gain' : 'loss';
+  }
+  if (playerPosition) lastAnimatedPosition = playerPosition;
+  if (String(displayGear) !== lastAnimatedGear) {
+    if (lastAnimatedGear) retrigger('#gear-label', 'gear-pop');
+    lastAnimatedGear = String(displayGear);
+  }
+  if (lastLap && lastLap !== lastAnimatedLap) {
+    if (lastAnimatedLap) retrigger('#last-lap-label', lastLapMs != null && lastLapMs === bestLapMs ? 'lap-best' : 'lap-flash');
+    lastAnimatedLap = lastLap;
+  }
+  setFlag('#fuel-value', 'is-warning', fuel < 15);
+  setFlag('#tyre-value', 'is-warning', tireWear > 75);
+  setFlag('#damage-value', 'is-warning', damage > 45);
+  setFlag('#pit-button', 'is-suggested', (tireWear > 70 || fuel < 20 || damage > 50));
+}
+
 const game = createGame(canvas, {
   onUpdate: ({ speed, rpm, gear, lap, totalLaps = TOTAL_LAPS, sessionType, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, track, throttle, skid, telemetry = {} }) => {
     const raceOrder = standings || [];
@@ -293,6 +328,7 @@ const game = createGame(canvas, {
       setText('#fuel-flow-value', (Number(live.fuelFlow)||0).toFixed(2)+'%/MIN');
       setText('#pit-button', pitPhase ? (pitPhase==='service'?'IN BOX':'PIT '+pitPhase.toUpperCase()) : 'BOX ↗');
       setDisabled('#pit-button', state!=='running');
+      animateHud({ playerPosition: playerPosition || position, displayGear, lastLap, lastLapMs, bestLapMs, fuel, tireWear, damage, state });
     }
     audio.update(rpm, throttle ?? 0, gear, state === 'running', { skid: skid ?? 0, rain: weather?.rain ?? 0 });
     if (state === 'finished') {
@@ -328,6 +364,7 @@ const game = createGame(canvas, {
           return `<li class="${driver.isPlayer || driver.id === 'player' ? 'player-row' : ''}"><span class="rank">${String(index + 1).padStart(2, '0')}</span><i style="--driver-color:${driver.color}"></i><span>${escapeHtml(driver.name)}</span><b>${gapLabel}</b></li>`;
         }).join('');
         lastLeaderboardRefresh = now;
+        if (flashPlayerRow) { const row = leaderboard.querySelector('.player-row'); if (row) row.classList.add(flashPlayerRow === 'gain' ? 'row-gain' : 'row-loss'); flashPlayerRow = false; }
         // On small screens the tower scrolls: keep the player's row centred.
         const playerRow = leaderboard.querySelector('.player-row');
         if (playerRow && leaderboard.scrollHeight > leaderboard.clientHeight) {
@@ -379,6 +416,7 @@ const game = createGame(canvas, {
     document.querySelector('#race-message').textContent = platform === 'android'
       ? message.replace('PRESS ESC OR ▶', 'TAP ▶')
       : message;
+    retrigger('#race-message', 'msg-in');
   },
   onStart: () => {
     raceEngineer.reset();
