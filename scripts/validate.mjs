@@ -19,7 +19,7 @@ if (missingMenuControls.length) throw new Error(`Required menu controls are miss
 if (!declared.has('quick-race-laps') || !main.includes('quickRaceLapsSelect')) throw new Error('Quick Race lap selector is missing or not wired.');
 for (let lap = 1; lap <= 10; lap++) if (!html.includes('value="' + lap + '"')) throw new Error('Quick Race lap selector is missing option ' + lap + '.');
 
-const modules = ['track-evolution.js','collision.js','race-start.js','main.js','game.js','renderer.js','renderer2d.js','physics.js','track.js','opponents.js','controls.js','platform.js','audio.js','championship.js','garage.js','weather.js','data-manager.js','race-engineer.js','ai-personalities.js','race-weekend.js','pit-strategy.js','timing.js'];
+const modules = ['track-evolution.js','collision.js','race-start.js','main.js','game.js','renderer.js','renderer2d.js','physics.js','track.js','opponents.js','controls.js','platform.js','audio.js','championship.js','garage.js','weather.js','data-manager.js','race-engineer.js','ai-personalities.js','race-weekend.js','pit-strategy.js','timing.js','immersion.js'];
 for (const file of modules) {
   const path = resolve(root, 'js', file);
   await access(path);
@@ -28,10 +28,10 @@ for (const file of modules) {
     if (match[1].startsWith('.')) await access(resolve(dirname(path), match[1]));
   }
 }
-if (!html.includes('V1.25.0') || !html.includes('major version 1, milestone 25, sub-milestone 0')) throw new Error('In-game semantic version label is missing or invalid.');
+if (!html.includes('V1.26.0') || !html.includes('major version 1, milestone 26, sub-milestone 0')) throw new Error('In-game semantic version label is missing or invalid.');
 const serviceWorker = await readFile(resolve(root, 'sw.js'), 'utf8');
 const pwa = await readFile(resolve(root, 'js/pwa.js'), 'utf8');
-if (!serviceWorker.includes("const CACHE_NAME = 'the-f1-race-shell-v35'")) {
+if (!serviceWorker.includes("const CACHE_NAME = 'the-f1-race-shell-v36'")) {
   throw new Error('Service worker cache version is missing or invalid.');
 }
 if (!serviceWorker.includes("'./js/race-start.js'")) { throw new Error('The race start gate module is missing from the PWA app shell.'); }

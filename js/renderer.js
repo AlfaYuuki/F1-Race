@@ -224,19 +224,57 @@ export function createRenderer(canvas) {
     gl.viewport(0, 0, canvas.width, canvas.height);
   }
 
-  // Cars are built in local space and rotated by `yaw` (road heading plus any drift angle).
-  function addCar(mesh, x, y, z, scale, tint, yaw = 0) {
+  // Cars are assembled from layered aero surfaces and animated 12-sided wheel meshes.
+  function addCar(mesh, x, y, z, scale, tint, yaw = 0, wheelRotation = 0, suspension = 0) {
     const c = Math.cos(yaw), n = Math.sin(yaw);
     const place = (lx, lz) => [x + lx * c + lz * n, z - lx * n + lz * c];
-    const part = (lx, ly, lz, sx, sy, sz, color) => { const [px, pz] = place(lx * scale, lz * scale); mesh.box(px, y + ly * scale, pz, sx * scale, sy * scale, sz * scale, color, yaw); };
-    part(0, .12, 0, 1.8, .48, 4.2, tint);
-    part(0, .58, .08, 1.02, .42, 1.5, [.08,.12,.16]);
-    part(0, .14, 2.12, 2.05, .12, .28, [.88,.88,.82]);
-    part(0, .48, -2.08, 2.0, .12, .24, tint);
-    for (const side of [-1, 1]) for (const axle of [-1, 1]) part(side * .96, .04, axle * 1.25, .34, .48, .82, [.035,.04,.045]);
+    const part = (lx, ly, lz, sx, sy, sz, color) => {
+      const [px, pz] = place(lx * scale, lz * scale);
+      mesh.box(px, y + (ly + suspension) * scale, pz, sx * scale, sy * scale, sz * scale, color, yaw);
+    };
+    part(0, .12, 0, 1.72, .36, 3.75, tint);
+    part(0, .5, .08, .92, .42, 1.42, [.055,.085,.12]);
+    part(0, .12, 1.95, 2.1, .12, .34, [.9,.91,.88]);
+    part(0, .5, -1.95, 1.95, .13, .26, tint);
+    part(0, .25, .55, 1.95, .25, 1.35, tint);
+    part(0, .68, -.95, .08, .08, 1.75, [.22,.25,.28]);
+    part(-.55, .69, -.12, .08, .08, .9, [.22,.25,.28]);
+    part(.55, .69, -.12, .08, .08, .9, [.22,.25,.28]);
+    const noseA=place(-.24*scale,1.3*scale),noseB=place(.24*scale,1.3*scale),noseTip=place(0,2.15*scale);
+    mesh.triangle([noseA[0],y+.25*scale,noseA[1]],[noseB[0],y+.25*scale,noseB[1]],[noseTip[0],y+.18*scale,noseTip[1]],[Math.min(1,tint[0]*1.18),Math.min(1,tint[1]*1.18),Math.min(1,tint[2]*1.18)]);
+    function wheel(lx,lz) {
+      const radius=.34*scale, thickness=.25*scale, centerY=y+(.04+suspension)*scale;
+      const [centerX,centerZ]=place(lx*scale,lz*scale);
+      const ring=[];
+      for(let i=0;i<12;i++){
+        const angle=i*Math.PI/6+wheelRotation;
+        const [px,pz]=place(lx*scale,(lz+Math.sin(angle)*.34)*scale);
+        ring.push([px,centerY+Math.cos(angle)*radius,pz]);
+      }
+      for(let i=0;i<12;i++){
+        const a=ring[i],b=ring[(i+1)%12];
+        const [ax0,az0]=place((lx-.125)*scale,(lz+Math.sin(i*Math.PI/6+wheelRotation)*.34)*scale);
+        const [ax1,az1]=place((lx+.125)*scale,(lz+Math.sin(i*Math.PI/6+wheelRotation)*.34)*scale);
+        const [bx0,bz0]=place((lx-.125)*scale,(lz+Math.sin((i+1)*Math.PI/6+wheelRotation)*.34)*scale);
+        const [bx1,bz1]=place((lx+.125)*scale,(lz+Math.sin((i+1)*Math.PI/6+wheelRotation)*.34)*scale);
+        mesh.quad([ax0,a[1],az0],[ax1,a[1],az1],[bx1,b[1],bz1],[bx0,b[1],bz0],[.025,.03,.035]);
+        for(const side of [-1,1]){
+          const faceX=place((lx+side*.126)*scale,lz*scale)[0];
+          mesh.triangle([faceX,centerY,centerZ],[faceX,a[1],a[2]],[faceX,b[1],b[2]],[.09,.105,.11]);
+        }
+      }
+      const hub=place((lx+.13)*scale,lz*scale);
+      for(let spoke=0;spoke<6;spoke++){
+        const a=spoke*Math.PI/3+wheelRotation, b=a+.12;
+        const p0=place((lx+.132)*scale,(lz+Math.sin(a)*.22)*scale);
+        const p1=place((lx+.132)*scale,(lz+Math.sin(b)*.22)*scale);
+        mesh.triangle([hub[0],centerY,centerZ],[p0[0],centerY+Math.cos(a)*.22*scale,p0[1]],[p1[0],centerY+Math.cos(b)*.22*scale,p1[1]],[.58,.62,.64]);
+      }
+    }
+    for(const side of [-1,1])for(const axle of [-1,1])wheel(side*.96,axle*1.25);
   }
 
-  function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, playerColor = '#df3039', driftAngle = 0, dt = 1/60 }) {
+  function render({ position = 0, playerX = 0, speed = 0, speedDelta = 0, lateralVelocity = 0, offRoad = false, running = false, opponents = [], cameraShake = 0, playerColor = '#df3039', driftAngle = 0, weather = {}, finished = false, dt = 1/60 }) {
     if (lost) return;
     adaptQuality(performance.now());
     mesh.positions.length = 0;
@@ -248,18 +286,21 @@ export function createRenderer(canvas) {
     const roadPoints = path.points;
     const travelledThisLap = path.travelled;
     const half = 5.5;
+    const wetness = clamp(Number(weather.rain) || 0, 0, 1);
     const edge = (p, off, dy = 0) => [p.x + p.nx * off, p.y + dy, p.z + p.nz * off];
 
     mesh.quad([-900,-2.5,-60],[900,-2.5,-60],[900,-2.5,700],[-900,-2.5,700],[.28,.43,.29]);
     for (let i = 0; i < roadSegments; i++) {
       const a = roadPoints[i], b = roadPoints[i+1];
       const worldSegment = Math.floor(travelledThisLap / segmentLength) + i;
-      const roadTint = worldSegment % 2 ? [.19,.21,.23] : [.22,.24,.26];
+      const baseRoad = worldSegment % 2 ? [.19,.21,.23] : [.22,.24,.26];
+      const roadTint = baseRoad.map((channel,index)=>channel*(1-wetness*.3)+(index===2 ? .32 : .29)*wetness*.3);
       const kerb = i % 2 ? [.88,.85,.78] : [.78,.18,.2];
       // Grass verge follows the road so hills and bends read clearly against the ground plane.
       const grass = worldSegment % 2 ? [.27,.45,.29] : [.31,.5,.32];
-      mesh.quad(edge(a,-half-.42,-.01), edge(a,-half-30,-.02), edge(b,-half-30,-.02), edge(b,-half-.42,-.01), grass);
-      mesh.quad(edge(a,half+.42,-.01), edge(b,half+.42,-.01), edge(b,half+30,-.02), edge(a,half+30,-.02), grass);
+      const wetGrass = grass.map(channel=>channel*(1-wetness*.12));
+      mesh.quad(edge(a,-half-.42,-.01), edge(a,-half-30,-.02), edge(b,-half-30,-.02), edge(b,-half-.42,-.01), wetGrass);
+      mesh.quad(edge(a,half+.42,-.01), edge(b,half+.42,-.01), edge(b,half+30,-.02), edge(a,half+30,-.02), wetGrass);
       mesh.quad(edge(a,-half), edge(a,half), edge(b,half), edge(b,-half), roadTint);
       mesh.quad(edge(a,-half-.42,.025), edge(a,-half,.025), edge(b,-half,.025), edge(b,-half-.42,.025), kerb);
       mesh.quad(edge(a,half,.025), edge(a,half+.42,.025), edge(b,half+.42,.025), edge(b,half,.025), kerb);
@@ -283,7 +324,7 @@ export function createRenderer(canvas) {
           for (let row = 0; row < (touchQuality ? 2 : 3); row++) {
             for (let seat = 0; seat < (touchQuality ? 5 : 9); seat++) {
               const palette = [[.82,.2,.19],[.88,.78,.55],[.16,.3,.48],[.83,.83,.82],[.22,.55,.39]];
-              stand((seat - (touchQuality ? 2 : 4)) * .72, 1.35 + row * .34, (row - 1) * 2.2, .28, .3, .28, palette[(seat + row + i) % palette.length]);
+              stand((seat - (touchQuality ? 2 : 4)) * .72, 1.35 + row * .34 + Math.sin(position * 4563 * .55 + seat * 1.7 + row) * .045, (row - 1) * 2.2, .28, .3, .28, palette[(seat + row + i) % palette.length]);
             }
           }
           stand(0, 2.55, -4.9, 6.25, .12, .22, [.85,.13,.16]);
@@ -322,15 +363,17 @@ export function createRenderer(canvas) {
       const road = pointAt(path, z);
       const lane = driver.currentLane ?? driver.lane ?? 0;
       const pos = lateral(road, lane * 4.0);
-      addCar(mesh, pos[0], road.y, pos[1], .78, hexColor(driver.color), road.h);
+      addCar(mesh, pos[0], road.y, pos[1], .78, hexColor(driver.color), road.h, position * 4563 * .65 + Number(driver.relativeDistance || 0) * .08, Math.sin(position * 4563 + Number(driver.relativeDistance || 0)) * .025);
     }
 
     const playerRoad = pointAt(path, 9);
     const trackCenterX = playerRoad.x;
     const playerWorldX = trackCenterX + playerX * 4.2;
-    const suspensionBob = running ? Math.sin(position * 4563 * .72) * Math.min(.075, speed / 330 * .075) : 0;
-    const carYaw = clamp(driftAngle, -.9, .9);
-    addCar(mesh, playerWorldX, playerRoad.y + suspensionBob, 9, 1, offRoad ? [.72,.25,.12] : hexColor(playerColor), carYaw);
+    const suspensionBob = running ? Math.sin(position * 4563 * .72) * Math.min(.11, speed / 330 * .11) : 0;
+    const suspensionTravel = running ? Math.sin(position * 4563 * 1.9) * .035 + Math.abs(lateralVelocity) * .018 : 0;
+    const carYaw = clamp(driftAngle + lateralVelocity * .012, -.9, .9);
+    mesh.quad([playerWorldX-1.35,playerRoad.y+.035,6.7],[playerWorldX+1.35,playerRoad.y+.035,6.7],[playerWorldX+1.35,playerRoad.y+.035,11.5],[playerWorldX-1.35,playerRoad.y+.035,11.5],[.055,.06,.065]);
+    addCar(mesh, playerWorldX, playerRoad.y + suspensionBob, 9, 1, offRoad ? [.72,.25,.12] : hexColor(playerColor), carYaw, position * 4563 * .65, suspensionTravel);
 
     // Rubber trails appear behind the rear tyres when lateral grip is being used.
     if (running && (Math.abs(lateralVelocity) > .48 || Math.abs(driftAngle) > .1)) {
@@ -369,14 +412,17 @@ export function createRenderer(canvas) {
     cameraX += (followTargetX - cameraX) * followEase;
     cameraHeight += (followTargetY - cameraHeight) * followEase;
     const lookAhead = pointAt(path, 48);
-    const eye = [cameraX + cameraShake * .012, cameraHeight, -8];
-    const target = [cameraX + (playerWorldX - cameraX) * .42 + (lookAhead.x - trackCenterX) * .55 + carYaw * 7, playerRoad.y + 1.15 + (lookAhead.y - playerRoad.y) * .35, 33];
+    const cameraLean = clamp(lateralVelocity * .018 + carYaw * .16, -.42, .42);
+    const finishLift = finished ? .8 : 0;
+    const eye = [cameraX + cameraShake * .012 + cameraLean * 2.4, cameraHeight + finishLift, -8];
+    const target = [cameraX + (playerWorldX - cameraX) * .42 + (lookAhead.x - trackCenterX) * .55 + carYaw * 7 + cameraLean * 4, playerRoad.y + 1.15 + (lookAhead.y - playerRoad.y) * .35 + finishLift * .3, finished ? 40 : 33];
     const view = lookAt(eye, target, [0,1,0]);
     const viewProjection = multiply(projection, view);
 
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
-    gl.clearColor(.43,.59,.68,1);
+    const cloud=clamp((weather.current==='cloudy' ? .24 : 0)+wetness*.52,0,.72);
+    gl.clearColor(.43*(1-cloud)+.34*cloud,.59*(1-cloud)+.43*cloud,.68*(1-cloud)+.49*cloud,1);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.useProgram(program);
     gl.uniformMatrix4fv(matrixLocation, false, viewProjection);
