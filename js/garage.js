@@ -89,9 +89,13 @@ export function createGarage(storage = (() => { try { return globalThis.localSto
     if (!/^#[0-9a-f]{6}$/i.test(color)) return false;
     state.livery = color; save(); return true;
   }
+  function addCredits(amount) {
+    const reward=Math.max(0,Math.min(100000,Math.floor(Number(amount)||0)));
+    state.credits+=reward;save();return reward;
+  }
   function awardCredits(position) {
     const reward = [1200,850,650,500,400,300][clamp(position - 1,0,5)] || 300;
     state.credits += reward; save(); return reward;
   }
-  return { getState, getCar, selectCar, purchaseCar, upgrade, setSetup, setLivery, awardCredits };
+  return { getState, getCar, selectCar, purchaseCar, upgrade, setSetup, setLivery, addCredits, awardCredits };
 }
