@@ -1323,3 +1323,13 @@ button,select,input{touch-action:manipulation}
 /* Game version stamp — persistent, unobtrusive release identifier. */
 .race-bottom .game-version{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;padding:3px 6px;border:1px solid #ffffff30;border-radius:3px;color:#d9e7f0;font:700 8px var(--mono);letter-spacing:.1em;white-space:nowrap;}
 @media(max-width:760px){.race-bottom .game-version{display:inline-flex!important;font-size:7px;margin-left:auto;padding:2px 5px;}}
+
+
+/* MILESTONE 26 — cinematic presentation and responsive version stamp */
+.race-bottom .game-version{position:relative;z-index:1;text-shadow:0 0 10px #8fd7ff35;transition:color .25s,border-color .25s}
+.race-bottom .game-version:hover{color:#fff;border-color:#ff5362}
+.countdown.active .start-light-panel{animation:start-lights-in .45s cubic-bezier(.2,.8,.2,1) both}
+.countdown.active .countdown-go{animation:go-flash .42s ease-out both}
+@keyframes start-lights-in{from{opacity:0;transform:translateY(16px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes go-flash{0%{opacity:0;transform:scale(.78)}65%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.countdown.active .start-light-panel,.countdown.active .countdown-go{animation:none}}
