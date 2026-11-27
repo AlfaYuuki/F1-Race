@@ -119,7 +119,7 @@ export function createImmersionEffects(canvas) {
     particles=particles.filter(p=>p.life>0);
     for(const p of particles){
       p.life-=step;p.x+=p.vx*step;p.y+=p.vy*step;p.vy+=p.kind==='spark'?150:8;
-      ctx.globalAlpha=Math.max(0,p.life/p.max)*(p.kind==='spark'?.9:.28);
+      ctx.globalAlpha=Math.max(0,p.life/p.max)*(p.kind==='spark' ? .9 : .28);
       ctx.fillStyle=p.kind==='spark'?'#ffd78a':'#d7dce0';
       ctx.beginPath();ctx.arc(p.x,p.y,p.size*(p.kind==='smoke'?1+(1-p.life)*.5:1),0,Math.PI*2);ctx.fill();
     }
