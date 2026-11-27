@@ -1318,3 +1318,8 @@ button,select,input{touch-action:manipulation}
 .race-setup-choices .grid-choice{min-width:0;margin:0;padding:8px 9px;gap:6px;font-size:7px}
 .race-setup-choices .grid-choice select{min-width:0;width:auto;max-width:100%;padding:6px 7px;font-size:9px}
 @media(max-width:430px){.race-setup-choices{gap:6px}.race-setup-choices .grid-choice{padding:7px 6px;font-size:6px}.race-setup-choices .grid-choice select{padding:6px 5px;font-size:8px}}
+
+
+/* Game version stamp — persistent, unobtrusive release identifier. */
+.race-bottom .game-version{display:inline-flex;align-items:center;justify-content:center;margin-left:auto;padding:3px 6px;border:1px solid #ffffff30;border-radius:3px;color:#d9e7f0;font:700 8px var(--mono);letter-spacing:.1em;white-space:nowrap;}
+@media(max-width:760px){.race-bottom .game-version{display:inline-flex!important;font-size:7px;margin-left:auto;padding:2px 5px;}}
