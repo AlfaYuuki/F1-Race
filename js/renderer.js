@@ -430,5 +430,5 @@ export function createRenderer(canvas) {
   canvas.addEventListener('webglcontextrestored', () => { window.location.reload(); });
   window.addEventListener('resize', resize, { passive: true });
   resize();
-  return { render, resize, triggerImpact, mode: 'webgl-3d' };
+  return { render, resize, triggerImpact, resetEffects: graphicsEffects.reset, mode: 'webgl-3d' };
 }
