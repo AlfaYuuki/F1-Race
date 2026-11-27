@@ -28,10 +28,10 @@ for (const file of modules) {
     if (match[1].startsWith('.')) await access(resolve(dirname(path), match[1]));
   }
 }
-if (!html.includes('V1.27.0') || !html.includes('major version 1, milestone 27, sub-milestone 0')) throw new Error('In-game semantic version label is missing or invalid.');
+if (!html.includes('V1.28.0') || !html.includes('major version 1, milestone 28, sub-milestone 0')) throw new Error('In-game semantic version label is missing or invalid.');
 const serviceWorker = await readFile(resolve(root, 'sw.js'), 'utf8');
 const pwa = await readFile(resolve(root, 'js/pwa.js'), 'utf8');
-if (!serviceWorker.includes("const CACHE_NAME = 'the-f1-race-shell-v39'")) {
+if (!serviceWorker.includes("const CACHE_NAME = 'the-f1-race-shell-v40'")) {
   throw new Error('Service worker cache version is missing or invalid.');
 }
 if (!serviceWorker.includes("'./js/race-start.js'")) { throw new Error('The race start gate module is missing from the PWA app shell.'); }
