@@ -426,7 +426,7 @@ document.querySelector('#weekend-session-buttons').addEventListener('click', eve
   gridPositionSelect.value = String(config.gridPosition);
   startScreen.classList.add('hidden');
   document.querySelector('#race-message').textContent = `ROUND ${weekend.getState().round} · ${config.label}`;
-  game.start(config.gridPosition, config);
+  game.start(config.gridPosition, { ...config, type:config.id });
 });
 document.querySelector('#weekend-new').addEventListener('click', () => {
   weekend.startNewWeekend();
