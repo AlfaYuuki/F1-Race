@@ -51,7 +51,9 @@ export function createCareer(storage = storageOrNull()) {
       parsed.completed===(parsed.round===ROUNDS) &&
       Array.isArray(parsed.results) && parsed.results.length===parsed.round &&
       parsed.results.every((r,i)=>r && r.round===i+1 && Number.isInteger(r.position) && r.position>=1 && r.position<=20 &&
-        Array.isArray(r.order) && r.order.every(d=>d && typeof d.id==='string' && typeof d.name==='string') &&\n        (r.rewardCredits===undefined || (Number.isInteger(r.rewardCredits)&&r.rewardCredits>=0)) &&\n        (r.bestLapMs===null || r.bestLapMs===undefined || (Number.isFinite(r.bestLapMs)&&r.bestLapMs>0))) &&
+        Array.isArray(r.order) && r.order.every(d=>d && typeof d.id==='string' && typeof d.name==='string') &&
+        (r.rewardCredits===undefined || (Number.isInteger(r.rewardCredits)&&r.rewardCredits>=0)) &&
+        (r.bestLapMs===null || r.bestLapMs===undefined || (Number.isFinite(r.bestLapMs)&&r.bestLapMs>0))) &&
       Array.isArray(parsed.standings) && parsed.standings.length===DRIVERS.length &&
       parsed.standings.every(d=>d && typeof d.id==='string' && typeof d.name==='string' && Number.isFinite(d.points) && d.points>=0) &&
       new Set(parsed.standings.map(d=>d.id)).size===DRIVERS.length &&
