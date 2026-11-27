@@ -24,7 +24,7 @@ export function createGame(canvas,callbacks={}) {
   function setInput(action,active){if(!raceStartGate.acceptsInput()&&active)return;active?input.add(action):input.delete(action);}
   function setSteerAxis(value){if(!raceStartGate.acceptsInput()){steerAxis=0;return;}steerAxis=Number.isFinite(value)?Math.max(-1,Math.min(1,value)):0;}
   function requestPit(compound='MEDIUM',fuelTarget=100,repair=true){
-    if(state!=='running'||pitPhase||physics.pitStops>=3)return false;
+    if(state!=='running'||pitPhase||(physics.pitStops>=3&&!raceControl.getState().driveThroughPending))return false;
     const allowed=['SOFT','MEDIUM','HARD','INTER'];
     pitPlan={compound:allowed.includes(compound)?compound:'MEDIUM',fuelTarget:Math.max(20,Math.min(100,Number(fuelTarget)||100)),repair:repair!==false};
     pitPhase='entry';pitTimer=1.6;input.clear();steerAxis=0;
