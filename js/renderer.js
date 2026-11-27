@@ -402,10 +402,9 @@ export function createRenderer(canvas) {
     // It leans into bends, looks ahead along the road and swings with a drift.
     const aspect = canvas.width / canvas.height;
     const camera = cameraProfile({speed,driftAngle,lateralVelocity,offRoad,impact:impactFlash});
-    const baseFov = aspect < .8 ? 1.08 : camera.fov;
-    const speedFov = clamp(speed / 330, 0, 1) * .12;
+    const baseFov = camera.fov + (aspect < .8 ? .12 : 0);
     const cinematic = raceState==='finished' ? -.09 : raceState==='countdown' ? -.045 : 0;
-    const projection = perspective(baseFov + speedFov + cinematic, aspect, .1, 1000);
+    const projection = perspective(baseFov + cinematic, aspect, .1, 1000);
     const followTargetX = trackCenterX + playerX * 1.35 + camera.lateral;
     const followTargetY = playerRoad.y + camera.height + clamp(speedDelta / 180, -1, 1) * -.12;
     const followEase = 1 - Math.exp(-Math.max(.001, dt) * (impactFlash>.1?7:4.2));
