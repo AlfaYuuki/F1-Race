@@ -363,12 +363,19 @@ export function createRenderer(canvas) {
     // Distant mountains sit in a fixed backdrop but slide against the road heading,
     // which sells the sensation of the whole circuit turning.
     const farHeading = roadPoints[Math.min(roadSegments, 60)].h;
-    // Slow-moving clouds (cheap flat boxes) — drift with time and slide against the road heading.
-    for (let cloud = 0; cloud < (touchQuality ? 3 : 6); cloud++) {
-      const drift = ((elapsed * .0012 + cloud * 83) % 520) - 260;
-      const cx = drift - farHeading * 120, cy = 78 + (cloud % 3) * 14, cz = 430 + (cloud % 2) * 70;
-      mesh.box(cx, cy, cz, 52 + (cloud % 3) * 14, 7, 14, [.95, .97, .98]);
-      mesh.box(cx + 9, cy + 7, cz, 30, 6, 10, [.98, .99, 1]);
+    // Drifting clouds: driven by wall-clock time so they move on the menu and while racing,
+    // wrap around the sky, and slide against the road heading.
+    const skyClock = performance.now() / 1000;
+    const cloudCount = touchQuality ? 6 : 9;
+    for (let cloud = 0; cloud < cloudCount; cloud++) {
+      const speedX = 9 + (cloud % 3) * 4;                       // metres per second across the sky
+      const span = 700;
+      const cx = ((skyClock * speedX + cloud * (span / cloudCount) * 1.37) % span) - span / 2 - farHeading * 120;
+      const cy = 34 + (cloud % 4) * 14, cz = 330 + (cloud % 3) * 60;
+      const w = 48 + (cloud % 3) * 16;
+      mesh.box(cx, cy, cz, w, 7, 15, [1, 1, 1]);
+      mesh.box(cx + w * .22, cy + 6, cz + 1, w * .55, 7, 11, [.985, .99, 1]);
+      mesh.box(cx - w * .3, cy + 3, cz - 1, w * .4, 5, 9, [.94, .96, .975]);
     }
     mesh.mountain(470, 48 - farHeading * 160, 86, 86);
     mesh.mountain(500, -95 - farHeading * 160, 65, 54);

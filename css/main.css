@@ -1430,3 +1430,28 @@ button,select,input{touch-action:manipulation}
   .is-warning,.standings li.row-gain,.standings li.row-loss,.pit-button.is-suggested,.start-card,.start-button:hover:after{animation:none!important}
   #speed-bar,#rpm-bar,#fuel-bar,#tyre-bar,#throttle-bar,#brake-bar{transition:none}
 }
+
+
+/* Reduced-motion users (including phones with "Remove animations" / battery saver on) still get
+   feedback — as colour, glow and opacity changes with NO movement, scaling or endless blinking. */
+@keyframes soft-pos-up{0%{color:#5ee6a1;text-shadow:0 0 14px #5ee6a1}100%{text-shadow:none}}
+@keyframes soft-pos-down{0%{color:#ff6b78;text-shadow:0 0 14px #ff6b78}100%{text-shadow:none}}
+@keyframes soft-glow{0%{filter:brightness(1.8);text-shadow:0 0 12px #fff8}100%{filter:none;text-shadow:none}}
+@keyframes soft-best{0%{color:#c985ff;text-shadow:0 0 16px #c985ff}70%{color:#c985ff}100%{text-shadow:none}}
+@keyframes soft-fade{0%{opacity:0}100%{opacity:1}}
+@keyframes soft-row-gain{0%{background:#5ee6a166}100%{background:transparent}}
+@keyframes soft-row-loss{0%{background:#ff6b7866}100%{background:transparent}}
+@keyframes soft-halo{0%,100%{box-shadow:0 0 0 0 #ff3a4d00}50%{box-shadow:0 0 0 4px #ff3a4d88}}
+@media(prefers-reduced-motion:reduce){
+  .pos-up{animation:soft-pos-up 1s ease-out!important}
+  .pos-down{animation:soft-pos-down 1s ease-out!important}
+  .gear-pop,.lap-flash{animation:soft-glow .5s ease-out!important}
+  .lap-best{animation:soft-best 1.4s ease-out!important}
+  .msg-in,.engineer-panel.alert-in{animation:soft-fade .3s ease-out!important}
+  .standings li.row-gain{animation:soft-row-gain 1.2s ease-out!important}
+  .standings li.row-loss{animation:soft-row-loss 1.2s ease-out!important}
+  .pit-button.is-suggested:not(:disabled){animation:soft-halo 2.4s ease-in-out 3!important}
+  .is-warning{animation:none!important;color:#ff8792!important;text-shadow:0 0 8px #ff8792aa}
+  .engineer-panel[data-level="critical"]{animation:none!important;box-shadow:0 8px 24px #0006,0 0 0 2px #f0445588}
+  #speed-bar,#rpm-bar,#fuel-bar,#tyre-bar,#throttle-bar,#brake-bar{transition:width .12s linear}
+}
