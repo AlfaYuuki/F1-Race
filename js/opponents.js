@@ -163,7 +163,7 @@ export function createOpponents(lapDistance=4563) {
       const wearPenalty=driver.tireWear*.13;
       const pressurePenalty=driver.pressure*(1-driver.personality.consistency)*2.2;
       const safePace=weather.redFlag?0:weather.doubleYellow?80:weather.vsc?140:weather.safetyCar?110:weather.yellowFlag?170:285;
-      let targetSpeed=clamp(driver.pace+rhythm+draftBonus-cornerPenalty-surfacePenalty-wetPenalty-wearPenalty-pressurePenalty,125,safePace);
+      let targetSpeed=clamp(driver.pace+rhythm+draftBonus-cornerPenalty-surfacePenalty-wetPenalty-wearPenalty-pressurePenalty,Math.min(125,safePace),safePace);
 
       // Deterministic, infrequent pressure errors: no random frame-to-frame jitter.
       const phase=Math.floor(driver.distance/95)+driver.id.length*17;
