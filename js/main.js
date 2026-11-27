@@ -6,6 +6,7 @@ import { createGarage, CARS } from './garage.js';
 import { createDataManager } from './data-manager.js';
 import { createRaceEngineer } from './race-engineer.js';
 import { createRaceWeekend } from './race-weekend.js';
+import { createCareer } from './career.js';
 import { LAP_DISTANCE, TOTAL_LAPS, normalizeRaceLaps } from './track.js';
 import { PLATFORMS, detectPlatform, loadSettings, saveSetting, controlHint } from './platform.js';
 import { formatGap } from './timing.js';
@@ -15,6 +16,7 @@ const leaderboard = document.querySelector('#leaderboard-list');
 const startScreen = document.querySelector('#start-screen');
 const startButton = document.querySelector('#start-button');
 const championshipButton = document.querySelector('#championship-button');
+const careerButton = document.querySelector('#career-button');
 const championshipSummary = document.querySelector('#championship-summary');
 const audioButton = document.querySelector('#audio-button');
 const gridPositionSelect = document.querySelector('#grid-position');
@@ -33,6 +35,8 @@ const garage = createGarage();
 const dataManager = createDataManager();
 const raceEngineer = createRaceEngineer();
 const weekend = createRaceWeekend();
+const career = createCareer();
+let careerModeActive = false;
 let activeWeekendSession = null;
 let finishedSessionType = null;
 let raceRewardRecorded = false;
@@ -69,6 +73,38 @@ function renderChampionshipSummary() {
     season.round > 0 ? 'NEXT CHAMPIONSHIP ROUND ↗' : 'START CHAMPIONSHIP 🏆';
 }
 
+
+function renderCareer() {
+  const state=career.getState();
+  document.querySelector('#career-team').textContent=state.active?state.team:'NO TEAM SIGNED';
+  document.querySelector('#career-round').textContent=state.completed?'SEASON COMPLETE':state.active? `ROUND ${state.round+1}/${career.rounds}`:'10-ROUND CHAMPIONSHIP';
+  document.querySelector('#career-starts').textContent=state.stats.starts;
+  document.querySelector('#career-wins').textContent=state.stats.wins;
+  document.querySelector('#career-podiums').textContent=state.stats.podiums;
+  document.querySelector('#career-points').textContent=state.stats.points;
+  const objectives=document.querySelector('#career-objectives');
+  objectives.innerHTML=state.objectives.length?state.objectives.map(o=>`<p class="${o.done?'done':''}"><b>${o.done?'✓':'○'}</b> ${escapeHtml(o.title)}</p>`).join(''):'<p>Complete a Grand Prix to receive your team objectives.</p>';
+  document.querySelector('#career-standings').innerHTML=state.standings.map((d,i)=>`<li class="${d.id==='player'?'player':''}"><span>${i+1}. ${escapeHtml(d.name)}</span><b>${d.points} PTS</b></li>`).join('');
+  const bestLap=state.stats.bestLapMs?((state.stats.bestLapMs/1000).toFixed(3)+'s'):'—';
+  document.querySelector('#career-record-summary').textContent=state.stats.starts
+    ? `BEST FINISH P${state.stats.bestFinish} · PERSONAL BEST LAP ${bestLap} · ${state.round} / ${career.rounds} ROUNDS`
+    :'No Grand Prix completed yet.';
+  document.querySelector('#career-achievement-list').innerHTML=career.achievements.map(a=>{
+    const unlocked=state.achievements.includes(a.id);
+    return `<span class="career-achievement ${unlocked?'unlocked':'locked'}" title="${escapeHtml(a.detail)}">${unlocked?'🏆':'◇'} ${escapeHtml(a.title)}</span>`;
+  }).join('')||'<p>Achievements will appear here as you progress.</p>';
+  document.querySelector('#career-feedback').textContent=state.completed
+    ? (state.standings[0].id==='player'?'CAREER CHAMPION — TITLE SECURED':'SEASON COMPLETE — REVIEW YOUR RECORDS')
+    : state.active?'Team contract active · Complete the race weekend to progress.':'Sign a team contract and start your first race weekend.';
+  document.querySelector('#career-enter').textContent=state.active&&!state.completed?'ENTER CAREER WEEKEND':'START DRIVER CAREER';
+}
+function openCareer() {
+  if(game.getState()==='running') game.togglePause();
+  controls?.releaseAll();
+  renderCareer();
+  document.querySelector('#career-screen').hidden=false;
+}
+function closeCareer(){document.querySelector('#career-screen').hidden=true;}
 
 function renderWeekendPanel() {
   const state = weekend.getState();
@@ -301,6 +337,7 @@ const game = createGame(canvas, {
     }
   },
   onFinish: result => {
+    const completedWeekendSession=activeWeekendSession;
     finishedSessionType = result.sessionType;
     if (activeWeekendSession) {
       const recorded = weekend.recordResult(activeWeekendSession, {
@@ -319,6 +356,13 @@ const game = createGame(canvas, {
       }
       activeWeekendSession = null;
       renderWeekendPanel();
+    }
+    if (careerModeActive && completedWeekendSession === 'race') {
+      const outcome=career.recordRace(result.standings,result.bestLapMs);
+      careerModeActive=false;
+      if(outcome.ok) document.querySelector('#race-message').textContent=
+        `CAREER ROUND ${outcome.state.round} COMPLETE · P${outcome.result.position} · ${outcome.state.stats.points} PTS`;
+      renderCareer();
     }
   },
   onSector: ({sector,time}) => { const alert=raceEngineer.recordSector({sector,time,now:performance.now()}); if(alert)showEngineerAlert(alert); },
@@ -390,6 +434,7 @@ document.querySelector('#weekend-new').addEventListener('click', () => {
 });
 
 startButton.addEventListener('click', () => {
+  careerModeActive = false;
   championshipActive = false;
   activeWeekendSession = null;
   finishedSessionType = null;
@@ -398,6 +443,7 @@ startButton.addEventListener('click', () => {
   game.start(Number(gridPositionSelect.value), { type:'race', laps:normalizeRaceLaps(quickRaceLapsSelect.value, 10) });
 });
 championshipButton.addEventListener('click', () => {
+  careerModeActive = false;
   let season = championship.getState();
   if (!season.hasSeason || season.completed) season = championship.startNewSeason();
   championshipActive = true;
@@ -471,6 +517,22 @@ document.querySelector('#data-delete').addEventListener('click',()=>{
   window.alert('All F1 Race save data has been deleted. The game will now reload with a fresh save.');
   window.location.reload();
 });
+careerButton.addEventListener('click',openCareer);
+document.querySelector('#career-close').addEventListener('click',closeCareer);
+document.querySelector('#career-enter').addEventListener('click',()=>{
+  let state=career.getState();
+  if(!state.active||state.completed) state=career.start();
+  careerModeActive=true;
+  closeCareer();
+  document.querySelector('#race-message').textContent=`CAREER SEASON · ROUND ${state.round+1} OF ${career.rounds} · ${state.team}`;
+  renderCareer();
+});
+document.querySelector('#career-reset').addEventListener('click',()=>{
+  if(!window.confirm('Start a new driver career? Your current career records and achievements will be replaced.'))return;
+  career.start();
+  careerModeActive=true;
+  renderCareer();
+});
 document.querySelector('#garage-open').addEventListener('click', openGarage);
 document.querySelector('#garage-close').addEventListener('click', closeGarage);
 document.querySelector('#garage-screen').addEventListener('click', event => {
@@ -520,6 +582,7 @@ tiltInvertToggle.addEventListener('change', () => {
 
 renderChampionshipSummary();
 renderWeekendPanel();
+renderCareer();
 renderGarage();
 game.init();
 applyPlatform();
