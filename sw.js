@@ -1,9 +1,9 @@
-const CACHE_NAME = 'the-f1-race-shell-v40';
+const CACHE_NAME = 'the-f1-race-shell-v41';
 const APP_SHELL = [
   './', './index.html', './manifest.webmanifest',
   './assets/favicon.png', './assets/icon.png',
   './css/main.css',
-  './js/main.js', './js/pwa.js', './js/game.js', './js/collision.js', './js/race-start.js', './js/controls.js',
+  './js/main.js', './js/pwa.js', './js/game.js', './js/race-control.js', './js/collision.js', './js/race-start.js', './js/controls.js',
   './js/platform.js', './js/audio.js', './js/championship.js', './js/career.js',
   './js/physics.js', './js/opponents.js', './js/renderer.js', './js/road-path.js',
   './js/renderer2d.js', './js/ai-personalities.js', './js/timing.js', './js/track.js', './js/garage.js', './js/weather.js', './js/data-manager.js', './js/race-engineer.js', './js/race-weekend.js', './js/pit-strategy.js', './js/track-evolution.js', './js/graphics-effects.js'
