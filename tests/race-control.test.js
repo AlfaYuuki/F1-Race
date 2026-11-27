@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createRaceControl } from '../js/race-control.js';
 import { createOpponents } from '../js/opponents.js';
-import { LAP_DISTANCE } from '../js/track.js';
+import { LAP_DISTANCE } from '../js/track.js';\nimport { createPhysics } from '../js/physics.js';
 
 test('race-control flags expose distinct speed limits and restart cleanly',()=>{
   const rc=createRaceControl();rc.start();
@@ -62,3 +62,4 @@ test('AI race-control obedience applies neutralisation limits and red-flag stop'
   assert.equal(driver.speed,0);
   assert.equal(driver.distance,before);
 });
+\ntest('green-flag physics remains unrestricted when no regulatory cap is active',()=>{\n  const physics=createPhysics();\n  physics.update(.1,new Set(['accelerate']),0,0,{raceControlSpeedLimit:null});\n  assert.ok(physics.speed>0);\n});\n
