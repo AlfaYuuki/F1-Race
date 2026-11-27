@@ -1342,3 +1342,40 @@ button,select,input{touch-action:manipulation}
 @keyframes start-lights-in{from{opacity:0;transform:translateY(16px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes go-flash{0%{opacity:0;transform:scale(.78)}65%{opacity:1;transform:scale(1.08)}100%{opacity:1;transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){.countdown.active .start-light-panel,.countdown.active .countdown-go{animation:none}}
+
+/* MILESTONE 27 — Driver Career dashboard */
+.career-screen{position:fixed;inset:0;z-index:80;display:grid;place-items:center;padding:18px;background:#020812d9;backdrop-filter:blur(12px)}
+.career-screen[hidden]{display:none}
+.career-panel{width:min(760px,100%);max-height:min(92dvh,900px);overflow:auto;padding:22px;border:1px solid #dcebf438;border-radius:10px;background:linear-gradient(145deg,#0d2030,#07111d 72%);color:#edf4f8;box-shadow:0 24px 80px #000a}
+.career-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.career-heading h2{margin:3px 0 14px;font:800 clamp(22px,4vw,32px) var(--display);letter-spacing:.06em}
+.career-heading button{width:36px;height:36px;border:1px solid #dcebf433;border-radius:5px;background:#132b3d;color:#fff}
+.career-identity{display:flex;justify-content:space-between;gap:12px;padding:12px;border:1px solid #ed4a5548;border-radius:6px;background:#ed354817;font:700 10px var(--mono);letter-spacing:.1em}
+.career-identity span{color:#a9bdcb;text-align:right}
+.career-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}
+.career-stats>div{display:grid;gap:5px;padding:12px;border:1px solid #dcebf421;border-radius:5px;background:#102638}
+.career-stats small,.career-panel h3{color:#9bb1c1;font:700 8px var(--mono);letter-spacing:.13em}
+.career-stats b{font:800 23px var(--mono);font-variant-numeric:tabular-nums}
+.career-columns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.career-columns>section,.career-records,.career-achievements{min-width:0;padding:12px;border:1px solid #dcebf421;border-radius:6px;background:#091a28}
+.career-panel h3{margin:0 0 10px}
+.career-objectives p{display:flex;gap:8px;margin:7px 0;color:#b8c8d3;font:700 9px var(--mono)}
+.career-objectives p.done{color:#85e0b5}.career-objectives p b{color:#f2c66d}
+.career-standings{margin:0;padding:0;list-style:none}
+.career-standings li{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid #dcebf414;color:#b8c8d3;font:8px var(--mono)}
+.career-standings li.player{color:#fff}.career-standings li b{white-space:nowrap}
+.career-records,.career-achievements{margin-top:12px}
+.career-records p,.career-feedback{color:#c2d0d9;font:9px var(--mono);line-height:1.6}
+.career-achievement-list{display:flex;flex-wrap:wrap;gap:6px}
+.career-achievement{padding:6px 8px;border:1px solid #dcebf426;border-radius:4px;font:700 8px var(--mono)}
+.career-achievement.unlocked{border-color:#d7b35d88;background:#9b70201f;color:#f4d58d}
+.career-achievement.locked{color:#718697;opacity:.65}
+.career-actions{display:flex;gap:8px;margin-top:12px}
+.career-actions button{flex:1;min-height:40px;border:1px solid #dcebf433;border-radius:5px;background:#142b3c;color:#e8f1f6;font:700 9px var(--mono);letter-spacing:.08em}
+.career-actions .career-primary{border-color:#f04b57;background:linear-gradient(110deg,#a92635,#70202d);color:white}
+@media(max-width:560px){.career-screen{padding:8px}.career-panel{padding:14px;max-height:96dvh}.career-stats{gap:5px}.career-stats>div{padding:8px}.career-stats b{font-size:18px}.career-columns{grid-template-columns:1fr}.career-actions{flex-direction:column}.career-identity{font-size:8px}}
+@media(prefers-reduced-motion:reduce){.career-screen{backdrop-filter:none}}
+
+.career-history{display:grid;gap:5px;margin:0;padding:0;list-style:none}
+.career-history li{display:grid;grid-template-columns:1fr auto auto;gap:12px;padding:6px 0;border-bottom:1px solid #dcebf414;color:#c2d0d9;font:8px var(--mono)}
+.career-history b{font-variant-numeric:tabular-nums}.career-history em{color:#f0cb7c;font-style:normal}

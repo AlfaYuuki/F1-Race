@@ -143,3 +143,23 @@ test('legacy partial garage saves are normalized before backup export', () => {
   assert.equal(restored.setup.aero, 70);
   assert.equal(restored.setup.suspension, 50);
 });
+
+
+test('save manager backs up and restores driver career progression', async () => {
+  const { createCareer } = await import('../js/career.js');
+  const storage = memoryStorage();
+  const career = createCareer(storage);
+  career.start('FUJI RACING', 'ALFA');
+  career.recordRace([
+    { id: 'player', name: 'ALFA' },
+    { id: 'sato', name: 'K. SATO' }
+  ], 91234);
+  const backup = createDataManager(storage).createBackup();
+  assert.ok(Object.hasOwn(backup.data, 'the-f1-race-career-v1'));
+  const target = memoryStorage();
+  assert.deepEqual(createDataManager(target).restoreBackup(backup), { ok: true });
+  const restored = createCareer(target).getState();
+  assert.equal(restored.round, 1);
+  assert.equal(restored.team, 'FUJI RACING');
+  assert.equal(restored.stats.starts, 1);
+});

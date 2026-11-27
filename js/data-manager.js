@@ -2,6 +2,7 @@ export const DATA_KEYS = Object.freeze([
   'the-f1-race-garage-v1',
   'the-f1-race-championship-v1',
   'the-f1-race-weekend-v1',
+  'the-f1-race-career-v1',
   'f1race.platform',
   'f1race.tilt',
   'f1race.tiltInvert'
@@ -75,6 +76,27 @@ function validateWeekend(raw) {
     completed.includes('qualifying');
 }
 
+function validateCareer(raw) {
+  let value;
+  try { value = JSON.parse(raw); } catch { return false; }
+  const stats=value?.stats, results=value?.results, standings=value?.standings;
+  if (!isObject(value) || typeof value.active!=='boolean' ||
+      !Number.isInteger(value.round) || value.round<0 || value.round>10 ||
+      value.completed!==(value.round===10) || !Array.isArray(results) || results.length!==value.round ||
+      !Array.isArray(standings) || standings.length!==6 || !isObject(stats) ||
+      !Array.isArray(value.objectives) || !Array.isArray(value.achievements)) return false;
+  const validDriver=d=>isObject(d)&&typeof d.id==='string'&&typeof d.name==='string'&&Number.isFinite(d.points)&&d.points>=0;
+  return standings.every(validDriver)&&new Set(standings.map(d=>d.id)).size===6&&standings.some(d=>d.id==='player')&&
+    results.every((r,i)=>isObject(r)&&r.round===i+1&&Number.isInteger(r.position)&&r.position>=1&&r.position<=20&&
+      Array.isArray(r.order)&&r.order.every(d=>isObject(d)&&typeof d.id==='string'&&typeof d.name==='string')&&
+      (r.rewardCredits===undefined||(Number.isInteger(r.rewardCredits)&&r.rewardCredits>=0))&&
+      (r.bestLapMs===null||r.bestLapMs===undefined||(Number.isFinite(r.bestLapMs)&&r.bestLapMs>0)))&&
+    ['starts','wins','podiums','points'].every(k=>Number.isInteger(stats[k])&&stats[k]>=0)&&
+    (stats.bestFinish===null||Number.isInteger(stats.bestFinish))&&
+    (stats.bestLapMs===null||(Number.isFinite(stats.bestLapMs)&&stats.bestLapMs>0))&&
+    typeof value.team==='string'&&typeof value.driverName==='string';
+}
+
 function validateEntries(entries) {
   if (!isObject(entries)) return false;
   if (Object.keys(entries).some(key => !DATA_KEYS.includes(key))) return false;
@@ -83,6 +105,7 @@ function validateEntries(entries) {
     if (key === 'the-f1-race-garage-v1' && !validateGarage(raw)) return false;
     if (key === 'the-f1-race-championship-v1' && !validateChampionship(raw)) return false;
     if (key === 'the-f1-race-weekend-v1' && !validateWeekend(raw)) return false;
+    if (key === 'the-f1-race-career-v1' && !validateCareer(raw)) return false;
     if (key === 'f1race.platform' && !['android', 'windows'].includes(raw)) return false;
     if ((key === 'f1race.tilt' || key === 'f1race.tiltInvert') && !['0', '1'].includes(raw)) return false;
   }

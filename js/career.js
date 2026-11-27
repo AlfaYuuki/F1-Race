@@ -30,7 +30,11 @@ function freshCareer() {
     driverName:'YOU', results:[],
     standings:DRIVERS.map(driver=>({...driver,points:0})),
     stats:{ starts:0,wins:0,podiums:0,points:0,bestFinish:null,bestLapMs:null },
-    objectives:[], achievements:[]
+    objectives:[
+      {id:'finish-top-10',title:'FINISH IN THE TOP 10',done:false,round:1},
+      {id:'beat-sato',title:'BEAT RIVAL K. SATO',done:false,round:1},
+      {id:'score-points',title:'SCORE CHAMPIONSHIP POINTS',done:false,round:1}
+    ], achievements:[]
   };
 }
 
@@ -47,7 +51,9 @@ export function createCareer(storage = storageOrNull()) {
       parsed.completed===(parsed.round===ROUNDS) &&
       Array.isArray(parsed.results) && parsed.results.length===parsed.round &&
       parsed.results.every((r,i)=>r && r.round===i+1 && Number.isInteger(r.position) && r.position>=1 && r.position<=20 &&
-        Array.isArray(r.order) && r.order.every(d=>d && typeof d.id==='string' && typeof d.name==='string')) &&
+        Array.isArray(r.order) && r.order.every(d=>d && typeof d.id==='string' && typeof d.name==='string') &&
+        (r.rewardCredits===undefined || (Number.isInteger(r.rewardCredits)&&r.rewardCredits>=0)) &&
+        (r.bestLapMs===null || r.bestLapMs===undefined || (Number.isFinite(r.bestLapMs)&&r.bestLapMs>0))) &&
       Array.isArray(parsed.standings) && parsed.standings.length===DRIVERS.length &&
       parsed.standings.every(d=>d && typeof d.id==='string' && typeof d.name==='string' && Number.isFinite(d.points) && d.points>=0) &&
       new Set(parsed.standings.map(d=>d.id)).size===DRIVERS.length &&
@@ -114,6 +120,7 @@ export function createCareer(storage = storageOrNull()) {
     state.stats.bestFinish=state.stats.bestFinish===null?position:Math.min(state.stats.bestFinish,position);
     if(Number.isFinite(bestLapMs)&&bestLapMs>0) state.stats.bestLapMs=state.stats.bestLapMs===null?bestLapMs:Math.min(state.stats.bestLapMs,bestLapMs);
     state.results.push({round,position,bestLapMs:Number.isFinite(bestLapMs)?bestLapMs:null,order:clean,objectives:objectiveList.map(o=>o.id).filter(id=>objectiveList.find(o=>o.id===id).done)});
+    const previousAchievements=new Set(state.achievements);
     const unlock=id=>{if(!state.achievements.includes(id))state.achievements.push(id);};
     unlock('debut');
     if(position<=6) unlock('points');
@@ -125,8 +132,11 @@ export function createCareer(storage = storageOrNull()) {
     state.standings.sort((a,b)=>b.points-a.points||a.name.localeCompare(b.name));
     state.completed=state.round===ROUNDS;
     if(state.completed&&state.standings[0].id==='player') unlock('champion');
+    const newlyUnlocked=state.achievements.filter(id=>!previousAchievements.has(id));
+    const rewardCredits=newlyUnlocked.length*250;
+    state.results[state.results.length-1].rewardCredits=rewardCredits;
     save();
-    return {ok:true,state:snapshot(),result:state.results[state.results.length-1]};
+    return {ok:true,state:snapshot(),result:state.results[state.results.length-1],newlyUnlocked,rewardCredits};
   }
 
   load();
