@@ -302,6 +302,10 @@ export function createRenderer(canvas) {
       mesh.quad(edge(a,-half-.42,-.01), edge(a,-half-30,-.02), edge(b,-half-30,-.02), edge(b,-half-.42,-.01), wetGrass);
       mesh.quad(edge(a,half+.42,-.01), edge(b,half+.42,-.01), edge(b,half+30,-.02), edge(a,half+30,-.02), wetGrass);
       mesh.quad(edge(a,-half), edge(a,half), edge(b,half), edge(b,-half), roadTint);
+      if (wetness > .08 && i % 4 === 0) {
+        const sheen = .11 + wetness * .2;
+        mesh.quad(edge(a,-half*.62,.04), edge(a,half*.62,.04), edge(b,half*.62,.04), edge(b,-half*.62,.04), [sheen,sheen+.012,sheen+.025]);
+      }
       mesh.quad(edge(a,-half-.42,.025), edge(a,-half,.025), edge(b,-half,.025), edge(b,-half-.42,.025), kerb);
       mesh.quad(edge(a,half,.025), edge(a,half+.42,.025), edge(b,half+.42,.025), edge(b,half,.025), kerb);
       if (worldSegment % 9 === 0) {
@@ -363,6 +367,7 @@ export function createRenderer(canvas) {
       const road = pointAt(path, z);
       const lane = driver.currentLane ?? driver.lane ?? 0;
       const pos = lateral(road, lane * 4.0);
+      mesh.quad([pos[0]-1.05,road.y+.03,z-2.2],[pos[0]+1.05,road.y+.03,z-2.2],[pos[0]+1.05,road.y+.03,z+2.2],[pos[0]-1.05,road.y+.03,z+2.2],[.06,.065,.07]);
       addCar(mesh, pos[0], road.y, pos[1], .78, hexColor(driver.color), road.h, position * 4563 * .65 + Number(driver.relativeDistance || 0) * .08, Math.sin(position * 4563 + Number(driver.relativeDistance || 0)) * .025);
     }
 
