@@ -360,8 +360,15 @@ const game = createGame(canvas, {
     if (careerModeActive && completedWeekendSession === 'race') {
       const outcome=career.recordRace(result.standings,result.bestLapMs);
       careerModeActive=false;
-      if(outcome.ok) document.querySelector('#race-message').textContent=
-        `CAREER ROUND ${outcome.state.round} COMPLETE · P${outcome.result.position} · ${outcome.state.stats.points} PTS`;
+      if(outcome.ok) {
+        if(outcome.rewardCredits) {
+          garage.addCredits(outcome.rewardCredits);
+          renderGarage();
+        }
+        const rewardText=outcome.rewardCredits? ` · ACHIEVEMENT BONUS CR ${outcome.rewardCredits.toLocaleString()}`:'';
+        document.querySelector('#race-message').textContent=
+          `CAREER ROUND ${outcome.state.round} COMPLETE · P${outcome.result.position} · ${outcome.state.stats.points} PTS${rewardText}`;
+      }
       renderCareer();
     }
   },
