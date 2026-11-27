@@ -5,7 +5,7 @@ export function createRaceControl(options={}) {
   const penaltySeconds=Math.max(3,Number(options.penaltySeconds)||5);
   let flag=FLAGS.GREEN,reason='',elapsed=0,neutralisationTimer=0,redResumeTimer=0;
   let warnings=0,penalties=[],events=[],retired=false,retirementReason='',formation=false,restart=false;
-  let lastViolationAt=-Infinity,trackLimitCount=0,driveThroughPending=false,driveThroughServed=false;
+  let lastViolationAt=-Infinity,trackLimitCount=0,driveThroughPending=false,driveThroughServed=false,offTrackLatched=false;
   const emit=(type,message,extra={})=>{const event={type,message,at:elapsed,...extra};events.push(event);return event;};
   function setFlag(next,why='') {
     if(!Object.values(FLAGS).includes(next))return false;
