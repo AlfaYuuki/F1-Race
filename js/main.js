@@ -234,6 +234,8 @@ function hudWrite(kind, selector, value, apply) {
 const setText = (selector, value) => hudWrite('t', selector, value, (el, v) => { el.textContent = v; });
 const setHtml = (selector, value) => hudWrite('h', selector, value, (el, v) => { el.innerHTML = v; });
 const setWidth = (selector, value) => hudWrite('w', selector, typeof value === 'number' ? Math.round(value * 10) / 10 + '%' : value, (el, v) => { el.style.width = v; });
+const setAttr = (selector, name, value) => hudWrite('a' + name, selector, value, (el, v) => { el.setAttribute(name, v); });
+const setHiddenEl = (selector, value) => hudWrite('x', selector, !!value, (el, v) => { el.hidden = v; });
 const setDisabled = (selector, value) => hudWrite('d', selector, !!value, (el, v) => { el.disabled = v; });
 
 // ---- Small UI animation helpers (transform/opacity keyframes defined in CSS) ----
@@ -243,6 +245,27 @@ function retrigger(selector, className) {
   element.classList.remove(className);
   void element.offsetWidth; // restart the CSS animation
   element.classList.add(className);
+}
+let driveThruActive = false;
+// Race control banner: flag state, speed cap, rule reminders and the penalty ledger.
+function updateRaceControlHud(rc, penalties, retired, state) {
+  const seconds = penalties ? penalties.seconds : 0;
+  const pending = penalties ? penalties.pendingDriveThrough : 0;
+  const show = !!rc && state !== 'ready' && (rc.mode !== 'green' || seconds > 0 || pending > 0 || rc.flash > 0 || retired);
+  setHiddenEl('#flag-banner', !show);
+  if (!rc) { setAttr('#flag-overlay', 'data-tone', 'green'); return; }
+  const tone = rc.mode === 'green' && !retired ? 'green' : rc.tone;
+  setAttr('#flag-banner', 'data-tone', tone);
+  setAttr('#flag-overlay', 'data-tone', rc.mode === 'green' ? 'green' : rc.tone);
+  setText('#flag-title', retired ? 'RETIRED' : rc.label);
+  let detail = '';
+  if (retired) detail = retired;
+  else if (rc.red) detail = 'RACE SUSPENDED · PIT LANE CLOSED';
+  else if (rc.restart) detail = 'STANDING RESTART';
+  else if (rc.neutralised) detail = (rc.cap ? 'MAX ' + rc.cap + ' KM/H' : '') + (rc.overtaking ? '' : ' · NO OVERTAKING');
+  else detail = 'RACING';
+  setText('#flag-detail', detail);
+  setText('#flag-penalty', (seconds > 0 ? '+' + seconds + 'S' : '') + (pending ? ' DRIVE-THRU ×' + pending : ''));
 }
 function setFlag(selector, className, on) {
   const element = hudElement(selector);
@@ -271,7 +294,7 @@ function animateHud({ playerPosition, displayGear, lastLap, lastLapMs, bestLapMs
 }
 
 const game = createGame(canvas, {
-  onUpdate: ({ speed, rpm, gear, lap, totalLaps = TOTAL_LAPS, sessionType, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, weather, track, throttle, skid, telemetry = {} }) => {
+  onUpdate: ({ speed, rpm, gear, lap, totalLaps = TOTAL_LAPS, sessionType, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, raceControl, penalties, retired, weather, track, throttle, skid, telemetry = {} }) => {
     const raceOrder = standings || [];
     const playerPosition = raceOrder.length ? raceOrder.findIndex(driver => driver.isPlayer || driver.id === 'player') + 1 : position;
     const displayGear = speed < 8 ? 'N' : gear;
@@ -326,8 +349,11 @@ const game = createGame(canvas, {
       setText('#tyre-temp-value', Math.round(Number(live.tyreTemp)||0)+'°C');
       setText('#brake-temp-value', Math.round(Number(live.brakeTemp)||0)+'°C');
       setText('#fuel-flow-value', (Number(live.fuelFlow)||0).toFixed(2)+'%/MIN');
-      setText('#pit-button', pitPhase ? (pitPhase==='service'?'IN BOX':'PIT '+pitPhase.toUpperCase()) : 'BOX ↗');
-      setDisabled('#pit-button', state!=='running');
+      const driveThru = !!(penalties && penalties.pendingDriveThrough);
+      setText('#pit-button', pitPhase ? (pitPhase==='service'?'IN BOX':(driveThru||pitPhase==='entry'&&driveThruActive?'DRIVE-THRU':'PIT '+pitPhase.toUpperCase())) : (driveThru ? 'DRIVE-THRU ↗' : 'BOX ↗'));
+      setDisabled('#pit-button', state!=='running' || (!!raceControl && !raceControl.pitsOpen));
+      setFlag('#pit-button', 'is-penalty', driveThru);
+      updateRaceControlHud(raceControl, penalties, retired, state);
       animateHud({ playerPosition: playerPosition || position, displayGear, lastLap, lastLapMs, bestLapMs, fuel, tireWear, damage, state });
     }
     audio.update(rpm, throttle ?? 0, gear, state === 'running', { skid: skid ?? 0, rain: weather?.rain ?? 0 });
@@ -352,7 +378,7 @@ const game = createGame(canvas, {
       if (state !== 'running' || now - lastLeaderboardRefresh >= 300) {
         leaderboard.innerHTML = raceOrder.map((driver, index) => {
           const ahead = raceOrder[index - 1];
-          const gapLabel = driver.pitTimer > 0 || (driver.isPlayer && pitPhase)
+          const gapLabel = driver.retired ? 'OUT' : driver.pitTimer > 0 || (driver.isPlayer && pitPhase)
             ? 'PIT'
             : formatGap({
               position:index + 1,
@@ -453,7 +479,7 @@ controls = bindControls(game, {
   onTiltReady: ready => { tiltReady = ready; applyPlatform(); }
 });
 const pitDialog=document.querySelector('#pit-dialog');
-document.querySelector('#pit-button').addEventListener('click',()=>{if(game.getState()==='running'){controls.releaseAll();pitDialog.hidden=false;}});
+document.querySelector('#pit-button').addEventListener('click',()=>{if(game.getState()==='running'&&hudValues.get('d#pit-button')!==true&&document.querySelector('#pit-button').textContent.startsWith('DRIVE-THRU')){driveThruActive=true;controls.releaseAll();game.requestDriveThrough();return;}if(game.getState()==='running'){controls.releaseAll();pitDialog.hidden=false;}});
 document.querySelector('#pit-cancel').addEventListener('click',()=>{pitDialog.hidden=true;});
 document.querySelector('#pit-confirm').addEventListener('click',()=>{if(game.requestPit(document.querySelector('#pit-compound').value,Number(document.querySelector('#pit-fuel').value),document.querySelector('#pit-repair').checked))pitDialog.hidden=true;});
 document.querySelector('#pit-fuel').addEventListener('input',event=>{document.querySelector('#fuel-choice').textContent=event.target.value+'%';});

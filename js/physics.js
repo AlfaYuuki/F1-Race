@@ -66,7 +66,8 @@ export function createPhysics() {
       const weatherGrip = clamp(Number(options.weatherGrip) || 1, .5, 1.05);
       const trackGrip = clamp(Number(options.trackGrip) || 1, .5, 1.08);
       const weatherWear = clamp(Number(options.weatherWear) || 1, .8, 1.5);
-      const maxSpeed = options.pitLimiter ? 80 : options.safetyCar ? 125 : options.yellowFlag ? 170 : (this.fuel <= 0 ? 95 : 330 * stats.power);
+      const regulationCap = Number.isFinite(Number(options.speedCap)) && options.speedCap != null ? Math.max(0, Number(options.speedCap)) : null;
+      const maxSpeed = options.pitLimiter ? 80 : regulationCap != null ? Math.min(regulationCap, this.fuel <= 0 ? 95 : 330 * stats.power) : options.safetyCar ? 125 : options.yellowFlag ? 170 : (this.fuel <= 0 ? 95 : 330 * stats.power);
       const speedFactor = 1 - this.speed / (maxSpeed + 30);
       const aeroSetup = this.carConfig.setup?.aero ?? 50;
       const draft = clamp(Number(options.draft) || 0, 0, 1);

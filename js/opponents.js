@@ -1,3 +1,4 @@
+import { retirementHazard, pickRetirementReason } from './regulations.js';
 import { getDriverPersonality, calculatePersonalityPace, calculateTyreWearMultiplier, shouldAttemptOvertake, getDefensiveLaneOffset } from './ai-personalities.js';
 
 const DRIVER_DATA = [
@@ -34,12 +35,14 @@ const RELATIONSHIPS=Object.freeze({
 
 export function createOpponents(lapDistance=4563) {
   let selectedGridPosition=10;
+  let pendingRetirements=[];
   const drivers=DRIVER_DATA.map(data=>({
     ...data, personality:getDriverPersonality(data.id), distance:0, speed:0,
     currentLane:data.lane,targetLane:data.lane,gridPosition:0,launchTimer:0,
     overtakes:0,overtakeTargetId:null,fuel:100,tireWear:0,compound:'MEDIUM',
     pitTimer:0,pitStops:0,pressure:0,mistakes:0,relationshipMemory:Object.create(null),
-    mistakeCooldown:0,defending:false,stintLaps:0
+    mistakeCooldown:0,defending:false,stintLaps:0,
+    retired:false,retiredReason:null,parked:false,retireClock:0,fresh:false
   }));
 
   function findTrafficAhead(driver,traffic) {
@@ -88,9 +91,36 @@ export function createOpponents(lapDistance=4563) {
   function update(dt,playerDistance,curveAt,weather={}) {
     const step=clamp(Number(dt)||0,0,.1);
     if(!step)return getStandings(playerDistance);
-    const traffic=[{id:'player',distance:Number(playerDistance)||0,currentLane:Number(weather.playerLane)||0},...drivers];
-    const neutralised=!!(weather.yellowFlag||weather.safetyCar);
+    const traffic=[{id:'player',distance:Number(playerDistance)||0,currentLane:Number(weather.playerLane)||0},...drivers.filter(d=>!d.parked)];
+    const rc=weather.raceControl||null;
+    const neutralised=rc?!!rc.neutralised||!!rc.yellow||!!rc.doubleYellow:!!(weather.yellowFlag||weather.safetyCar);
+    const cap=rc?(rc.cap==null?285:rc.cap):weather.safetyCar?145:weather.yellowFlag?170:285;
+    const halted=!!rc&&rc.cap===0;
+    const retirementsOn=!!rc&&weather.retirements!==false&&weather.raceElapsed>25;
     for(const driver of drivers) {
+      if(driver.retired) {
+        // A failed car coasts to a stop, then marshals recover it and it leaves the track.
+        driver.speed=Math.max(0,driver.speed-step*(driver.retiredReason==='BRAKE FAILURE'?30:60));
+        driver.distance+=driver.speed/3.6*step;
+        driver.retireClock+=step;
+        if(!driver.parked&&driver.speed<=.5&&driver.retireClock>14){driver.parked=true;driver.collisionEnabled=false;}
+        continue;
+      }
+      if(halted) {
+        driver.speed=Math.max(0,driver.speed-step*95);
+        driver.distance+=driver.speed/3.6*step;
+        driver.launchTimer=.2+(1-driver.skill)*.7;
+        continue;
+      }
+      if(retirementsOn&&driver.launchTimer===0&&driver.pitTimer===0) {
+        const hazard=retirementHazard({tireWear:driver.tireWear,mistakes:driver.mistakes,risk:driver.personality.risk});
+        if(Math.random()<hazard*step*(weather.retirementScale??1)) {
+          const failure=pickRetirementReason();
+          driver.retired=true;driver.retiredReason=failure.reason;driver.retireSeverity=failure.severity;driver.retireClock=0;
+          pendingRetirements.push({id:driver.id,name:driver.name,reason:failure.reason,severity:failure.severity,distance:driver.distance});
+          continue;
+        }
+      }
       driver.mistakeCooldown=Math.max(0,driver.mistakeCooldown-step);
       if(driver.launchTimer>0) {
         driver.launchTimer=Math.max(0,driver.launchTimer-step);
@@ -113,7 +143,7 @@ export function createOpponents(lapDistance=4563) {
       driver.tireWear=clamp(driver.tireWear+step*wearBase*(Number(weather.wear)||1)*calculateTyreWearMultiplier(driver.personality),0,100);
       const newStint=Math.floor(driver.distance/lapDistance);
       if(newStint>driver.stintLaps)driver.stintLaps=newStint;
-      const pit=pitDecision(driver,weather);
+      const pit=(rc&&!rc.pitsOpen)?null:pitDecision(driver,weather)||(rc&&rc.neutralised&&!driver.pitUnderSC&&driver.tireWear>=40&&driver.pitStops<2&&(weather.totalLaps*lapDistance-driver.distance)>lapDistance*3?(driver.pitUnderSC=true,{reason:'neutralised',compound:weather.rain>=.58?'INTER':driver.personality.tyreCare>.88?'HARD':'MEDIUM'}):null);
       if(pit) {
         driver.pitTimer=5.8+(1-driver.skill)*2.2;
         driver.speed=Math.max(0,driver.speed*.35);
@@ -162,7 +192,7 @@ export function createOpponents(lapDistance=4563) {
       const cornerPenalty=curve*(15+(1-driver.skill)*27)*(1.08-driver.personality.consistency*.12);
       const wearPenalty=driver.tireWear*.13;
       const pressurePenalty=driver.pressure*(1-driver.personality.consistency)*2.2;
-      const safePace=weather.safetyCar?145:weather.yellowFlag?170:285;
+      const safePace=cap;
       let targetSpeed=clamp(driver.pace+rhythm+draftBonus-cornerPenalty-surfacePenalty-wetPenalty-wearPenalty-pressurePenalty,125,safePace);
 
       // Deterministic, infrequent pressure errors: no random frame-to-frame jitter.
@@ -178,6 +208,8 @@ export function createOpponents(lapDistance=4563) {
       if(relationship&&ahead.gap<16) {
         driver.relationshipMemory[ahead.id]=(driver.relationshipMemory[ahead.id]||0)+step;
       }
+      if(rc&&rc.bunch&&ahead&&ahead.gap<26)targetSpeed=Math.min(targetSpeed,Math.max(60,(Number(ahead.speed)||targetSpeed)*(ahead.gap<14?.82:.96)));
+      if(rc&&rc.overtaking===false){driver.overtakeTargetId=null;}
       driver.speed+=(targetSpeed-driver.speed)*Math.min(1,step*(1.1+driver.skill*1.5));
       const previousDistance=driver.distance;
       driver.distance+=driver.speed/3.6*step;
@@ -208,9 +240,23 @@ export function createOpponents(lapDistance=4563) {
       d.launchTimer=.16+(1-d.skill)*.62;d.overtakes=0;d.overtakeTargetId=null;
       d.fuel=100;d.tireWear=0;d.compound='MEDIUM';d.pitTimer=0;d.pitStops=0;
       d.pressure=0;d.mistakes=0;d.mistakeCooldown=0;d.defending=false;d.stintLaps=0;
-      d.relationshipMemory=Object.create(null);d.pitReason=null;d.pitCompound=null;d.lastMistake=null;
+      d.retired=false;d.retiredReason=null;d.retireSeverity=0;d.parked=false;d.retireClock=0;d.pitUnderSC=false;d.collisionEnabled=true;pendingRetirements=[];d.relationshipMemory=Object.create(null);d.pitReason=null;d.pitCompound=null;d.lastMistake=null;
     }
     return {playerGridPosition:selectedGridPosition,grid:getStandings(0)};
   }
-  return {drivers,update,getStandings,reset};
+  function drainRetirements() { const out=pendingRetirements; pendingRetirements=[]; return out; }
+  // Is a stopped (not yet recovered) car still blocking the track?
+  function blockingCar() { return drivers.find(d=>d.retired&&!d.parked&&d.retireSeverity>=2)||null; }
+  // Red-flag restart: cars re-form on the grid in running order behind the leader.
+  function formUpGrid(playerDistance,spacing=8) {
+    const field=getStandings(playerDistance).filter(c=>c.isPlayer||!drivers.find(d=>d.id===c.id)?.retired);
+    const leader=field[0].distance;let playerNew=playerDistance;
+    field.forEach((car,i)=>{
+      const newDistance=leader-i*spacing;
+      if(car.isPlayer)playerNew=newDistance;
+      else{const d=drivers.find(x=>x.id===car.id);d.distance=newDistance;d.speed=0;d.currentLane=i%2?.42:-.42;d.targetLane=d.currentLane;d.launchTimer=.16+(1-d.skill)*.62;d.pitTimer=0;d.pitUnderSC=false;}
+    });
+    return {playerDistance:playerNew,gridSlot:field.findIndex(c=>c.isPlayer)+1};
+  }
+  return {drivers,update,getStandings,reset,drainRetirements,blockingCar,formUpGrid};
 }

@@ -168,3 +168,12 @@ The final checks should still be run in a real browser and on a physical Android
 - Added seven unlockable achievements, including debut, first points, podium, victory, rivalry and championship honours.
 - Career progress is included in local save backups and validated on restore.
 - Released as V1.27.0 with PWA shell cache v38.
+
+## V1.29.0 — Milestone 29: Professional Race Control & Regulations
+
+- Race control state machine: yellow, double yellow, Virtual Safety Car, Safety Car (bunch-up, restart at the line) and red flag with a standing restart and free tyre change.
+- Incidents come from retirements, contact and heavy rain; severity picks the response.
+- Penalties: track limits (two warnings, then +5 s), speeding and overtaking under neutralisation, jump starts, at-fault collisions, drive-throughs (served via the BOX button, converted to +20 s if unserved).
+- Randomised lights-out and jump-start detection; DNF and mechanical retirements for AI and player; classification applies time penalties and ranks DNFs last.
+- AI obeys flag speed caps, no overtaking, SC bunching, closed pit lane, and may pit under neutralisation.
+- Races only; practice and qualifying keep the simple weather flags. Released with PWA shell cache v41.
