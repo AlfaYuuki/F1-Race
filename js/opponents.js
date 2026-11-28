@@ -125,7 +125,7 @@ export function createOpponents(lapDistance=4563) {
       driver.mistakeCooldown=Math.max(0,driver.mistakeCooldown-step);
       if(driver.launchTimer>0) {
         driver.launchTimer=Math.max(0,driver.launchTimer-step);
-        driver.speed=Math.min(driver.pace*.72,driver.speed+step*95);
+        driver.speed=Math.min(driver.pace*.72,driver.speed+step*95,cap);
         driver.distance+=driver.speed/3.6*step;
         continue;
       }
@@ -194,7 +194,7 @@ export function createOpponents(lapDistance=4563) {
       const wearPenalty=driver.tireWear*.13;
       const pressurePenalty=driver.pressure*(1-driver.personality.consistency)*2.2;
       const safePace=cap;
-      let targetSpeed=clamp(driver.pace+rhythm+draftBonus-cornerPenalty-surfacePenalty-wetPenalty-wearPenalty-pressurePenalty,125,safePace);
+      let targetSpeed=clamp(driver.pace+rhythm+draftBonus-cornerPenalty-surfacePenalty-wetPenalty-wearPenalty-pressurePenalty,Math.min(125,safePace),safePace);
 
       // Deterministic, infrequent pressure errors: no random frame-to-frame jitter.
       const phase=Math.floor(driver.distance/95)+driver.id.length*17;

@@ -4,6 +4,7 @@ import { createOpponents } from '../js/opponents.js';
 import { createRaceControl, MODE, SEVERITY, RULES } from '../js/race-control.js';
 import { createRaceLog, classify, createPenaltyLedger } from '../js/regulations.js';
 import { LAP_DISTANCE, curveAt } from '../js/track.js';
+import { createPhysics } from '../js/physics.js';
 
 const seeded = (seed = 11) => () => (seed = (seed * 16807) % 2147483647) / 2147483647;
 const field = () => { const o = createOpponents(LAP_DISTANCE); o.reset(10); return o; };
@@ -189,4 +190,23 @@ test('race log records and filters history', () => {
   log.add('flag', 'YELLOW'); log.add('penalty', '+5S'); log.add('flag', 'GREEN'); log.add('decision', 'FINAL');
   assert.equal(log.length, 3);
   assert.deepEqual(log.entries('flag').map(e => e.text), ['GREEN']);
+});
+
+test('green-flag physics stays unrestricted when no regulatory cap is active, and a zero cap stops the car', () => {
+  for (const cap of [null, undefined]) {
+    const p = createPhysics();
+    for (let i = 0; i < 300; i++) p.update(.05, new Set(['accelerate']), 0, 0, { speedCap: cap });
+    assert.ok(p.speed > 200, `speed ${p.speed} with cap ${cap}`);
+  }
+  const q = createPhysics();
+  for (let i = 0; i < 100; i++) q.update(.05, new Set(['accelerate']), 0, 0, {});
+  q.update(.05, new Set(['accelerate']), 0, 0, { speedCap: 0 });
+  assert.equal(q.speed, 0);
+});
+
+test('AI obey the double-yellow cap even though it is below the normal minimum pace, including on launch', () => {
+  const o = field();
+  const rc = { neutralised: true, cap: 120, overtaking: false, pitsOpen: true, yellow: true, doubleYellow: true };
+  for (let i = 0; i < 400; i++) o.update(.05, 0, curveAt, { totalLaps: 10, raceControl: rc, raceElapsed: 5, retirements: false });
+  assert.ok(Math.max(...o.drivers.map(d => d.speed)) <= 120.5, 'no car above 120 km/h');
 });

@@ -19,7 +19,7 @@ if (missingMenuControls.length) throw new Error(`Required menu controls are miss
 if (!declared.has('quick-race-laps') || !main.includes('quickRaceLapsSelect')) throw new Error('Quick Race lap selector is missing or not wired.');
 for (let lap = 1; lap <= 10; lap++) if (!html.includes('value="' + lap + '"')) throw new Error('Quick Race lap selector is missing option ' + lap + '.');
 
-const modules = ['graphics-effects.js','track-evolution.js','collision.js','race-start.js','main.js','game.js','renderer.js','renderer2d.js','physics.js','track.js','opponents.js','controls.js','platform.js','audio.js','championship.js','garage.js','weather.js','data-manager.js','race-engineer.js','ai-personalities.js','race-weekend.js','career.js','pit-strategy.js','timing.js'];
+const modules = ['race-control.js','regulations.js','graphics-effects.js','track-evolution.js','collision.js','race-start.js','main.js','game.js','renderer.js','renderer2d.js','physics.js','track.js','opponents.js','controls.js','platform.js','audio.js','championship.js','garage.js','weather.js','data-manager.js','race-engineer.js','ai-personalities.js','race-weekend.js','career.js','pit-strategy.js','timing.js'];
 for (const file of modules) {
   const path = resolve(root, 'js', file);
   await access(path);
@@ -71,4 +71,10 @@ const aiTests = await readFile(resolve(root, 'tests/ai-personalities.test.js'), 
 for (const feature of ['AI pit decisions react','AI exposes pressure','neutralisation prevents passing']) {
   if (!aiTests.includes(feature)) throw new Error(`AI regression test is missing: ${feature}`);
 }
+const raceControlSource = await readFile(resolve(root, 'js/race-control.js'), 'utf8');
+for (const feature of ['DOUBLE_YELLOW', 'VSC', 'SAFETY_CAR', 'RED', 'RESTART', 'reportIncident']) if (!raceControlSource.includes(feature)) throw new Error(`Race-control feature is missing: ${feature}`);
+const regulationsSource = await readFile(resolve(root, 'js/regulations.js'), 'utf8');
+for (const feature of ['createPenaltyLedger', 'createTrackLimitMonitor', 'createSpeedingMonitor', 'classify', 'retirementHazard', 'createRaceLog']) if (!regulationsSource.includes(feature)) throw new Error(`Regulations feature is missing: ${feature}`);
+const m29Tests = await readFile(resolve(root, 'tests/milestone-29.test.js'), 'utf8') + await readFile(resolve(root, 'tests/race-control.test.js'), 'utf8');
+for (const feature of ['red flag', 'formation lap', 'drive-through', 'AI obey', 'track limits', 'classification']) if (!m29Tests.includes(feature)) throw new Error(`Race-control regression test is missing: ${feature}`);
 console.log(`Validated ${ids.length} unique HTML IDs, ${modules.length} JavaScript modules, AI feature gates and all relative imports.`);
