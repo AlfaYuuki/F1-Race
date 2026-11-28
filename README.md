@@ -177,3 +177,4 @@ The final checks should still be run in a real browser and on a physical Android
 - Randomised lights-out and jump-start detection; DNF and mechanical retirements for AI and player; classification applies time penalties and ranks DNFs last.
 - AI obeys flag speed caps, no overtaking, SC bunching, closed pit lane, and may pit under neutralisation.
 - Races only; practice and qualifying keep the simple weather flags. Released with PWA shell cache v41.
+- A rolling formation phase precedes race lights; a Safety Car is visible ahead of the leader while deployed; the layout gate now blocks web fonts so it runs offline.

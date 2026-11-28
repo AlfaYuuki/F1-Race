@@ -22,7 +22,7 @@ export function createGame(canvas,callbacks={}) {
   let lapElapsed=0,lastLap=null,bestLap=null,sector=1,sectorElapsed=0,playerHasLaunched=false;
   let lastGear=1,shiftAt=-9999,steerAxis=0,pitPhase=null,pitTimer=0,pitPlan=null,currentWeather=weatherSystem.getState(),lastYellow=false,lastSafetyCar=false;
   // Race control & regulations (races only; practice and qualifying keep the simple weather flags).
-  let regsOn=false,rcSnap=raceControl.snapshot(),overtakeSigns={},overtakeCooldown=0,overtakeWarned=false,collisionCooldown=0,atFaultCollisions=0,speedingOffences=0,neutralAge=0,lastRcMode='green',blockerSeen=false,playerRetired=null,jumpStart=false,startLights=0,raceClock=0,flagFlash=0;
+  let formation=false,regsOn=false,rcSnap=raceControl.snapshot(),overtakeSigns={},overtakeCooldown=0,overtakeWarned=false,collisionCooldown=0,atFaultCollisions=0,speedingOffences=0,neutralAge=0,lastRcMode='green',blockerSeen=false,playerRetired=null,jumpStart=false,startLights=0,raceClock=0,flagFlash=0;
   const notify=message=>callbacks.onMessage?.(message);
   const penalise=(seconds,reason)=>{penalties.addTime(seconds,reason);notify('+'+seconds+'S PENALTY — '+reason);callbacks.onPenalty?.(penalties.summary());flagFlash=1;};
   function retirePlayer(reason){
@@ -107,18 +107,19 @@ export function createGame(canvas,callbacks={}) {
     // A new session must never inherit a held key, touch button or steering axis.
     input.clear();steerAxis=0;
     cancelAnimationFrame(raf);clearInterval(countdownTimer);state='countdown';raceStartGate.begin();physics.reset();renderer.resetEffects?.();weatherSystem.reset();currentWeather=weatherSystem.getState();lastYellow=false;lastSafetyCar=false;regsOn=sessionType==='race';raceControl.reset();penalties.reset();trackLimits.reset();speedingMonitor.reset();rcSnap=raceControl.snapshot();overtakeSigns={};overtakeCooldown=0;overtakeWarned=false;collisionCooldown=0;atFaultCollisions=0;speedingOffences=0;neutralAge=0;lastRcMode='green';blockerSeen=false;playerRetired=null;jumpStart=false;startLights=0;raceClock=0;flagFlash=0;callbacks.onWeather?.(currentWeather);trackEvolution.reset(currentWeather.temperature);elapsed=0;raceDistance=0;lap=1;hudAccumulator=0;weatherAccumulator=0;collisionDetector.reset();impactPulse=0;opponents.reset(playerGridPosition, options.gridOrder);playerHasLaunched=false;lapElapsed=0;lastLap=null;bestLap=null;sector=1;sectorElapsed=0;pitPhase=null;pitPlan=null;
-    callbacks.onPitService?.(false);notify(sessionType==='race'?'FORMATION LAP COMPLETE — CARS ON THE GRID':'GET READY');let count=5;const countdown=document.querySelector('#countdown');countdown.hidden=false;countdown.classList.add('active');countdown.dataset.lit='0';countdown.textContent='';
+    callbacks.onPitService?.(false);notify(sessionType==='race'?'FORMATION LAP — WEAVE AND WARM THE TYRES':'GET READY');if(sessionType==='race')raf=requestAnimationFrame(formationFrame);let count=sessionType==='race'?14:5;formation=sessionType==='race';const countdown=document.querySelector('#countdown');countdown.hidden=false;countdown.classList.add('active');countdown.dataset.lit='0';countdown.textContent='';
     callbacks.onStart?.();callbacks.onWeather?.(currentWeather);updateHud();
     let hold=0;
     countdownTimer=setInterval(()=>{count--;
-      if(count>0){startLights=5-count;countdown.dataset.lit=String(startLights);countdown.setAttribute('aria-label',String(startLights)+' of 5 start lights');}
+      if(count>=5){if(count===5){formation=false;notify('FORMATION LAP COMPLETE — CARS ON THE GRID');}}
+      else if(count>0){startLights=5-count;countdown.dataset.lit=String(startLights);countdown.setAttribute('aria-label',String(startLights)+' of 5 start lights');}
       else if(count===0){startLights=5;countdown.dataset.lit='5';countdown.setAttribute('aria-label','5 of 5 start lights — wait for lights out');hold=1+Math.floor(Math.random()*3);}
       else if(hold>1&&regsOn){hold--;}
       else{
         clearInterval(countdownTimer);
         countdown.dataset.lit='0';countdown.textContent='GO!';countdown.setAttribute('aria-label','Lights out, go');
         setTimeout(()=>{if(state==='running'){countdown.textContent='';countdown.removeAttribute('aria-label');countdown.classList.remove('active');countdown.hidden=true;}},650);
-        input.clear();steerAxis=0;raceStartGate.release();state='running';notify('LIGHTS OUT — RACE ON!');
+        input.clear();steerAxis=0;raceStartGate.release();state='running';formation=false;notify('LIGHTS OUT — RACE ON!');
         if(jumpStart){penalise(5,'JUMP START');}
         last=performance.now();raf=requestAnimationFrame(frame);
       }},650);
@@ -221,7 +222,8 @@ export function createGame(canvas,callbacks={}) {
     if(raceDistance>=sessionDistance){raceDistance=sessionDistance;state='finished';finishTimestamp=performance.now();physics.speed=0;pitPhase=null;callbacks.onPitService?.(false);notify(sessionType==='practice'?'PRACTICE COMPLETE':sessionType==='qualifying'?'QUALIFYING COMPLETE':'CHEQUERED FLAG — RACE COMPLETE!');
       if(!finishNotified){finishNotified=true;callbacks.onFinish?.(finishPayload());}}
     lap=Math.max(1,Math.min(sessionLaps,Math.floor(raceDistance/LAP_DISTANCE)+1));  // a car on the grid is still on lap 1
-    const rivalCars=opponents.drivers.map(d=>({...d,relativeDistance:d.distance-raceDistance}));
+    const rivalCars=opponents.drivers.filter(d=>!d.parked).map(d=>({...d,relativeDistance:d.distance-raceDistance}));
+    if(regsOn&&rcSnap.safetyCar){const lead=Math.max(raceDistance,...opponents.drivers.filter(d=>!d.retired).map(d=>d.distance));rivalCars.push({id:'safety-car',name:'SAFETY CAR',color:'#ff9a1f',lane:0,currentLane:0,targetLane:0,speed:Math.min(125,rcSnap.cap||125),distance:lead+34,relativeDistance:lead+34-raceDistance,ghost:true});}
     if(physics.gear!==lastGear){lastGear=physics.gear;shiftAt=now;}
     const steerCommand=Math.max(-1,Math.min(1,(input.has('right')?1:0)-(input.has('left')?1:0)+steerAxis));
     renderer.render({steer:steerCommand,braking:input.has('brake'),accelerating:input.has('accelerate'),shiftAge:now-shiftAt,driftAngle:physics.driftAngle,position:raceDistance/LAP_DISTANCE,playerX:physics.playerX,speed:physics.speed,speedDelta:(physics.speed-previousSpeed)/Math.max(dt,.001),lateralVelocity:physics.lateralVelocity,offRoad:physics.offRoad,running:state==='running',opponents:rivalCars,cameraShake:impactPulse>0?Math.sin(now*.05)*impactPulse*3:0,playerColor,skid:Math.abs(physics.lateralVelocity)>.42,dt,weather:currentWeather,elapsed,raceState:state,finishAge:state==='finished'&&finishTimestamp?Math.max(0,(now-finishTimestamp)/1000):0});
@@ -229,7 +231,13 @@ export function createGame(canvas,callbacks={}) {
     if(hudAccumulator>=.05||state!=='running'){hudAccumulator%=.05;updateHud();}
     if(state==='running')raf=requestAnimationFrame(frame);else if(state==='finished')raf=requestAnimationFrame(idleFrame);
   }
-  function idleFrame(now){if(state==='running'||state==='countdown')return;const finishAge=state==='finished'&&finishTimestamp?Math.max(0,(now-finishTimestamp)/1000):0;renderer.render({position:state==='finished'?raceDistance/LAP_DISTANCE:now/1000*.012,playerX:state==='finished'?physics.playerX:0,speed:0,offRoad:state==='finished'?physics.offRoad:false,running:false,opponents:[],weather:currentWeather,elapsed,raceState:state,finishAge,dt:1/60});raf=requestAnimationFrame(idleFrame);}
+  // Formation phase: the camera rolls around the circuit at pace while the field warms its tyres.
+  function formationFrame(now){
+    if(!formation||state!=='countdown')return;
+    renderer.render({position:now/1000*.045,playerX:Math.sin(now/700)*.45,speed:80,offRoad:false,running:false,opponents:[],weather:currentWeather,elapsed:0,raceState:'countdown',dt:1/60});
+    raf=requestAnimationFrame(formationFrame);
+  }
+  function idleFrame(now){if(state==='running'||state==='countdown')return;const finishAge=state==='finished'&&finishTimestamp?Math.max(0,(now-finishTimestamp)/1000):0;renderer.render({position:state==='finished'?raceDistance/LAP_DISTANCE:now/1000*(formation?.045:.012),playerX:state==='finished'?physics.playerX:0,speed:0,offRoad:state==='finished'?physics.offRoad:false,running:false,opponents:[],weather:currentWeather,elapsed,raceState:state,finishAge,dt:1/60});raf=requestAnimationFrame(idleFrame);}
   function init(){opponents.reset(10);renderer.resize();renderer.render({position:0,playerX:0,speed:0,offRoad:false,running:false,opponents:[]});updateHud();raf=requestAnimationFrame(idleFrame);}
   return {init,start,setInput,setSteerAxis,togglePause,requestPit,requestDriveThrough,setCarConfig:config=>{physics.setCarConfig(config);playerColor=config?.color||'#df3039';},getState:()=>state,getPitPhase:()=>pitPhase};
 }

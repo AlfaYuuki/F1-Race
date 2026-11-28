@@ -1,6 +1,6 @@
 # Responsive cockpit gate: phones, tablets and desktop in both touch and keyboard modes.
 # Run a local server on :8770, then npm run check:layout (Playwright + Chromium required).
-import asyncio, sys, os
+import asyncio, sys, os, re
 from playwright.async_api import async_playwright
 
 OUT=os.environ.get('LAYOUT_OUT','/tmp/layout-shots')
@@ -58,6 +58,7 @@ async def run(only=None,shots=True):
             page=await context.new_page()
             errors=[]
             page.on('pageerror',lambda error:errors.append(str(error)))
+            await page.route(re.compile(r'fonts\.(googleapis|gstatic)'),lambda route:route.abort())
             await page.goto(URL)
             await page.wait_for_timeout(700)
             await page.locator('#platform-android' if mobile else '#platform-windows').click()
