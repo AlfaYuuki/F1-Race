@@ -248,7 +248,13 @@ function retrigger(selector, className) {
 }
 let driveThruActive = false;
 // Race control banner: flag state, speed cap, rule reminders and the penalty ledger.
-function updateRaceControlHud(rc, penalties, retired, state) {
+function updateRaceControlHud(rc, penalties, retired, state, formation) {
+  if (formation) {
+    setHiddenEl('#flag-banner', false);
+    setAttr('#flag-banner', 'data-tone', 'sc'); setAttr('#flag-overlay', 'data-tone', 'green');
+    setText('#flag-title', 'FORMATION LAP'); setText('#flag-detail', 'MAX 150 KM/H · NO OVERTAKING · STOP ON YOUR GRID SLOT'); setText('#flag-penalty', '');
+    return;
+  }
   const seconds = penalties ? penalties.seconds : 0;
   const pending = penalties ? penalties.pendingDriveThrough : 0;
   const show = !!rc && state !== 'ready' && (rc.mode !== 'green' || seconds > 0 || pending > 0 || rc.flash > 0 || retired);
@@ -294,7 +300,7 @@ function animateHud({ playerPosition, displayGear, lastLap, lastLapMs, bestLapMs
 }
 
 const game = createGame(canvas, {
-  onUpdate: ({ speed, rpm, gear, lap, totalLaps = TOTAL_LAPS, sessionType, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, raceControl, penalties, retired, weather, track, throttle, skid, telemetry = {} }) => {
+  onUpdate: ({ speed, rpm, gear, lap, totalLaps = TOTAL_LAPS, sessionType, time, state, position, standings, offRoad, lastLap, bestLap, lastLapMs, bestLapMs, sector, sectorTime, fuel, tireWear, compound, damage, pitStops, pitPhase, raceControl, penalties, retired, formation, weather, track, throttle, skid, telemetry = {} }) => {
     const raceOrder = standings || [];
     const playerPosition = raceOrder.length ? raceOrder.findIndex(driver => driver.isPlayer || driver.id === 'player') + 1 : position;
     const displayGear = speed < 8 ? 'N' : gear;
@@ -353,7 +359,7 @@ const game = createGame(canvas, {
       setText('#pit-button', pitPhase ? (pitPhase==='service'?'IN BOX':(driveThru||pitPhase==='entry'&&driveThruActive?'DRIVE-THRU':'PIT '+pitPhase.toUpperCase())) : (driveThru ? 'DRIVE-THRU ↗' : 'BOX ↗'));
       setDisabled('#pit-button', state!=='running' || (!!raceControl && !raceControl.pitsOpen));
       setFlag('#pit-button', 'is-penalty', driveThru);
-      updateRaceControlHud(raceControl, penalties, retired, state);
+      updateRaceControlHud(raceControl, penalties, retired, state, formation);
       animateHud({ playerPosition: playerPosition || position, displayGear, lastLap, lastLapMs, bestLapMs, fuel, tireWear, damage, state });
     }
     audio.update(rpm, throttle ?? 0, gear, state === 'running', { skid: skid ?? 0, rain: weather?.rain ?? 0 });
@@ -470,6 +476,8 @@ const game = createGame(canvas, {
     document.querySelector('#pause-button').textContent = paused ? '▶' : 'Ⅱ';
   }
 });
+if (new URLSearchParams(location.search).has('e2e')) window.__game = game; // test hook only
+
 
 controls = bindControls(game, {
   getPlatform: () => platform,

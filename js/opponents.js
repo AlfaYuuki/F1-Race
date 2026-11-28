@@ -35,14 +35,15 @@ const RELATIONSHIPS=Object.freeze({
 
 export function createOpponents(lapDistance=4563) {
   let selectedGridPosition=10;
-  let pendingRetirements=[];
+  let pendingRetirements=[],pendingPenalties=[];
   const drivers=DRIVER_DATA.map(data=>({
     ...data, personality:getDriverPersonality(data.id), distance:0, speed:0,
     currentLane:data.lane,targetLane:data.lane,gridPosition:0,launchTimer:0,
     overtakes:0,overtakeTargetId:null,fuel:100,tireWear:0,compound:'MEDIUM',
     pitTimer:0,pitStops:0,pressure:0,mistakes:0,relationshipMemory:Object.create(null),
     mistakeCooldown:0,defending:false,stintLaps:0,
-    retired:false,retiredReason:null,parked:false,retireClock:0,fresh:false
+    retired:false,retiredReason:null,parked:false,retireClock:0,fresh:false,
+    penaltySeconds:0,timePenalty:0,trackLimitCount:0,driveThrough:null,gridDistance:0
   }));
 
   function findTrafficAhead(driver,traffic) {
@@ -204,6 +205,20 @@ export function createOpponents(lapDistance=4563) {
         targetSpeed*=1-severity*.16;
         driver.mistakes++;driver.mistakeCooldown=18;
         driver.lastMistake='LOCKUP';
+        // A lock-up runs the car wide: that is a track-limits violation; every third costs 5 s.
+        driver.trackLimitCount++;
+        if(weather.raceControl&&driver.trackLimitCount%3===0)addPenalty(driver,5,'TRACK LIMITS (3 VIOLATIONS)');
+      }
+      // Drive-through: pending until the car reaches the pit entry, served at the pit-lane limit.
+      const dt0=driver.driveThrough;
+      if(dt0){
+        const lapNo=driver.distance/lapDistance,inPitWindow=(lapNo%1)>.9;
+        if(dt0.state==='pending'&&lapNo>dt0.deadlineLap){driver.driveThrough=null;addPenalty(driver,20,'UNSERVED DRIVE-THROUGH');}
+        else if(dt0.state==='pending'&&inPitWindow&&(!rc||rc.pitsOpen)&&!halted){dt0.state='serving';dt0.timer=4.5;}
+        else if(dt0.state==='serving'){
+          dt0.timer-=step;targetSpeed=Math.min(targetSpeed,80);
+          if(dt0.timer<=0){driver.driveThrough=null;pendingPenalties.push({id:driver.id,name:driver.name,type:'served',reason:dt0.reason});}
+        }
       }
       if(relationship&&ahead.gap<16) {
         driver.relationshipMemory[ahead.id]=(driver.relationshipMemory[ahead.id]||0)+step;
@@ -213,6 +228,8 @@ export function createOpponents(lapDistance=4563) {
       driver.speed+=(targetSpeed-driver.speed)*Math.min(1,step*(1.1+driver.skill*1.5));
       const previousDistance=driver.distance;
       driver.distance+=driver.speed/3.6*step;
+      // Under any neutralisation nobody may pass: a car can never move ahead of the car in front of it.
+      if(rc&&rc.overtaking===false&&ahead&&!ahead.retired&&ahead.id!=='player')driver.distance=Math.min(driver.distance,Math.max(previousDistance,ahead.distance-3));
       if(driver.overtakeTargetId) {
         const target=traffic.find(car=>car.id===driver.overtakeTargetId);
         if(target&&previousDistance<=target.distance&&driver.distance>target.distance) {
@@ -240,9 +257,48 @@ export function createOpponents(lapDistance=4563) {
       d.launchTimer=.16+(1-d.skill)*.62;d.overtakes=0;d.overtakeTargetId=null;
       d.fuel=100;d.tireWear=0;d.compound='MEDIUM';d.pitTimer=0;d.pitStops=0;
       d.pressure=0;d.mistakes=0;d.mistakeCooldown=0;d.defending=false;d.stintLaps=0;
-      d.retired=false;d.retiredReason=null;d.retireSeverity=0;d.parked=false;d.retireClock=0;d.pitUnderSC=false;d.collisionEnabled=true;pendingRetirements=[];d.relationshipMemory=Object.create(null);d.pitReason=null;d.pitCompound=null;d.lastMistake=null;
+      d.penaltySeconds=0;d.timePenalty=0;d.trackLimitCount=0;d.driveThrough=null;pendingPenalties=[];d.retired=false;d.retiredReason=null;d.retireSeverity=0;d.parked=false;d.retireClock=0;d.pitUnderSC=false;d.collisionEnabled=true;pendingRetirements=[];d.relationshipMemory=Object.create(null);d.pitReason=null;d.pitCompound=null;d.lastMistake=null;
     }
     return {playerGridPosition:selectedGridPosition,grid:getStandings(0)};
+  }
+  function addPenalty(driver,seconds,reason) {
+    driver.penaltySeconds+=seconds;driver.timePenalty=driver.penaltySeconds;
+    pendingPenalties.push({id:driver.id,name:driver.name,type:'time',seconds,reason});
+  }
+  function awardDriveThrough(id,reason,currentLap=1,laps=3) {
+    const driver=drivers.find(d=>d.id===id);
+    if(!driver||driver.retired||driver.driveThrough)return false;
+    driver.driveThrough={state:'pending',reason,deadlineLap:currentLap+laps,timer:0};
+    pendingPenalties.push({id,name:driver.name,type:'driveThrough',reason});
+    return true;
+  }
+  function drainPenalties() { const out=pendingPenalties; pendingPenalties=[]; return out; }
+  // ---- Formation lap: cars roll from the start of the final stretch to their grid slots in order.
+  function startFormation(length) {
+    for(const d of drivers) {
+      d.gridDistance=d.distance;d.distance=d.gridDistance-length;d.speed=0;d.launchTimer=0;
+    }
+  }
+  function formationStep(dt,playerDistance,{speed=150}={}) {
+    const step=clamp(Number(dt)||0,0,.1);
+    const cars=[{id:'player',distance:playerDistance,speed:0},...drivers];
+    let settled=true;
+    for(const d of drivers) {
+      const remaining=d.gridDistance-d.distance;
+      if(remaining<=.05){d.distance=d.gridDistance;d.speed=0;continue;}
+      settled=false;
+      let cap=Math.min(speed,3.6*Math.sqrt(2*7*Math.max(0,remaining)));
+      const ahead=cars.filter(c=>c.id!==d.id&&c.distance>d.distance).sort((a,b)=>a.distance-b.distance)[0];
+      if(ahead&&ahead.distance-d.distance<18)cap=Math.min(cap,Math.max(8,(Number(ahead.speed)||0)*.9+(ahead.distance-d.distance-8)*2));
+      d.speed+=clamp(cap-d.speed,-step*38,step*22);
+      d.speed=Math.max(remaining<2?4:0,d.speed);
+      d.distance=Math.min(d.gridDistance,d.distance+d.speed/3.6*step);
+      d.currentLane+=(d.targetLane-d.currentLane)*Math.min(1,step*3);
+    }
+    return {settled};
+  }
+  function finishFormation() {
+    for(const d of drivers){d.distance=d.gridDistance;d.speed=0;d.launchTimer=.16+(1-d.skill)*.62;}
   }
   function drainRetirements() { const out=pendingRetirements; pendingRetirements=[]; return out; }
   // Is a stopped (not yet recovered) car still blocking the track?
@@ -258,5 +314,5 @@ export function createOpponents(lapDistance=4563) {
     });
     return {playerDistance:playerNew,gridSlot:field.findIndex(c=>c.isPlayer)+1};
   }
-  return {drivers,update,getStandings,reset,drainRetirements,blockingCar,formUpGrid};
+  return {drivers,update,getStandings,reset,drainRetirements,drainPenalties,awardDriveThrough,startFormation,formationStep,finishFormation,blockingCar,formUpGrid};
 }

@@ -178,3 +178,11 @@ The final checks should still be run in a real browser and on a physical Android
 - AI obeys flag speed caps, no overtaking, SC bunching, closed pit lane, and may pit under neutralisation.
 - Races only; practice and qualifying keep the simple weather flags. Released with PWA shell cache v41.
 - A rolling formation phase precedes race lights; a Safety Car is visible ahead of the leader while deployed; the layout gate now blocks web fonts so it runs offline.
+
+### Milestone 29 completion pass
+
+- Genuine formation lap: the player and AI drive ~1.4 km at ≤150 km/h to their grid slots in order, then the five-light start with a random hold. Releasing and re-pressing throttle during the lights is a jump start (+5 s); AI can false-start and serve a drive-through.
+- Race clock freezes under red flag; ≥3 stopped cars or a severe crash also trigger a red flag; AI can never pass under a neutralisation.
+- AI penalties (track limits, jump starts, drive-throughs, unserved +20 s) are applied to the final classification together with the player's; DNFs rank last.
+- Race-control event history (flags, incidents, warnings, penalties, retirements, restarts, final decisions) is returned in the finish payload and via `getRaceLog()`.
+- `?e2e` query exposes `window.__game` for browser regression scripts only.

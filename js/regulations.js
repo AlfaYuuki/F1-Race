@@ -105,25 +105,34 @@ export function isJumpStart({ lightsLit = 0, lightsOut = false, throttle = false
 }
 
 // ---- Classification ----------------------------------------------------------------------------
-// Applies the player's time penalty by dropping them behind every classified car that finished
-// within the penalty window; retired cars (DNF) are classified after every finisher.
+// Every classified car is ranked by "adjusted distance": distance covered minus the ground it would
+// cover during its time penalty. Cars carry `timePenalty` (seconds); the player's comes from
+// `penaltySeconds`. On a tie the penalised car ranks behind. Retired cars (DNF) rank after every
+// finisher, ordered by distance completed.
 export function classify(standings, { penaltySeconds = 0, playerSpeedMs = 60 } = {}) {
-  const list = standings.map(d => ({ ...d }));
-  const running = list.filter(d => !d.retired);
+  const speed = Math.max(30, Number(playerSpeedMs) || 60);
+  const list = standings.map(d => {
+    const penalty = d.isPlayer ? Math.max(Number(d.timePenalty) || 0, penaltySeconds) : Math.max(0, Number(d.timePenalty) || 0);
+    return { ...d, timePenalty: penalty, adjusted: (Number(d.distance) || 0) - penalty * speed };
+  });
+  const running = list.filter(d => !d.retired).map((d, order) => ({ d, order }))
+    .sort((a, b) => (b.d.adjusted - a.d.adjusted) || ((a.d.timePenalty > 0) - (b.d.timePenalty > 0)) || (a.order - b.order))
+    .map(x => x.d);
   const retired = list.filter(d => d.retired).sort((a, b) => (b.distance || 0) - (a.distance || 0));
-  const player = running.find(d => d.isPlayer);
-  if (player && penaltySeconds > 0) {
-    const speed = Math.max(30, Number(playerSpeedMs) || 60);
-    const index = running.indexOf(player);
-    let drop = 0;
-    for (let i = index + 1; i < running.length; i++) {
-      const gapSeconds = (player.distance - running[i].distance) / speed;
-      if (gapSeconds <= penaltySeconds) drop++; else break;
-    }
-    if (drop > 0) { running.splice(index, 1); running.splice(index + drop, 0, player); }
-    player.timePenalty = penaltySeconds; player.positionsLost = drop;
-  }
+  const original = standings.filter(d => !d.retired);
+  running.forEach(d => { const was = original.findIndex(o => o.id === d.id); d.positionsLost = Math.max(0, running.indexOf(d) - was); delete d.adjusted; });
   return [...running, ...retired];
+}
+
+// ---- Race-control event history ----------------------------------------------------------------
+export function createRaceLog(limit = 400) {
+  let items = [];
+  return {
+    reset() { items = []; },
+    add(type, text, meta = {}) { items.push({ type, text: String(text), ...meta }); if (items.length > limit) items.shift(); return items.length; },
+    entries(filter) { return items.filter(e => !filter || e.type === filter).map(e => ({ ...e })); },
+    get length() { return items.length; }
+  };
 }
 
 // ---- Mechanical retirements --------------------------------------------------------------------
